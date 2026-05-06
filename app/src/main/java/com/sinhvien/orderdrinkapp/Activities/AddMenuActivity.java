@@ -226,10 +226,16 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 String actionMon = (mamon != 0) ? "edit" : "add";
                 String imageBase64Mon = imageToBase64(img_add_DishImage);
 
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddMenuActivity.this);
+                progressDialog.setMessage("Đang xử lý...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 ApiService apiServiceMon = ApiClient.getClient().create(ApiService.class);
                 apiServiceMon.manageDish(actionMon, mamon, sTenMon, sGiaTien, maloai, sTinhTrang, imageBase64Mon).enqueue(new Callback<OrderResponse>() {
                     @Override
                     public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful() && response.body() != null) {
                             OrderResponse res = response.body();
@@ -249,6 +255,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
  
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

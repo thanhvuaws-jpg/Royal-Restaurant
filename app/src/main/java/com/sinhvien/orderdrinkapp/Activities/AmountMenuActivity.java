@@ -67,11 +67,17 @@ public class AmountMenuActivity extends AppCompatActivity {
 
                 int sluong = Integer.parseInt(txtl_amount_Quantity.getEditText().getText().toString());
                 
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AmountMenuActivity.this);
+                progressDialog.setMessage("Đang xử lý...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 // Gửi món ăn lên Cloud
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 apiService.addOrderDetail(madondatCloud, mamon, sluong).enqueue(new Callback<OrderResponse>() {
                     @Override
                     public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                             Toast.makeText(AmountMenuActivity.this, "Đã gọi món lên Cloud!", Toast.LENGTH_SHORT).show();
@@ -83,6 +89,7 @@ public class AmountMenuActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

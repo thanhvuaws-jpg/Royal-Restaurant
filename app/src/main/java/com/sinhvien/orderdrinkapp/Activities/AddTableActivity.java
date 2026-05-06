@@ -51,10 +51,16 @@ public class AddTableActivity extends AppCompatActivity {
                 String sTenBanAn = TXTL_addtable_TableName.getEditText().getText().toString();
                 String action = (maban != 0) ? "edit" : "add";
 
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddTableActivity.this);
+                progressDialog.setMessage("Đang xử lý...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 apiService.manageTable(action, maban, sTenBanAn).enqueue(new Callback<OrderResponse>() {
                     @Override
                     public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful()) {
                             setResult(RESULT_OK);
@@ -64,6 +70,7 @@ public class AddTableActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddTableActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

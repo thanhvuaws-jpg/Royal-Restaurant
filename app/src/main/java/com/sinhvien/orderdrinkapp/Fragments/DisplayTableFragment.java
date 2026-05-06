@@ -106,24 +106,41 @@ public class DisplayTableFragment extends Fragment {
                 break;
 
             case R.id.itDelete:
-                ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                apiService.manageTable("delete", maban, "").enqueue(new Callback<OrderResponse>() {
-                    @Override
-                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                        if (!isAdded() || getActivity() == null) return;
-                        if (response.isSuccessful()) {
-                            HienThiDSBan();
-                            Toast.makeText(getActivity(), getActivity().getResources().getString(R.string.delete_sucessful), Toast.LENGTH_SHORT).show();
-                        }
-                    }
+                new android.app.AlertDialog.Builder(getActivity())
+                    .setTitle("Xác nhận xóa")
+                    .setMessage("Bạn có chắc chắn muốn xóa bàn này?")
+                    .setPositiveButton("Xóa", new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getActivity());
+                            progressDialog.setMessage("Đang xóa...");
+                            progressDialog.setCancelable(false);
+                            progressDialog.show();
 
-                    @Override
-                    public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        if (isAdded() && getActivity() != null) {
-                            Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                            apiService.manageTable("delete", maban, "").enqueue(new Callback<OrderResponse>() {
+                                @Override
+                                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                                    if (!isAdded() || getActivity() == null) return;
+                                    if (response.isSuccessful()) {
+                                        HienThiDSBan();
+                                        Toast.makeText(getActivity(), getActivity().getResources().getString(R.string.delete_sucessful), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+
+                                @Override
+                                public void onFailure(Call<OrderResponse> call, Throwable t) {
+                                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                                    if (isAdded() && getActivity() != null) {
+                                        Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
                         }
-                    }
-                });
+                    })
+                    .setNegativeButton("Hủy", null)
+                    .show();
                 break;
         }
         return super.onContextItemSelected(item);

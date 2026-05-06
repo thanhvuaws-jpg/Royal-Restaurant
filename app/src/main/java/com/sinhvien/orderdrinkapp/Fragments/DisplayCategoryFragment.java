@@ -158,26 +158,43 @@ public class DisplayCategoryFragment extends Fragment {
             resultLauncherCategory.launch(iEdit);
             return true;
         } else if (id == R.id.itDelete) {
-            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            apiService.manageCategory("delete", maloai, "", "").enqueue(new Callback<OrderResponse>() {
-                @Override
-                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                    if (!isAdded() || getActivity() == null) return;
-                    if (response.isSuccessful()) {
-                        HienThiDSLoai();
-                        Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(getActivity(), R.string.delete_failed, Toast.LENGTH_SHORT).show();
-                    }
-                }
+            new android.app.AlertDialog.Builder(getActivity())
+                .setTitle("Xác nhận xóa")
+                .setMessage("Bạn có chắc chắn muốn xóa loại món này?")
+                .setPositiveButton("Xóa", new android.content.DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(android.content.DialogInterface dialog, int which) {
+                        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getActivity());
+                        progressDialog.setMessage("Đang xóa...");
+                        progressDialog.setCancelable(false);
+                        progressDialog.show();
 
-                @Override
-                public void onFailure(Call<OrderResponse> call, Throwable t) {
-                    if (isAdded() && getActivity() != null) {
-                        Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                        apiService.manageCategory("delete", maloai, "", "").enqueue(new Callback<OrderResponse>() {
+                            @Override
+                            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                                if (progressDialog.isShowing()) progressDialog.dismiss();
+                                if (!isAdded() || getActivity() == null) return;
+                                if (response.isSuccessful()) {
+                                    HienThiDSLoai();
+                                    Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
+                                } else {
+                                    Toast.makeText(getActivity(), R.string.delete_failed, Toast.LENGTH_SHORT).show();
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                                if (progressDialog.isShowing()) progressDialog.dismiss();
+                                if (isAdded() && getActivity() != null) {
+                                    Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                }
+                            }
+                        });
                     }
-                }
-            });
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
             return true;
         }
         return super.onContextItemSelected(item);

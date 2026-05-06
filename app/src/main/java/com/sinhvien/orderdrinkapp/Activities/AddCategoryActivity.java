@@ -137,10 +137,16 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 String action = (maloai != 0) ? "edit" : "add";
                 String imageBase64 = imageToBase64(IMG_addcategory_AddImage);
 
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddCategoryActivity.this);
+                progressDialog.setMessage("Đang xử lý...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 apiService.manageCategory(action, maloai, sTenLoai, imageBase64).enqueue(new Callback<OrderResponse>() {
                     @Override
                     public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful()) {
                             Intent intent = new Intent();
@@ -153,6 +159,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

@@ -127,10 +127,16 @@ public class DisplayStaffFragment extends Fragment {
                     .setPositiveButton("Xóa", new android.content.DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(android.content.DialogInterface dialog, int which) {
+                            android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getActivity());
+                            progressDialog.setMessage("Đang xóa...");
+                            progressDialog.setCancelable(false);
+                            progressDialog.show();
+
                             ApiService apiService = ApiClient.getClient().create(ApiService.class);
                             apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<OrderResponse>() {
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                                    if (progressDialog.isShowing()) progressDialog.dismiss();
                                     if (!isAdded() || getActivity() == null) return;
                                     if (response.isSuccessful()) {
                                         HienThiDSNV();
@@ -139,6 +145,7 @@ public class DisplayStaffFragment extends Fragment {
                                 }
                                 @Override
                                 public void onFailure(Call<OrderResponse> call, Throwable t) {
+                                    if (progressDialog.isShowing()) progressDialog.dismiss();
                                     if (isAdded() && getActivity() != null) {
                                         Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                                     }

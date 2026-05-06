@@ -159,10 +159,17 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
 
                 // Cloud logic cho cả Thêm và Sửa
                 String actionStaff = (manv != 0) ? "edit" : "add";
+
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddStaffActivity.this);
+                progressDialog.setMessage("Đang xử lý...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 ApiService apiServiceStaff = ApiClient.getClient().create(ApiService.class);
                 apiServiceStaff.manageStaff(actionStaff, manv, hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, quyen).enqueue(new Callback<OrderResponse>() {
                     @Override
                     public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful()) {
                             Intent intent = new Intent();
@@ -175,6 +182,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddStaffActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

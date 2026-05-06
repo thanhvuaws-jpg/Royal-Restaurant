@@ -70,12 +70,18 @@ public class Register2ndActivity extends AppCompatActivity {
                 String ngaySinh = DT_signup2nd_DOB.getYear() + "-" + (DT_signup2nd_DOB.getMonth() + 1)
                         + "-" + DT_signup2nd_DOB.getDayOfMonth();
 
+                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(Register2ndActivity.this);
+                progressDialog.setMessage("Đang xử lý...");
+                progressDialog.setCancelable(false);
+                progressDialog.show();
+
                 // Gửi dữ liệu đăng ký lên Cloud
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 Call<StaffResponse> apiStaffResponseCall = apiService.addStaff(hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, 0);
                 apiStaffResponseCall.enqueue(new Callback<StaffResponse>() {
                     @Override
                     public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                             Toast.makeText(Register2ndActivity.this, "Đăng ký thành công lên Cloud!", Toast.LENGTH_SHORT).show();
@@ -88,6 +94,7 @@ public class Register2ndActivity extends AppCompatActivity {
 
                     @Override
                     public void onFailure(Call<StaffResponse> call, Throwable t) {
+                        if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(Register2ndActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
