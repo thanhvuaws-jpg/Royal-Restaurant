@@ -89,14 +89,7 @@ public class DisplayCategoryFragment extends Fragment {
         view = inflater.inflate(R.layout.displaycategory_layout, container, false);
         setHasOptionsMenu(true);
         gv_category_CategoryList = (GridView) view.findViewById(R.id.gv_category_CategoryList);
-        view.findViewById(R.id.img_category_Back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
-            }
-        });
+
         fragmentManager = getActivity().getSupportFragmentManager();
         HienThiDSLoai();
 

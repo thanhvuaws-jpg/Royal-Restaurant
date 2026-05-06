@@ -85,13 +85,6 @@ public class DisplayStaffFragment extends Fragment {
 
         gvStaff = (GridView)view.findViewById(R.id.gvStaff) ;
         
-        // Bắt sự kiện nút quay lại custom
-        view.findViewById(R.id.img_staff_Back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getActivity().getSupportFragmentManager().popBackStack();
-            }
-        });
 
         HienThiDSNV();
 

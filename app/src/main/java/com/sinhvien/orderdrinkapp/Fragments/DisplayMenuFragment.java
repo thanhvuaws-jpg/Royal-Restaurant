@@ -90,14 +90,7 @@ public class DisplayMenuFragment extends Fragment {
             ((HomeActivity) getActivity()).getSupportActionBar().setTitle(R.string.nav_menu);
         }
         gv_menu_DishList = (GridView) view.findViewById(R.id.gv_menu_DishList);
-        view.findViewById(R.id.img_menu_Back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
-            }
-        });
+
         
         Bundle bundle = getArguments();
         if (bundle != null) {

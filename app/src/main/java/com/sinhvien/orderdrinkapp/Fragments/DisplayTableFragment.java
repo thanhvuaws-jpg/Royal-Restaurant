@@ -60,14 +60,7 @@ public class DisplayTableFragment extends Fragment {
         ((HomeActivity)getActivity()).getSupportActionBar().setTitle("Quản lý bàn");
 
         gvDisplayTable = view.findViewById(R.id.gvDisplayTable);
-        view.findViewById(R.id.img_table_Back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
-            }
-        });
+
 
         // HienThiDSBan() is called in onResume() instead of here
 

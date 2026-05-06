@@ -87,14 +87,6 @@ public class DisplayStatisticFragment extends Fragment {
         txt_statistic_AvgOrder      = view.findViewById(R.id.txt_statistic_AvgOrder);
         chipGroup_statistic_Filter  = view.findViewById(R.id.chipGroup_statistic_Filter);
 
-        view.findViewById(R.id.img_statistic_Back).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (getActivity() != null) {
-                    getActivity().onBackPressed();
-                }
-            }
-        });
 
         tatCaDonDat = new ArrayList<>(); // Khởi tạo trống để tránh crash khi chưa có dữ liệu
         HienThiDSThongKe();

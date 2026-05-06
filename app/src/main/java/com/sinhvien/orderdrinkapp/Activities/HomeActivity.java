@@ -99,6 +99,20 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                         }
                     });
                 }
+
+                // Cập nhật lại màu tô của NavigationView khi bấm Back
+                androidx.fragment.app.Fragment currentFragment = fragmentManager.findFragmentById(R.id.contentView);
+                if (currentFragment instanceof DisplayHomeFragment) {
+                    navigationView.setCheckedItem(R.id.nav_home);
+                } else if (currentFragment instanceof DisplayStatisticFragment) {
+                    navigationView.setCheckedItem(R.id.nav_statistic);
+                } else if (currentFragment instanceof DisplayTableFragment) {
+                    navigationView.setCheckedItem(R.id.nav_table);
+                } else if (currentFragment instanceof DisplayCategoryFragment) {
+                    navigationView.setCheckedItem(R.id.nav_category);
+                } else if (currentFragment instanceof DisplayStaffFragment) {
+                    navigationView.setCheckedItem(R.id.nav_staff);
+                }
             }
         });
 
