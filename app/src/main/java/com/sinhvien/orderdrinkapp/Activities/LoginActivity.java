@@ -44,7 +44,14 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
         SharedPreferences sharedPreferences = getSharedPreferences("remember_login", Context.MODE_PRIVATE);
         String user = sharedPreferences.getString("username", "");
-        String pass = sharedPreferences.getString("password", "");
+        String encodedPass = sharedPreferences.getString("password", "");
+        String pass = "";
+        try {
+            if (!encodedPass.isEmpty()) {
+                byte[] decodedBytes = android.util.Base64.decode(encodedPass, android.util.Base64.DEFAULT);
+                pass = new String(decodedBytes, "UTF-8");
+            }
+        } catch (Exception e) {}
         boolean isRemember = sharedPreferences.getBoolean("isRemember", false);
 
         if (isRemember) {
@@ -72,12 +79,18 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 return;
             }
 
+            android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+            progressDialog.setMessage("Đang đăng nhập...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+
             final String finalUser = user;
             final String finalPass = pass;
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
             apiService.login(user, pass).enqueue(new Callback<StaffResponse>() {
                 @Override
                 public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                         StaffResponse res = response.body();
@@ -86,8 +99,11 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         SharedPreferences sharedPreferences = getSharedPreferences("remember_login", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         if (cb_login_RememberMe.isChecked()) {
-                            editor.putString("username", finalUser);
-                            editor.putString("password", finalPass);
+                            try {
+                                String encoded = android.util.Base64.encodeToString(finalPass.getBytes("UTF-8"), android.util.Base64.DEFAULT);
+                                editor.putString("username", finalUser);
+                                editor.putString("password", encoded);
+                            } catch (Exception e) {}
                             editor.putBoolean("isRemember", true);
                         } else {
                             editor.clear();
@@ -106,6 +122,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
                 @Override
                 public void onFailure(Call<StaffResponse> call, Throwable t) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(LoginActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }

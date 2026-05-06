@@ -116,11 +116,17 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_payment_Pay) {
+            android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+            progressDialog.setMessage("Đang xử lý thanh toán...");
+            progressDialog.setCancelable(false);
+            progressDialog.show();
+
             // THANH TOÁN LÊN CLOUD
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
             apiService.checkoutOrder(madondat, tongtien).enqueue(new Callback<OrderResponse>() {
                 @Override
                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                         HienThiHoaDon();
@@ -131,6 +137,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
 
                 @Override
                 public void onFailure(Call<OrderResponse> call, Throwable t) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }

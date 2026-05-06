@@ -67,8 +67,8 @@ public class Register2ndActivity extends AppCompatActivity {
                     case R.id.rd_signup2nd_Other:
                         gioiTinh = "Khác"; break;
                 }
-                String ngaySinh = DT_signup2nd_DOB.getDayOfMonth() + "/" + (DT_signup2nd_DOB.getMonth() + 1)
-                        +"/"+DT_signup2nd_DOB.getYear();
+                String ngaySinh = DT_signup2nd_DOB.getYear() + "-" + (DT_signup2nd_DOB.getMonth() + 1)
+                        + "-" + DT_signup2nd_DOB.getDayOfMonth();
 
                 // Gửi dữ liệu đăng ký lên Cloud
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);

@@ -121,23 +121,33 @@ public class DisplayStaffFragment extends Fragment {
                 break;
 
             case R.id.itDelete:
-                ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<OrderResponse>() {
-                    @Override
-                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                        if (!isAdded() || getActivity() == null) return;
-                        if (response.isSuccessful()) {
-                            HienThiDSNV();
-                            Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
+                new androidx.appcompat.app.AlertDialog.Builder(getActivity())
+                    .setTitle("Xóa nhân viên")
+                    .setMessage("Bạn có chắc chắn muốn xóa nhân viên này không?")
+                    .setPositiveButton("Xóa", new android.content.DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(android.content.DialogInterface dialog, int which) {
+                            ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                            apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<OrderResponse>() {
+                                @Override
+                                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                                    if (!isAdded() || getActivity() == null) return;
+                                    if (response.isSuccessful()) {
+                                        HienThiDSNV();
+                                        Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                                @Override
+                                public void onFailure(Call<OrderResponse> call, Throwable t) {
+                                    if (isAdded() && getActivity() != null) {
+                                        Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
                         }
-                    }
-                    @Override
-                    public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        if (isAdded() && getActivity() != null) {
-                            Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
+                    })
+                    .setNegativeButton("Hủy", null)
+                    .show();
                 return true;
         }
 

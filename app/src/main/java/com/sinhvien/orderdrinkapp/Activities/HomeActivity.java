@@ -122,36 +122,46 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.nav_home) {
+            String tag = "HomeFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new DisplayHomeFragment();
             FragmentTransaction tranDisplayHome = fragmentManager.beginTransaction();
-            DisplayHomeFragment displayHomeFragment = new DisplayHomeFragment();
-            tranDisplayHome.replace(R.id.contentView,displayHomeFragment);
+            tranDisplayHome.replace(R.id.contentView,fragment, tag);
             tranDisplayHome.commit();
             drawerLayout.closeDrawers();
         } else if (id == R.id.nav_statistic) {
+            String tag = "StatisticFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new DisplayStatisticFragment();
             FragmentTransaction tranDisplayStatistic = fragmentManager.beginTransaction();
-            DisplayStatisticFragment displayStatisticFragment = new DisplayStatisticFragment();
-            tranDisplayStatistic.replace(R.id.contentView,displayStatisticFragment);
+            tranDisplayStatistic.replace(R.id.contentView,fragment, tag);
             tranDisplayStatistic.addToBackStack(null);
             tranDisplayStatistic.commit();
             drawerLayout.closeDrawers();
         } else if (id == R.id.nav_table) {
+            String tag = "TableFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new DisplayTableFragment();
             FragmentTransaction tranDisplayTable = fragmentManager.beginTransaction();
-            DisplayTableFragment displayTableFragment = new DisplayTableFragment();
-            tranDisplayTable.replace(R.id.contentView,displayTableFragment);
+            tranDisplayTable.replace(R.id.contentView,fragment, tag);
             tranDisplayTable.addToBackStack(null);
             tranDisplayTable.commit();
             drawerLayout.closeDrawers();
         } else if (id == R.id.nav_category) {
+            String tag = "CategoryFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new DisplayCategoryFragment();
             FragmentTransaction tranDisplayCategory = fragmentManager.beginTransaction();
-            DisplayCategoryFragment displayCategoryFragment = new DisplayCategoryFragment();
-            tranDisplayCategory.replace(R.id.contentView,displayCategoryFragment);
+            tranDisplayCategory.replace(R.id.contentView,fragment, tag);
             tranDisplayCategory.addToBackStack(null);
             tranDisplayCategory.commit();
             drawerLayout.closeDrawers();
         } else if (id == R.id.nav_staff) {
+            String tag = "StaffFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new DisplayStaffFragment();
             FragmentTransaction tranDisplayStaff = fragmentManager.beginTransaction();
-            DisplayStaffFragment displayStaffFragment = new DisplayStaffFragment();
-            tranDisplayStaff.replace(R.id.contentView,displayStaffFragment);
+            tranDisplayStaff.replace(R.id.contentView,fragment, tag);
             tranDisplayStaff.addToBackStack(null);
             tranDisplayStaff.commit();
             drawerLayout.closeDrawers();

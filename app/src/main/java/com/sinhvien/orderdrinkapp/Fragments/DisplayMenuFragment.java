@@ -262,7 +262,7 @@ public class DisplayMenuFragment extends Fragment {
                         dto.setGiaTien(res.getGiaTien());
                         dto.setHinhAnhUrl(res.getHinhAnh());
                         dto.setMaLoai(res.getMaLoai());
-                        dto.setTinhTrang("true"); // Mặc định là còn hàng
+                        dto.setTinhTrang(res.getTinhTrang());
                         monDTOList.add(dto);
                     }
                     capNhatGiaoDien();

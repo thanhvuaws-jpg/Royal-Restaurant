@@ -22,7 +22,6 @@ public class AdapterDisplayStatistic extends BaseAdapter {
     Context context;
     int layout;
     List<DonDatDTO> donDatDTOS;
-    ViewHolder viewHolder;
 
     public AdapterDisplayStatistic(Context context, int layout, List<DonDatDTO> donDatDTOS){
         this.context = context;
@@ -46,8 +45,9 @@ public class AdapterDisplayStatistic extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(int int_position, View convertView, ViewGroup parent) {
         View view = convertView;
+        ViewHolder viewHolder;
         if(view == null){
             viewHolder = new ViewHolder();
             LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -63,7 +63,7 @@ public class AdapterDisplayStatistic extends BaseAdapter {
         }else {
             viewHolder = (ViewHolder) view.getTag();
         }
-        DonDatDTO donDatDTO = donDatDTOS.get(position);
+        DonDatDTO donDatDTO = donDatDTOS.get(int_position);
 
         viewHolder.txt_customstatistic_OrderId.setText("Mã đơn: "+donDatDTO.getMaDonDat());
         viewHolder.txt_customstatistic_OrderDate.setText(donDatDTO.getNgayDat());

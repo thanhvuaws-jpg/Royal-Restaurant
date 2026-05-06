@@ -69,7 +69,7 @@ public class DisplayTableFragment extends Fragment {
             }
         });
 
-        HienThiDSBan();
+        // HienThiDSBan() is called in onResume() instead of here
 
         registerForContextMenu(gvDisplayTable);
 
