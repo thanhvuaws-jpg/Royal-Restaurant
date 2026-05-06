@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_customtable_Root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="0dp"
+    android:foreground="?attr/selectableItemBackground"
+    tools:targetApi="lollipop">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@color/white">
+
+        <!-- Nút Xóa bàn (Chỉ Admin thấy) -->
+        <ImageView
+            android:id="@+id/img_customtable_Delete"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentTop="true"
+            android:padding="4dp"
+            android:src="@drawable/ic_baseline_delete_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            app:tint="@color/red_soft"
+            android:visibility="gone" />
+
+        <!-- Badge trạng thái (góc trên phải) -->
+        <TextView
+            android:id="@+id/txt_customtable_Status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentTop="true"
+            android:background="@drawable/round_corner_textview"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            tools:text="Trống" />
+
+        <!-- Tên bàn -->
+        <TextView
+            android:id="@+id/txt_customtable_TableName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/txt_customtable_Status"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:fontFamily="@font/muli_black"
+            android:textColor="@color/black"
+            android:textSize="16sp"
+            tools:text="Bàn 01" />
+
+        <!-- Icon ghế -->
+        <ImageView
+            android:id="@+id/img_customtable_TableImage"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_below="@id/txt_customtable_TableName"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="8dp"
+            android:contentDescription="@string/nav_table"
+            android:src="@drawable/ic_baseline_event_seat_40"
+            app:tint="@color/colorPrimary" />
+
+        <!-- Gợi ý hành động -->
+        <TextView
+            android:id="@+id/txt_customtable_ActionHint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/img_customtable_TableImage"
+            android:layout_centerHorizontal="true"
+            android:fontFamily="@font/muli"
+            android:textColor="@color/grey"
+            android:textSize="11sp"
+            tools:text="Nhấn để đặt món" />
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

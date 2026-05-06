@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.DetailStatisticActivity"
+    android:orientation="vertical"
+    android:background="@color/white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/white"
+        android:elevation="4dp"
+        tools:targetApi="lollipop">
+        
+        <ImageView
+            android:id="@+id/img_detail_BackBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:src="@drawable/ic_baseline_arrow_back_24"
+            android:layout_centerVertical="true"
+            app:tint="@color/black"
+            android:contentDescription="@string/back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/order_detail_title"
+            android:textSize="20sp"
+            android:fontFamily="@font/muli_black"
+            android:textAllCaps="true"
+            android:textColor="@color/black"
+            android:layout_centerVertical="true"
+            android:layout_toEndOf="@+id/img_detail_BackBtn"
+            android:layout_toRightOf="@+id/img_detail_BackBtn" />
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="20dp">
+
+        <TextView
+            android:id="@+id/txt_detail_OrderId"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Mã đơn: #1"
+            android:textSize="18sp"
+            android:fontFamily="@font/muli_black"
+            android:textColor="@color/black"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+        <TextView
+            android:id="@+id/txt_detail_OrderDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="20/12/2026"
+            android:textSize="16sp"
+            android:fontFamily="@font/muli"
+            android:textColor="@color/grey"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+
+    </RelativeLayout>
+
+    <GridView
+        android:id="@+id/gvDetailStatistic"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:numColumns="1"
+        android:padding="12dp"
+        android:clipToPadding="false" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        app:cardCornerRadius="16dp"
+        app:cardElevation="8dp"
+        app:strokeWidth="0dp"
+        tools:targetApi="lollipop">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="20dp">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_centerVertical="true"
+                android:layout_alignParentLeft="true"
+                android:layout_alignParentStart="true">
+                
+                <TextView
+                    android:id="@+id/txt_detail_TableName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Bàn 01"
+                    android:fontFamily="@font/muli_black"
+                    android:textColor="@color/black"
+                    android:textSize="18sp" />
+                    
+                <TextView
+                    android:id="@+id/txt_detail_StaffName"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    tools:text="Lê Gia Huy"
+                    android:textColor="@color/grey"
+                    android:fontFamily="@font/muli"
+                    android:textSize="14sp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:gravity="end"
+                android:layout_centerVertical="true"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true">
+                
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total_label"
+                    android:textColor="@color/grey"
+                    android:fontFamily="@font/muli"
+                    android:textSize="14sp" />
+                    
+                <TextView
+                    android:id="@+id/txt_detail_TotalAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    tools:text="780,000 VNĐ"
+                    android:textColor="@color/colorPrimary"
+                    android:fontFamily="@font/muli_black"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+    </com.google.android.material.card.MaterialCardView>
+
+</LinearLayout>

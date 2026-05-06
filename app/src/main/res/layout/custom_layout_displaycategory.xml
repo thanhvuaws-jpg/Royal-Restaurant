@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:strokeWidth="0dp"
+    tools:targetApi="lollipop">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="180dp">
+
+        <ImageView
+            android:id="@+id/img_customcategory_CategoryImage"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/espresso"
+            android:contentDescription="@string/nav_menu" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/gradient_overlay" />
+
+        <LinearLayout
+            android:id="@+id/layout_customcategory_AdminTools"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_margin="8dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/img_customcategory_Edit"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_baseline_edit_24"
+                android:background="@drawable/circle_background_white"
+                app:tint="@color/colorPrimary" />
+
+            <View
+                android:layout_width="8dp"
+                android:layout_height="1dp" />
+
+            <ImageView
+                android:id="@+id/img_customcategory_Delete"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:padding="6dp"
+                android:src="@drawable/ic_baseline_delete_24"
+                android:background="@drawable/circle_background_white"
+                app:tint="@color/red_soft" />
+
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_customcategory_CategoryName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginStart="16dp"
+            android:layout_marginLeft="16dp"
+            android:layout_marginBottom="16dp"
+            android:fontFamily="@font/muli_black"
+            tools:text="Category Name"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:shadowColor="@color/black"
+            android:shadowDx="2"
+            android:shadowDy="2"
+            android:shadowRadius="4" />
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

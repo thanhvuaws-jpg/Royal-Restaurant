@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="0dp"
+    tools:targetApi="lollipop">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="12dp"
+        android:gravity="center_vertical"
+        android:weightSum="6">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/img_custompayment_DishImage"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="60dp"
+            android:src="@drawable/cafe_americano"
+            app:civ_border_width="1dp"
+            app:civ_border_color="@color/grey" />
+
+        <TextView
+            android:id="@+id/txt_custompayment_DishName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="3"
+            tools:text="Dish Name"
+            android:paddingStart="12dp"
+            android:paddingLeft="12dp"
+            android:paddingEnd="12dp"
+            android:paddingRight="12dp"
+            android:textSize="16sp"
+            android:textColor="@color/black"
+            android:fontFamily="@font/muli_black" />
+
+        <TextView
+            android:id="@+id/txt_custompayment_Quantity"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="0.5"
+            tools:text="1"
+            android:gravity="center_vertical|center_horizontal"
+            android:textSize="16sp"
+            android:textColor="@color/grey"
+            android:fontFamily="@font/muli" />
+
+        <TextView
+            android:id="@+id/txt_custompayment_Price"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1.5"
+            android:gravity="end|right"
+            tools:text="100,000đ"
+            android:textColor="@color/colorPrimary"
+            android:fontFamily="@font/muli_black"
+            android:textSize="16sp" />
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

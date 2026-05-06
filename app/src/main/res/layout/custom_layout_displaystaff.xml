@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:strokeWidth="0dp"
+    tools:targetApi="lollipop">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="@color/white">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            android:id="@+id/img_custom_staff_Avatar"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_baseline_account_circle_24"
+            app:civ_border_width="2dp"
+            app:civ_border_color="@color/grey" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_toEndOf="@id/img_custom_staff_Avatar"
+            android:layout_toRightOf="@id/img_custom_staff_Avatar"
+            android:layout_centerVertical="true"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingLeft="16dp"
+            android:paddingEnd="16dp"
+            android:paddingRight="16dp">
+
+            <TextView
+                android:id="@+id/txt_custom_staff_Name"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="Staff Name"
+                android:fontFamily="@font/muli_black"
+                android:textSize="20sp"
+                android:textColor="@color/black" />
+
+            <TextView
+                android:id="@+id/txt_custom_staff_RoleName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                tools:text="Manager"
+                android:textSize="14sp"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="@font/muli_black"
+                android:textAllCaps="true" />
+
+            <TextView
+                android:id="@+id/txt_custom_staff_Phone"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                tools:text="Phone: 0123456789"
+                android:textColor="@color/grey"
+                android:fontFamily="@font/muli"
+                android:textSize="14sp" />
+
+            <TextView
+                android:id="@+id/txt_custom_staff_Email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                tools:text="staff@example.com"
+                android:textSize="14sp"
+                android:textColor="@color/grey"
+                android:fontFamily="@font/muli" />
+
+        </LinearLayout>
+
+    </RelativeLayout>
+
+</com.google.android.material.card.MaterialCardView>

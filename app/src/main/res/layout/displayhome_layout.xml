@@ -1,0 +1,323 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="20dp">
+
+        <!-- Header Welcome & Banner -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txt_welcome_Greeting"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/welcome_user"
+                android:textSize="14sp"
+                android:fontFamily="@font/muli"
+                android:textColor="@color/grey" />
+
+            <TextView
+                android:id="@+id/txt_welcome_UserName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Royal Restaurant"
+                android:textSize="24sp"
+                android:fontFamily="@font/muli_black"
+                android:textColor="@color/black"
+                android:layout_marginTop="2dp" />
+
+            <!-- New Professional Banner -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="140dp"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="20dp"
+                app:cardElevation="0dp"
+                app:strokeWidth="0dp">
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:src="@drawable/ic_dashboard_banner_bg"
+                        android:scaleType="centerCrop" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="@drawable/gradient_overlay_dark" />
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center_vertical"
+                        android:orientation="vertical"
+                        android:padding="20dp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hôm nay thế nào?"
+                            android:textColor="@color/white"
+                            android:fontFamily="@font/muli_black"
+                            android:textSize="18sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Hãy phục vụ khách hàng tốt nhất nhé!"
+                            android:textColor="#E0E0E0"
+                            android:fontFamily="@font/muli"
+                            android:textSize="12sp"
+                            android:layout_marginTop="4dp" />
+
+                    </LinearLayout>
+                </FrameLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </LinearLayout>
+
+        <!-- Quick Actions Grid (Sẽ được điều chỉnh số cột trong code) -->
+        <GridLayout
+            android:id="@+id/grid_display_HomeActions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:columnCount="2"
+            android:alignmentMode="alignMargins"
+            android:columnOrderPreserved="false">
+
+            <!-- Statistic -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_display_HomeStatistic"
+                android:layout_width="0dp"
+                android:layout_height="110dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_dash_statistic" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/muli_black"
+                        android:text="@string/nav_statistic"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Tables -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_display_HomeViewTable"
+                android:layout_width="0dp"
+                android:layout_height="110dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_dash_table" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/muli_black"
+                        android:text="@string/nav_table"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Menu -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_display_HomeViewMenu"
+                android:layout_width="0dp"
+                android:layout_height="110dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_dash_menu" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/muli_black"
+                        android:text="@string/nav_menu"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Staff -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/layout_display_HomeViewStaff"
+                android:layout_width="0dp"
+                android:layout_height="110dp"
+                android:layout_columnWeight="1"
+                android:layout_margin="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:src="@drawable/ic_dash_staff" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:fontFamily="@font/muli_black"
+                        android:text="@string/nav_staff"
+                        android:textColor="@color/black"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+        </GridLayout>
+
+        <!-- Horizontal Sections -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="24dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/txt_display_HomeCategoryHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/muli_black"
+                    android:text="@string/featured_menu"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_toStartOf="@+id/txt_display_HomeViewAllCategory"
+                    android:layout_toLeftOf="@+id/txt_display_HomeViewAllCategory"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true" />
+
+                <TextView
+                    android:id="@+id/txt_display_HomeViewAllCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/view_all"
+                    android:textColor="@color/colorPrimary"
+                    android:fontFamily="@font/muli_black" />
+            </RelativeLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rcv_display_HomeCategoryList"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="32dp"
+            android:layout_marginBottom="24dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/txt_display_HomeStatisticHeader"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/muli_black"
+                    android:text="@string/today_payment"
+                    android:textColor="@color/black"
+                    android:textSize="18sp"
+                    android:layout_toStartOf="@+id/txt_display_HomeViewAllStatistic"
+                    android:layout_toLeftOf="@+id/txt_display_HomeViewAllStatistic"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true" />
+
+                <TextView
+                    android:id="@+id/txt_display_HomeViewAllStatistic"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    android:text="@string/view_report"
+                    android:textColor="@color/colorPrimary"
+                    android:fontFamily="@font/muli_black" />
+            </RelativeLayout>
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rcv_display_HomeOrderToday"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:clipToPadding="false" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

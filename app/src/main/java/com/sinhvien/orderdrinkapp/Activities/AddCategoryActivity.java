@@ -1,0 +1,219 @@
+package com.sinhvien.orderdrinkapp.Activities;
+
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
+import android.os.Bundle;
+import android.provider.MediaStore;
+import android.view.View;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.material.textfield.TextInputLayout;
+import com.sinhvien.orderdrinkapp.Api.ApiClient;
+import com.sinhvien.orderdrinkapp.Api.ApiService;
+import com.sinhvien.orderdrinkapp.Api.LoaiMonResponse;
+import com.sinhvien.orderdrinkapp.Api.OrderResponse;
+import com.sinhvien.orderdrinkapp.R;
+import com.bumptech.glide.Glide;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import android.util.Base64;
+
+import org.w3c.dom.Text;
+
+import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
+
+public class AddCategoryActivity extends AppCompatActivity implements View.OnClickListener {
+
+    Button BTN_addcategory_CreateCategory;
+    ImageView IMG_addcategory_back, IMG_addcategory_AddImage;
+    TextView TXT_addcategory_title;
+    TextInputLayout TXTL_addcategory_CategoryName;
+    int maloai = 0;
+    Bitmap bitmapold;   //Bitmap dạng ảnh theo ma trận các pixel
+
+    //dùng result launcher do activityforresult ko dùng đc nữa
+    ActivityResultLauncher<Intent> resultLauncherOpenIMG = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
+                        Uri uri = result.getData().getData();
+                        try{
+                            InputStream inputStream = getContentResolver().openInputStream(uri);
+                            Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                            IMG_addcategory_AddImage.setImageBitmap(bitmap);
+                        }catch (FileNotFoundException e){
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.addcategory_layout);
+
+        //region Lấy đối tượng view
+        BTN_addcategory_CreateCategory = (Button)findViewById(R.id.btn_addcategory_CreateCategory);
+        TXTL_addcategory_CategoryName = (TextInputLayout)findViewById(R.id.txtl_addcategory_CategoryName);
+        IMG_addcategory_back = (ImageView)findViewById(R.id.img_addcategory_back);
+        IMG_addcategory_AddImage = (ImageView)findViewById(R.id.img_addcategory_AddImage);
+        TXT_addcategory_title = (TextView)findViewById(R.id.txt_addcategory_title);
+        //endregion
+
+        BitmapDrawable olddrawable = (BitmapDrawable)IMG_addcategory_AddImage.getDrawable();
+        bitmapold = olddrawable.getBitmap();
+
+        //region Hiển thị trang sửa nếu được chọn từ context menu sửa
+        // Lấy thông tin từ Cloud nếu là sửa
+        maloai = getIntent().getIntExtra("maloai",0);
+        if(maloai != 0){
+            TXT_addcategory_title.setText(getResources().getString(R.string.editcategory));
+            ApiService apiService = ApiClient.getClient().create(ApiService.class);
+            apiService.getCategoryById(maloai).enqueue(new Callback<LoaiMonResponse>() {
+                @Override
+                public void onResponse(Call<LoaiMonResponse> call, Response<LoaiMonResponse> response) {
+                    if (isFinishing() || isDestroyed()) return;
+                    if (response.isSuccessful() && response.body() != null) {
+                        TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
+                        String imageUrl = ApiClient.BASE_URL + response.body().getHinhAnh();
+                        Glide.with(AddCategoryActivity.this).load(imageUrl).into(IMG_addcategory_AddImage);
+                        BTN_addcategory_CreateCategory.setText("Sửa loại");
+                    }
+                }
+                @Override
+                public void onFailure(Call<LoaiMonResponse> call, Throwable t) {}
+            });
+        }
+        //endregion
+
+        IMG_addcategory_back.setOnClickListener(this);
+        IMG_addcategory_AddImage.setOnClickListener(this);
+        BTN_addcategory_CreateCategory.setOnClickListener(this);
+        }
+
+    @Override
+    public void onClick(View v) {
+        int id = v.getId();
+        boolean ktra;
+        String chucnang;
+        switch (id){
+            case R.id.img_addcategory_back:
+                finish();
+                overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right); //animation
+                break;
+
+            case R.id.img_addcategory_AddImage:
+                Intent iGetIMG = new Intent();
+                iGetIMG.setType("image/*"); //lấy những mục chứa hình ảnh
+                iGetIMG.setAction(Intent.ACTION_GET_CONTENT);   //lấy mục hiện tại đang chứa hình
+                resultLauncherOpenIMG.launch(Intent.createChooser(iGetIMG,getResources().getString(R.string.choseimg)));    //mở intent chọn hình ảnh
+                break;
+
+            case R.id.btn_addcategory_CreateCategory:
+                if(!validateImage() | !validateName()){
+                    return;
+                }
+
+                String sTenLoai = TXTL_addcategory_CategoryName.getEditText().getText().toString();
+                String action = (maloai != 0) ? "edit" : "add";
+                String imageBase64 = imageToBase64(IMG_addcategory_AddImage);
+
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                apiService.manageCategory(action, maloai, sTenLoai, imageBase64).enqueue(new Callback<OrderResponse>() {
+                    @Override
+                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (response.isSuccessful()) {
+                            Intent intent = new Intent();
+                            intent.putExtra("ktra", true);
+                            intent.putExtra("chucnang", (maloai != 0) ? "sualoai" : "themloai");
+                            setResult(RESULT_OK, intent);
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (!isFinishing() && !isDestroyed()) {
+                            Toast.makeText(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                break;
+
+        }
+    }
+
+    // Chuyển ảnh sang Base64 để gửi lên VPS
+    private String imageToBase64(ImageView imageView){
+        Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
+        bitmap = getResizedBitmap(bitmap, 500); // Thu nhỏ để gửi nhanh hơn
+        
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        byte[] byteArray = stream.toByteArray();
+        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+    }
+
+    // Hàm thu nhỏ ảnh giữ nguyên tỷ lệ
+    public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
+        int width = image.getWidth();
+        int height = image.getHeight();
+
+        float bitmapRatio = (float)width / (float) height;
+        if (bitmapRatio > 1) {
+            width = maxSize;
+            height = (int) (width / bitmapRatio);
+        } else {
+            height = maxSize;
+            width = (int) (height * bitmapRatio);
+        }
+        return Bitmap.createScaledBitmap(image, width, height, true);
+    }
+
+    //region validate fields
+    private boolean validateImage(){
+        BitmapDrawable drawable = (BitmapDrawable)IMG_addcategory_AddImage.getDrawable();
+        Bitmap bitmap = drawable.getBitmap();
+
+        if(bitmap == bitmapold){
+            Toast.makeText(getApplicationContext(),"Xin chọn hình ảnh",Toast.LENGTH_SHORT).show();
+            return false;
+        }else {
+            return true;
+        }
+    }
+
+    private boolean validateName(){
+        String val = TXTL_addcategory_CategoryName.getEditText().getText().toString().trim();
+        if(val.isEmpty()){
+            TXTL_addcategory_CategoryName.setError(getResources().getString(R.string.not_empty));
+            return false;
+        }else {
+            TXTL_addcategory_CategoryName.setError(null);
+            TXTL_addcategory_CategoryName.setErrorEnabled(false);
+            return true;
+        }
+    }
+    //endregion
+
+}

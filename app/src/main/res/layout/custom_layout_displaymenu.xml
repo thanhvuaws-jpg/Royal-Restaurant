@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/card_customdish_Root"
+    android:layout_width="180dp"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="0dp"
+    tools:targetApi="lollipop">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Khung ảnh + badge trạng thái -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="160dp">
+
+            <!-- Ảnh món -->
+            <ImageView
+                android:id="@+id/img_customdish_DishImage"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/cafe_americano"
+                android:contentDescription="@string/menu_title" />
+
+            <!-- Gradient phía dưới ảnh -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@drawable/gradient_overlay" />
+
+            <!-- Overlay mờ khi hết món -->
+            <View
+                android:id="@+id/view_customdish_Overlay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/overlay_unavailable"
+                android:visibility="gone" />
+
+            <!-- Badge trạng thái (góc trên phải) -->
+            <TextView
+                android:id="@+id/txt_customdish_DishStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/round_corner_textview"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                tools:text="Còn món" />
+
+            <!-- Tên món (góc dưới ảnh) -->
+            <TextView
+                android:id="@+id/txt_customdish_DishName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom"
+                android:padding="10dp"
+                android:fontFamily="@font/muli_black"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:shadowColor="@color/black"
+                android:shadowDx="1"
+                android:shadowDy="1"
+                android:shadowRadius="2"
+                tools:text="Caffè Americano" />
+
+        </FrameLayout>
+
+        <!-- Phần dưới: giá + toggle -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingLeft="12dp"
+            android:paddingRight="12dp"
+            android:paddingTop="8dp"
+            android:paddingBottom="8dp"
+            android:background="@color/white">
+
+            <!-- Giá tiền -->
+            <TextView
+                android:id="@+id/txt_customdish_DishPrice"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:textColor="@color/colorPrimary"
+                android:fontFamily="@font/muli_black"
+                android:textSize="13sp"
+                tools:text="100,000 VNĐ" />
+
+            <!-- Toggle bật/tắt (Dùng cho cả Admin và NV để nhanh chóng đổi trạng thái) -->
+            <com.google.android.material.switchmaterial.SwitchMaterial
+                android:id="@+id/sw_customdish_ToggleStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="2dp"
+                android:text="@string/status_available"
+                android:textSize="10sp"
+                android:fontFamily="@font/muli"
+                android:textColor="@color/grey"
+                app:trackTint="@color/status_available"
+                app:thumbTint="@color/white" />
+
+            <!-- Nút Sửa/Xóa (Chỉ hiện cho Admin) -->
+            <LinearLayout
+                android:id="@+id/layout_customdish_AdminTools"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="4dp"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <ImageView
+                    android:id="@+id/img_customdish_Edit"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_baseline_edit_24"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="@color/colorPrimary" />
+
+                <View
+                    android:layout_width="16dp"
+                    android:layout_height="1dp" />
+
+                <ImageView
+                    android:id="@+id/img_customdish_Delete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_baseline_delete_24"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    app:tint="@color/red_soft" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>

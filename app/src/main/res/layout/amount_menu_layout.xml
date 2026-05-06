@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/corner_border_white"
+    tools:context=".Activities.AmountMenuActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Custom Toolbar Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="@color/colorPrimary"
+            android:elevation="4dp"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/img_amount_Back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:src="@drawable/ic_baseline_arrow_back_24"
+                app:tint="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:fontFamily="@font/muli_black"
+                android:text="@string/enter_quantity"
+                android:textColor="@color/white"
+                android:textSize="18sp" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Ô nhập số lượng -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_amount_Quantity"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="@string/enter_quantity"
+                app:hintTextColor="@color/colorPrimary"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:boxStrokeWidthFocused="2dp"
+                app:endIconTint="@color/colorPrimary"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/muli"
+                    android:inputType="number" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Divider -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="12dp"
+                android:background="@color/grey"
+                android:alpha="0.3" />
+
+            <!-- Label ghi chú -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/order_note_label"
+                android:textSize="13sp"
+                android:textColor="@color/grey"
+                android:fontFamily="@font/muli"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Ô nhập ghi chú -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_amount_Note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="@string/order_note_hint"
+                app:hintTextColor="@color/grey"
+                app:boxStrokeColor="@color/colorPrimary"
+                app:boxStrokeWidthFocused="2dp"
+                app:endIconMode="clear_text"
+                app:endIconTint="@color/colorPrimary">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/muli"
+                    android:inputType="textMultiLine"
+                    android:minLines="2"
+                    android:maxLines="4"
+                    android:gravity="top|start" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Nút xác nhận -->
+            <Button
+                android:id="@+id/btn_amount_Confirm"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="20dp"
+                android:text="@string/agree"
+                android:textColor="@color/white"
+                android:fontFamily="@font/muli_black"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                app:backgroundTint="@color/colorPrimary"
+                tools:targetApi="lollipop" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

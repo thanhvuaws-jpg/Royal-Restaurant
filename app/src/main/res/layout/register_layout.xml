@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.RegisterActivity"
+    android:background="@color/white"
+    android:transitionName="transition_signup"
+    tools:targetApi="lollipop"
+    android:id="@+id/layout_signup_Main">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <ImageView
+            android:id="@+id/img_signup_BackBtn"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/ic_baseline_arrow_back_24"
+            android:padding="8dp"
+            android:contentDescription="@string/back"
+            app:tint="@color/black" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp">
+
+            <TextView
+                android:id="@+id/txt_signup_Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/create_acc"
+                android:textColor="@color/black"
+                android:fontFamily="@font/muli_black"
+                android:textSize="32sp"
+                android:textAllCaps="false"
+                android:transitionName="transition_title_text"
+                tools:targetApi="lollipop"
+                android:layout_toStartOf="@+id/txt_signup_StepCircle"
+                android:layout_toLeftOf="@+id/txt_signup_StepCircle"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true" />
+
+            <TextView
+                android:id="@+id/txt_signup_StepCircle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/circle_drawable"
+                android:padding="12dp"
+                android:text="@string/step_1_2"
+                android:textColor="@color/white"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_journey"
+            android:textColor="@color/grey"
+            android:textSize="16sp"
+            android:fontFamily="@font/muli" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="32dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_signup_FullName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/enter_fullname"
+                app:startIconDrawable="@drawable/ic_baseline_create_pencil"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_signup_UserName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/enter_username"
+                app:startIconDrawable="@drawable/ic_baseline_person_24"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_signup_Email"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/enter_email"
+                app:startIconDrawable="@drawable/ic_baseline_email_24"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="textEmailAddress" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_signup_PhoneNumber"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/enter_phone"
+                app:startIconDrawable="@drawable/ic_baseline_local_phone_24"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="phone" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_signup_Password"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:hint="@string/enter_password"
+                app:startIconDrawable="@drawable/ic_baseline_lock_24"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                app:endIconMode="password_toggle">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="textPassword" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/btn_signup_Next"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="32dp"
+            android:text="@string/btn_next"
+            android:textColor="@color/white"
+            android:background="@drawable/corner_border_primary"
+            app:backgroundTint="@color/colorPrimary"
+            android:elevation="4dp"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            tools:targetApi="lollipop" />
+
+    </LinearLayout>
+
+</ScrollView>

@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.AddCategoryActivity"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Custom Toolbar Header -->
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="64dp"
+            android:background="@color/colorPrimary"
+            android:elevation="4dp"
+            android:padding="8dp">
+
+            <ImageView
+                android:id="@+id/img_addcategory_back"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_alignParentStart="true"
+                android:layout_centerVertical="true"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:padding="12dp"
+                android:src="@drawable/ic_baseline_arrow_back_24"
+                app:tint="@color/white" />
+
+            <TextView
+                android:id="@+id/txt_addcategory_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerInParent="true"
+                android:fontFamily="@font/muli_black"
+                android:text="@string/menu_title"
+                android:textColor="@color/white"
+                android:textSize="20sp"
+                android:textAllCaps="true" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/txtl_addcategory_CategoryName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:hint="@string/menu_name_hint"
+                android:layout_marginTop="24dp"
+                app:startIconDrawable="@drawable/ic_baseline_airline_seat_legroom_normal_24"
+                app:endIconMode="clear_text">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:inputType="text" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/grey"
+                tools:targetApi="lollipop">
+
+                <ImageView
+                    android:id="@+id/img_addcategory_AddImage"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/choseimg"
+                    android:src="@drawable/menu" />
+            </com.google.android.material.card.MaterialCardView>
+
+            <Button
+                android:id="@+id/btn_addcategory_CreateCategory"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="32dp"
+                android:text="@string/add_menu_btn"
+                android:textColor="@color/white"
+                android:background="@drawable/corner_border_primary"
+                app:backgroundTint="@color/colorPrimary"
+                android:elevation="4dp"
+                android:textAllCaps="false"
+                android:textSize="18sp"
+                tools:targetApi="lollipop" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

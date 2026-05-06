@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Activities.EditTableActivity"
+    android:background="@color/white"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/edit_table_title"
+        android:textSize="32sp"
+        android:fontFamily="@font/muli_black"
+        android:textColor="@color/black"
+        android:textAllCaps="true"
+        android:layout_marginBottom="32dp"
+        android:layout_marginTop="16dp"/>
+
+    <com.google.android.material.textfield.TextInputLayout
+        android:id="@+id/txtl_edit_TableName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+        android:hint="@string/new_table_name_hint"
+        app:endIconMode="clear_text">
+
+        <com.google.android.material.textfield.TextInputEditText
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:inputType="text" />
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <Button
+        android:id="@+id/btn_edit_TableUpdate"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:layout_marginTop="32dp"
+        android:text="@string/update_btn"
+        android:textColor="@color/white"
+        android:background="@drawable/corner_border_primary"
+        app:backgroundTint="@color/colorPrimary"
+        android:elevation="4dp"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        tools:targetApi="lollipop" />
+
+</LinearLayout>

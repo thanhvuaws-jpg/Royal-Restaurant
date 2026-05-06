@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="@color/grey"
+    tools:targetApi="lollipop">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="12dp"
+            android:background="#F8F9FA">
+
+            <TextView
+                android:id="@+id/txt_customstatistic_OrderId"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="Mã đơn: #123"
+                android:textSize="14sp"
+                android:textColor="@color/grey"
+                android:fontFamily="@font/muli_black"
+                android:layout_alignParentStart="true"
+                android:layout_alignParentLeft="true"
+                android:layout_toStartOf="@+id/txt_customstatistic_OrderDate"
+                android:layout_toLeftOf="@+id/txt_customstatistic_OrderDate"
+                android:ellipsize="end"
+                android:singleLine="true" />
+
+            <TextView
+                android:id="@+id/txt_customstatistic_OrderDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="11/07/2026"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentRight="true"
+                android:textColor="@color/grey"
+                android:fontFamily="@font/muli"
+                android:textSize="14sp" />
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/txt_customstatistic_StaffName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                tools:text="Tên nhân viên"
+                android:textSize="18sp"
+                android:textColor="@color/black"
+                android:fontFamily="@font/muli_black" />
+
+            <TextView
+                android:id="@+id/txt_customstatistic_TableName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                tools:text="Bàn số 05"
+                android:textSize="14sp"
+                android:textColor="@color/grey"
+                android:fontFamily="@font/muli" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:background="#E9ECEF"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/txt_customstatistic_TotalAmount"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="550,000 VNĐ"
+                    android:textSize="18sp"
+                    android:textColor="@color/colorPrimary"
+                    android:fontFamily="@font/muli_black"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentStart="true"
+                    android:layout_alignParentLeft="true"
+                    android:layout_toStartOf="@+id/txt_customstatistic_Status"
+                    android:layout_toLeftOf="@+id/txt_customstatistic_Status"
+                    android:ellipsize="end"
+                    android:singleLine="true" />
+
+                <TextView
+                    android:id="@+id/txt_customstatistic_Status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_alignParentRight="true"
+                    tools:text="Đã thanh toán"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:paddingLeft="12dp"
+                    android:paddingRight="12dp"
+                    android:paddingTop="4dp"
+                    android:paddingBottom="4dp"
+                    android:textAllCaps="true"
+                    android:textSize="12sp"
+                    android:background="@drawable/corner_border_black" />
+            </RelativeLayout>
+        </LinearLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>
