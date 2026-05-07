@@ -19,11 +19,6 @@
         android:theme="@style/Theme.OrderDrinkApp">
         <activity android:name=".Activities.DetailStatisticActivity" android:exported="false" />
         <activity android:name=".Activities.AddStaffActivity" android:exported="false" />
-        <activity
-            android:name=".Activities.EditTableActivity"
-            android:label="Sửa bàn ăn"
-            android:theme="@style/PopUpActivity"
-            android:exported="false" />
         <activity android:name=".Activities.PaymentActivity" android:exported="false" />
         <activity
             android:name=".Activities.AmountMenuActivity"
