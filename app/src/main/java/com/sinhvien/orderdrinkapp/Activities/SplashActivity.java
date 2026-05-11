@@ -11,7 +11,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sinhvien.orderdrinkapp.R;
-import com.sinhvien.orderdrinkapp.Utils.SampleDataInitializer;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -21,8 +20,6 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_layout);
         
-        // Khởi tạo dữ liệu mẫu
-        // SampleDataInitializer.init(this); // Disabled for Cloud standardization
 
         //tạo đối tượng view
         ImageView img_splash_Logo = (ImageView)findViewById(R.id.img_splash_Logo);
