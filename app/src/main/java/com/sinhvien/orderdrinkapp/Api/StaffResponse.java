@@ -37,6 +37,9 @@ public class StaffResponse {
     @SerializedName("message")
     private String message;
 
+    @SerializedName("TOKEN")
+    private String token;
+
     public int getMaNV() { return maNV; }
     public String getHoTenNV() { return hoTenNV; }
     public String getTenDN() { return tenDN; }
@@ -48,4 +51,5 @@ public class StaffResponse {
     public int getMaQuyen() { return maQuyen; }
     public String getStatus() { return status; }
     public String getMessage() { return message; }
+    public String getToken() { return token; }
 }

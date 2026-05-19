@@ -12,6 +12,12 @@ public class SessionManager {
     private static final String KEY_MAQUYEN = "maquyen";
     private static final String KEY_MANV = "manv";
     private static final String KEY_HOTEN = "hoten";
+    private static final String KEY_TOKEN = "session_token";
+
+    /** Lấy session token của người đang đăng nhập */
+    public static String getToken(Context context) {
+        return getPrefs(context).getString(KEY_TOKEN, "");
+    }
 
     /** Lấy tên đầy đủ của người đang đăng nhập */
     public static String getFullName(Context context) {
@@ -44,12 +50,17 @@ public class SessionManager {
     }
 
     /** Lưu thông tin phiên sau khi đăng nhập thành công */
-    public static void saveSession(Context context, int maquyen, int manv, String hoten) {
+    public static void saveSession(Context context, int maquyen, int manv, String hoten, String token) {
         getPrefs(context).edit()
                 .putInt(KEY_MAQUYEN, maquyen)
                 .putInt(KEY_MANV, manv)
                 .putString(KEY_HOTEN, hoten)
+                .putString(KEY_TOKEN, token)
                 .apply();
+    }
+
+    public static void saveSession(Context context, int maquyen, int manv, String hoten) {
+        saveSession(context, maquyen, manv, hoten, "");
     }
 
     /** Xóa phiên khi đăng xuất */

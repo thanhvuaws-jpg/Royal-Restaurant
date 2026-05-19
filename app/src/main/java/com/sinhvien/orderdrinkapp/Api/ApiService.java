@@ -102,6 +102,13 @@ public interface ApiService {
     );
 
     @FormUrlEncoded
+    @POST("api/check_session.php")
+    Call<OrderResponse> checkSession(
+            @Field("manv") int manv,
+            @Field("token") String token
+    );
+
+    @FormUrlEncoded
     @POST("api/delete_table.php")
     Call<OrderResponse> deleteTable(@Field("maban") int maban);
 

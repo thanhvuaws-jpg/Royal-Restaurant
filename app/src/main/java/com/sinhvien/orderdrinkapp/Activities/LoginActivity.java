@@ -94,7 +94,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                         StaffResponse res = response.body();
-                        SessionManager.saveSession(LoginActivity.this, res.getMaQuyen(), res.getMaNV(), res.getHoTenNV());
+                        SessionManager.saveSession(LoginActivity.this, res.getMaQuyen(), res.getMaNV(), res.getHoTenNV(), res.getToken());
 
                         SharedPreferences sharedPreferences = getSharedPreferences("remember_login", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();

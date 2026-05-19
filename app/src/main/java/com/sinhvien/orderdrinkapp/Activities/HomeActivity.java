@@ -10,11 +10,17 @@ import androidx.fragment.app.FragmentTransaction;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.material.navigation.NavigationView;
+import com.sinhvien.orderdrinkapp.Api.ApiClient;
+import com.sinhvien.orderdrinkapp.Api.ApiService;
+import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayCashierFragment;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayCategoryFragment;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment;
@@ -24,6 +30,10 @@ import com.sinhvien.orderdrinkapp.Fragments.DisplayTableFragment;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     DrawerLayout drawerLayout;
@@ -31,6 +41,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     Toolbar toolbar;
     FragmentManager fragmentManager;
     TextView txt_menu_tennv;
+
+    private Handler sessionHandler;
+    private Runnable sessionRunnable;
+    private static final int SESSION_CHECK_INTERVAL = 10000; // 10s
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,6 +85,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         String hoten = SessionManager.getFullName(this);
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
+
+        // Khởi động kiểm tra session đăng nhập song song
+        startSessionCheck();
 
         fragmentManager = getSupportFragmentManager();
 
@@ -211,6 +228,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             drawerLayout.closeDrawers();
         } else if (id == R.id.nav_logout) {
             // XÓA PHIÊN ĐĂNG NHẬP
+            stopSessionCheck();
             SessionManager.clearSession(this);
             
             Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
@@ -218,5 +236,71 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             finish();
         }
         return true;
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopSessionCheck();
+    }
+
+    private void startSessionCheck() {
+        final int manv = SessionManager.getMaNV(this);
+        final String token = SessionManager.getToken(this);
+        
+        if (manv == 0 || token.isEmpty()) return;
+
+        sessionHandler = new Handler(Looper.getMainLooper());
+        sessionRunnable = new Runnable() {
+            @Override
+            public void run() {
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                apiService.checkSession(manv, token).enqueue(new Callback<OrderResponse>() {
+                    @Override
+                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        
+                        boolean isSessionValid = false;
+                        if (response.isSuccessful() && response.body() != null) {
+                            if ("success".equals(response.body().getStatus())) {
+                                isSessionValid = true;
+                            }
+                        }
+                        
+                        if (!isSessionValid) {
+                            stopSessionCheck();
+                            SessionManager.clearSession(HomeActivity.this);
+                            Toast.makeText(HomeActivity.this, "Tài khoản của bạn đã được đăng nhập từ thiết bị khác!", Toast.LENGTH_LONG).show();
+                            
+                            Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            if (sessionHandler != null && sessionRunnable != null) {
+                                sessionHandler.postDelayed(sessionRunnable, SESSION_CHECK_INTERVAL);
+                            }
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (sessionHandler != null && sessionRunnable != null) {
+                            sessionHandler.postDelayed(sessionRunnable, SESSION_CHECK_INTERVAL);
+                        }
+                    }
+                });
+            }
+        };
+        sessionHandler.post(sessionRunnable);
+    }
+
+    private void stopSessionCheck() {
+        if (sessionHandler != null && sessionRunnable != null) {
+            sessionHandler.removeCallbacks(sessionRunnable);
+            sessionHandler = null;
+            sessionRunnable = null;
+        }
     }
 }
