@@ -72,6 +72,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
 
+        fragmentManager = getSupportFragmentManager();
+
         // Phân quyền menu
         if (SessionManager.isCashier(this)) {
             // Thu ngân chỉ thấy Trang chủ, Thu ngân, Thống kê, Đăng xuất
@@ -99,7 +101,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             navigationView.setCheckedItem(R.id.nav_home);
         }
 
-        fragmentManager = getSupportFragmentManager();
         fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
