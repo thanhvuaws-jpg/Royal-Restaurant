@@ -35,19 +35,19 @@ public interface ApiService {
     @GET("api/get_staff.php")
     Call<List<StaffResponse>> getStaff();
     // Thu ngân: Lấy danh sách đơn đang chờ
-    @GET("get_pending_orders.php")
+    @GET("api/get_pending_orders.php")
     Call<List<OrderResponse>> getPendingOrders();
 
     // Thu ngân: Xác nhận thanh toán
     @FormUrlEncoded
-    @POST("confirm_payment.php")
+    @POST("api/confirm_payment.php")
     Call<OrderResponse> confirmPayment(
             @Field("madondat") int madondat,
             @Field("phuongthuc") String phuongthuc
     );
 
     // Nhân viên: Kiểm tra trạng thái đơn
-    @GET("check_order_status.php")
+    @GET("api/check_order_status.php")
     Call<OrderResponse> checkOrderStatus(@Query("madondat") int madondat);
 
     // Lấy danh sách loại món (Bữa sáng, trưa, tối...)
