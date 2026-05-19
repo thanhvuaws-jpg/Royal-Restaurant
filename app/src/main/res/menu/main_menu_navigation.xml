@@ -12,6 +12,11 @@
             android:title="Thống kê"
             android:icon="@drawable/ic_baseline_bar_chart_24"/>
 
+        <item
+            android:id="@+id/nav_cashier"
+            android:title="Thu ngân"
+            android:icon="@drawable/ic_baseline_person_24"/>
+
         <item android:title="Quản lý">
             <menu>
                 <group android:checkableBehavior="single">

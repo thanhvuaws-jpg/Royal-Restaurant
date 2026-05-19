@@ -8,105 +8,83 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
 import com.sinhvien.orderdrinkapp.Activities.PaymentActivity;
-import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
-import com.sinhvien.orderdrinkapp.DTO.DonDatDTO;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
+import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayCategoryFragment;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
-
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
 
-public class AdapterDisplayTable extends BaseAdapter {
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
-    Context context;
-    int layout;
-    List<BanAnDTO> banAnDTOList;
-    FragmentManager fragmentManager;
-    boolean isAdmin;
+public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTable.ViewHolder> {
 
-    public AdapterDisplayTable(Context context, int layout, List<BanAnDTO> banAnDTOList) {
+    private final Context context;
+    private final List<BanAnDTO> banAnDTOList;
+    private final FragmentManager fragmentManager;
+    private final boolean isAdmin;
+
+    public AdapterDisplayTable(Context context, List<BanAnDTO> banAnDTOList) {
         this.context = context;
-        this.layout = layout;
         this.banAnDTOList = banAnDTOList;
         this.fragmentManager = ((HomeActivity) context).getSupportFragmentManager();
         this.isAdmin = SessionManager.isAdmin(context);
     }
 
+    @NonNull
     @Override
-    public int getCount() { return banAnDTOList.size(); }
-
-    @Override
-    public Object getItem(int position) { return banAnDTOList.get(position); }
-
-    @Override
-    public long getItemId(int position) { return banAnDTOList.get(position).getMaBan(); }
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.custom_layout_displaytable, parent, false);
+        return new ViewHolder(view);
+    }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        ViewHolder vh;
-        if (convertView == null) {
-            vh = new ViewHolder();
-            LayoutInflater inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            convertView = inflater.inflate(layout, parent, false);
-
-            vh.img_customtable_TableImage  = convertView.findViewById(R.id.img_customtable_TableImage);
-            vh.txt_customtable_TableName   = convertView.findViewById(R.id.txt_customtable_TableName);
-            vh.txt_customtable_Status      = convertView.findViewById(R.id.txt_customtable_Status);
-            vh.txt_customtable_ActionHint  = convertView.findViewById(R.id.txt_customtable_ActionHint);
-            vh.img_Delete = convertView.findViewById(R.id.img_customtable_Delete);
-            convertView.setTag(vh);
-        } else {
-            vh = (ViewHolder) convertView.getTag();
-        }
-
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         BanAnDTO ban = banAnDTOList.get(position);
         boolean dangDung = "true".equals(ban.getTinhTrang());
 
-        vh.txt_customtable_TableName.setText(ban.getTenBan());
+        holder.txt_TableName.setText(ban.getTenBan());
 
-        if (dangDung) {
-            vh.img_customtable_TableImage.setImageResource(R.drawable.ic_baseline_event_seat_40);
-        } else {
-            vh.img_customtable_TableImage.setImageResource(R.drawable.ic_baseline_airline_seat_legroom_normal_40);
-        }
+        holder.img_TableImage.setImageResource(dangDung
+                ? R.drawable.ic_baseline_event_seat_40
+                : R.drawable.ic_baseline_airline_seat_legroom_normal_40);
 
         GradientDrawable badge = (GradientDrawable) context.getResources()
                 .getDrawable(R.drawable.round_corner_textview).mutate();
         if (dangDung) {
-            vh.txt_customtable_Status.setText("Đang dùng");
+            holder.txt_Status.setText("Đang dùng");
             badge.setColor(context.getResources().getColor(R.color.status_occupied));
-            vh.txt_customtable_ActionHint.setText("Nhấn để xem đơn & thanh toán");
+            holder.txt_ActionHint.setText("Nhấn để xem đơn & thanh toán");
         } else {
-            vh.txt_customtable_Status.setText("Trống");
+            holder.txt_Status.setText("Trống");
             badge.setColor(context.getResources().getColor(R.color.status_free));
-            vh.txt_customtable_ActionHint.setText("Nhấn để đặt món");
+            holder.txt_ActionHint.setText("Nhấn để đặt món");
         }
-        vh.txt_customtable_Status.setBackground(badge);
+        holder.txt_Status.setBackground(badge);
 
-        // Xử lý nút Xóa bàn
+        // Nút xóa bàn (chỉ Admin)
         if (isAdmin) {
-            vh.img_Delete.setVisibility(View.VISIBLE);
-            vh.img_Delete.setOnClickListener(v -> {
+            holder.img_Delete.setVisibility(View.VISIBLE);
+            holder.img_Delete.setOnClickListener(v -> {
                 if (dangDung) {
                     Toast.makeText(context, "Bàn đang dùng không thể xóa!", Toast.LENGTH_SHORT).show();
                     return;
@@ -121,7 +99,8 @@ public class AdapterDisplayTable extends BaseAdapter {
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                                     if (response.isSuccessful()) {
                                         banAnDTOList.remove(position);
-                                        notifyDataSetChanged();
+                                        notifyItemRemoved(position);
+                                        notifyItemRangeChanged(position, banAnDTOList.size());
                                         Toast.makeText(context, "Đã xóa bàn trên Cloud", Toast.LENGTH_SHORT).show();
                                     }
                                 }
@@ -135,12 +114,10 @@ public class AdapterDisplayTable extends BaseAdapter {
                         .show();
             });
         } else {
-            vh.img_Delete.setVisibility(View.GONE);
+            holder.img_Delete.setVisibility(View.GONE);
         }
 
-        convertView.setOnClickListener(v -> xuLyClickBan(position));
-
-        return convertView;
+        holder.itemView.setOnClickListener(v -> xuLyClickBan(position));
     }
 
     private void xuLyClickBan(int position) {
@@ -148,12 +125,10 @@ public class AdapterDisplayTable extends BaseAdapter {
         int maban = ban.getMaBan();
         String tenban = ban.getTenBan();
         boolean dangDung = "true".equals(ban.getTinhTrang());
-
         String ngaydat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
 
         if (dangDung) {
-            // LẤY MÃ ĐƠN HÀNG TỪ CLOUD TRƯỚC KHI THANH TOÁN
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
             apiService.getOrderByTable(maban).enqueue(new Callback<OrderResponse>() {
                 @Override
@@ -170,14 +145,12 @@ public class AdapterDisplayTable extends BaseAdapter {
                         Toast.makeText(context, "Không tìm thấy đơn hàng trên Cloud", Toast.LENGTH_SHORT).show();
                     }
                 }
-
                 @Override
                 public void onFailure(Call<OrderResponse> call, Throwable t) {
                     Toast.makeText(context, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
         } else {
-            // Mở màn hình chọn món (Mã đơn hàng sẽ được tạo bên AmountMenuActivity)
             DisplayCategoryFragment fragment = new DisplayCategoryFragment();
             Bundle bundle = new Bundle();
             bundle.putInt("maban", maban);
@@ -190,8 +163,20 @@ public class AdapterDisplayTable extends BaseAdapter {
         }
     }
 
-    public class ViewHolder {
-        ImageView img_customtable_TableImage, img_Delete;
-        TextView txt_customtable_TableName, txt_customtable_Status, txt_customtable_ActionHint;
+    @Override
+    public int getItemCount() { return banAnDTOList.size(); }
+
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView img_TableImage, img_Delete;
+        TextView txt_TableName, txt_Status, txt_ActionHint;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            img_TableImage  = itemView.findViewById(R.id.img_customtable_TableImage);
+            txt_TableName   = itemView.findViewById(R.id.txt_customtable_TableName);
+            txt_Status      = itemView.findViewById(R.id.txt_customtable_Status);
+            txt_ActionHint  = itemView.findViewById(R.id.txt_customtable_ActionHint);
+            img_Delete      = itemView.findViewById(R.id.img_customtable_Delete);
+        }
     }
 }

@@ -28,6 +28,11 @@ public class SessionManager {
         return getMaQuyen(context) == 1;
     }
 
+    /** Kiểm tra người đang đăng nhập có phải Thu ngân không */
+    public static boolean isCashier(Context context) {
+        return getMaQuyen(context) == 3;
+    }
+
     /** Lấy mã nhân viên đang đăng nhập */
     public static int getMaNV(Context context) {
         return getPrefs(context).getInt(KEY_MANV, 0);

@@ -6,14 +6,18 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayPayment;
 import com.sinhvien.orderdrinkapp.DTO.ThanhToanDTO;
@@ -35,13 +39,19 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
 
     ImageView img_payment_BackBtn;
     TextView txt_payment_TableName, txt_payment_OrderDate, txt_payment_TotalAmount;
-    GridView gv_payment_DishList;
+    RecyclerView rv_payment_DishList;
     Button btn_payment_Pay;
     List<ThanhToanDTO> thanhToanDTOList;
     AdapterDisplayPayment adapterDisplayPayment;
     long tongtien = 0;
     int maban, madondat;
     String tenban, ngaydat;
+
+    // Polling tools
+    private Handler pollingHandler = new Handler(Looper.getMainLooper());
+    private Runnable pollingRunnable;
+    private android.app.ProgressDialog waitingDialog;
+    private boolean isPolling = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +63,8 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         txt_payment_TableName  = findViewById(R.id.txt_payment_TableName);
         txt_payment_OrderDate  = findViewById(R.id.txt_payment_OrderDate);
         txt_payment_TotalAmount = findViewById(R.id.txt_payment_TotalAmount);
-        gv_payment_DishList    = findViewById(R.id.gv_payment_DishList);
+        rv_payment_DishList    = findViewById(R.id.rv_payment_DishList);
+        rv_payment_DishList.setLayoutManager(new LinearLayoutManager(this));
         btn_payment_Pay        = findViewById(R.id.btn_payment_Pay);
         //endregion
 
@@ -102,10 +113,8 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void capNhatGiaoDien() {
-        adapterDisplayPayment = new AdapterDisplayPayment(
-                this, R.layout.custom_layout_paymentmenu, thanhToanDTOList);
-        gv_payment_DishList.setAdapter(adapterDisplayPayment);
-        adapterDisplayPayment.notifyDataSetChanged();
+        adapterDisplayPayment = new AdapterDisplayPayment(this, thanhToanDTOList);
+        rv_payment_DishList.setAdapter(adapterDisplayPayment);
 
         txt_payment_TotalAmount.setText(
                 String.format("%,d", tongtien) + " " +
@@ -117,11 +126,11 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         int id = v.getId();
         if (id == R.id.btn_payment_Pay) {
             android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
-            progressDialog.setMessage("Đang xử lý thanh toán...");
+            progressDialog.setMessage("Đang gửi yêu cầu thanh toán...");
             progressDialog.setCancelable(false);
             progressDialog.show();
 
-            // THANH TOÁN LÊN CLOUD
+            // YÊU CẦU THANH TOÁN LÊN CLOUD
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
             apiService.checkoutOrder(madondat, tongtien).enqueue(new Callback<OrderResponse>() {
                 @Override
@@ -129,9 +138,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                        HienThiHoaDon();
+                        startPollingForApproval();
                     } else {
-                        Toast.makeText(PaymentActivity.this, "Lỗi thanh toán Cloud", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(PaymentActivity.this, "Lỗi gửi yêu cầu", Toast.LENGTH_SHORT).show();
                     }
                 }
 
@@ -146,6 +155,61 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         } else if (id == R.id.img_payment_BackBtn) {
             finish();
         }
+    }
+
+    private void startPollingForApproval() {
+        waitingDialog = new android.app.ProgressDialog(this);
+        waitingDialog.setMessage("Đang chờ Thu ngân xác nhận...");
+        waitingDialog.setCancelable(false); // Không cho hủy bằng nút Back
+        waitingDialog.show();
+
+        isPolling = true;
+        pollingRunnable = new Runnable() {
+            @Override
+            public void run() {
+                checkApprovalStatus();
+                if (isPolling) {
+                    pollingHandler.postDelayed(this, 3000); // 3 giây kiểm tra 1 lần
+                }
+            }
+        };
+        pollingHandler.post(pollingRunnable);
+    }
+
+    private void stopPolling() {
+        isPolling = false;
+        if (pollingRunnable != null) {
+            pollingHandler.removeCallbacks(pollingRunnable);
+        }
+        if (waitingDialog != null && waitingDialog.isShowing()) {
+            waitingDialog.dismiss();
+        }
+    }
+
+    private void checkApprovalStatus() {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.checkOrderStatus(madondat).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String status = response.body().getTinhTrang();
+                    if ("true".equals(status)) { // Đã xác nhận
+                        stopPolling();
+                        HienThiHoaDon();
+                    }
+                }
+            }
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                // Ignore failure during polling
+            }
+        });
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        stopPolling();
     }
 
     /**

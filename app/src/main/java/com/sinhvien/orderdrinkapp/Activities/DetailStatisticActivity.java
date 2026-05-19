@@ -5,9 +5,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayPayment;
 import com.sinhvien.orderdrinkapp.DTO.ThanhToanDTO;
@@ -26,7 +28,7 @@ public class DetailStatisticActivity extends AppCompatActivity {
 
     ImageView img_detail_BackBtn;
     TextView txt_detail_OrderId, txt_detail_OrderDate, txt_detail_TableName, txt_detail_StaffName, txt_detail_TotalAmount;
-    GridView gvDetailStatistic;
+    RecyclerView rvDetailStatistic;
     int madon, manv, maban;
     String ngaydat, tongtien, tenNv, tenBan;
     List<ThanhToanDTO> thanhToanDTOList;
@@ -54,7 +56,8 @@ public class DetailStatisticActivity extends AppCompatActivity {
         txt_detail_TableName = (TextView)findViewById(R.id.txt_detail_TableName);
         txt_detail_StaffName = (TextView)findViewById(R.id.txt_detail_StaffName);
         txt_detail_TotalAmount = (TextView)findViewById(R.id.txt_detail_TotalAmount);
-        gvDetailStatistic = (GridView)findViewById(R.id.gvDetailStatistic);
+        rvDetailStatistic = findViewById(R.id.rvDetailStatistic);
+        rvDetailStatistic.setLayoutManager(new LinearLayoutManager(this));
         //endregion
 
         //chỉ hiển thị nếu lấy đc mã đơn đc chọn
@@ -102,9 +105,8 @@ public class DetailStatisticActivity extends AppCompatActivity {
                         dto.setHinhAnhPath(res.getHinhAnh());
                         thanhToanDTOList.add(dto);
                     }
-                    adapterDisplayPayment = new AdapterDisplayPayment(DetailStatisticActivity.this, R.layout.custom_layout_paymentmenu, thanhToanDTOList);
-                    gvDetailStatistic.setAdapter(adapterDisplayPayment);
-                    adapterDisplayPayment.notifyDataSetChanged();
+                    adapterDisplayPayment = new AdapterDisplayPayment(DetailStatisticActivity.this, thanhToanDTOList);
+                    rvDetailStatistic.setAdapter(adapterDisplayPayment);
                 }
             }
 

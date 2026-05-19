@@ -7,12 +7,13 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.XAxis;
@@ -49,7 +50,7 @@ import java.util.Map;
 public class DisplayStatisticFragment extends Fragment {
 
     // Views
-    ListView lv_statistic_OrderList;
+    RecyclerView rv_statistic_OrderList;
     BarChart chart_statistic_Revenue;
     TextView txt_statistic_TotalRevenue, txt_statistic_OrderCount, txt_statistic_AvgOrder;
     ChipGroup chipGroup_statistic_Filter;
@@ -80,7 +81,8 @@ public class DisplayStatisticFragment extends Fragment {
         }
 
         // Bind views
-        lv_statistic_OrderList      = view.findViewById(R.id.lv_statistic_OrderList);
+        rv_statistic_OrderList      = view.findViewById(R.id.rv_statistic_OrderList);
+        rv_statistic_OrderList.setLayoutManager(new LinearLayoutManager(getActivity()));
         chart_statistic_Revenue     = view.findViewById(R.id.chart_statistic_Revenue);
         txt_statistic_TotalRevenue  = view.findViewById(R.id.txt_statistic_TotalRevenue);
         txt_statistic_OrderCount    = view.findViewById(R.id.txt_statistic_OrderCount);
@@ -109,25 +111,7 @@ public class DisplayStatisticFragment extends Fragment {
         ((Chip) view.findViewById(R.id.chip_filter_7Days)).setChecked(true);
         capNhatDashboard();
 
-        // Click vào đơn → xem chi tiết
-        lv_statistic_OrderList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-                List<DonDatDTO> filtered = layDanhSachDaLoc();
-                if (position >= filtered.size()) return;
-
-                DonDatDTO don = filtered.get(position);
-                Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
-                intent.putExtra("madon", don.getMaDonDat());
-                intent.putExtra("manv", don.getMaNV());
-                intent.putExtra("maban", don.getMaBan());
-                intent.putExtra("ngaydat", don.getNgayDat());
-                intent.putExtra("tongtien", don.getTongTien());
-                intent.putExtra("tennv", don.getTenNV());
-                intent.putExtra("tenban", don.getTenBan());
-                startActivity(intent);
-            }
-        });
+        // Click vào đơn → xem chi tiết (sẽ được gán trong capNhatDashboard)
 
         return view;
     }
@@ -227,11 +211,24 @@ public class DisplayStatisticFragment extends Fragment {
                 String.format("%,d", trungBinh) + " " +
                         getString(R.string.currency_vnd));
 
-        // === ListView ===
+        // === RecyclerView ===
         adapterDisplayStatistic = new AdapterDisplayStatistic(
-                getActivity(), R.layout.custom_layout_displaystatistic, filtered);
-        lv_statistic_OrderList.setAdapter(adapterDisplayStatistic);
-        adapterDisplayStatistic.notifyDataSetChanged();
+                getActivity(), filtered);
+        rv_statistic_OrderList.setAdapter(adapterDisplayStatistic);
+        
+        adapterDisplayStatistic.setOnItemClickListener(position -> {
+            if (position >= filtered.size()) return;
+            DonDatDTO don = filtered.get(position);
+            Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
+            intent.putExtra("madon", don.getMaDonDat());
+            intent.putExtra("manv", don.getMaNV());
+            intent.putExtra("maban", don.getMaBan());
+            intent.putExtra("ngaydat", don.getNgayDat());
+            intent.putExtra("tongtien", don.getTongTien());
+            intent.putExtra("tennv", don.getTenNV());
+            intent.putExtra("tenban", don.getTenBan());
+            startActivity(intent);
+        });
 
         // === Bar chart ===
         setupBarChart(filtered);

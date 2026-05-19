@@ -41,7 +41,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
     TextView txt_add_StaffTitle;
     TextInputLayout txtl_add_StaffFullName, txtl_add_StaffUserName, txtl_add_StaffEmail, txtl_add_StaffPhone, txtl_add_StaffPassword;
     RadioGroup rg_add_StaffGender, rg_add_StaffRole;
-    RadioButton rd_add_StaffMale, rd_add_StaffFemale, rd_add_StaffOther, rd_add_StaffAdmin, rd_add_StaffStandard;
+    RadioButton rd_add_StaffMale, rd_add_StaffFemale, rd_add_StaffOther, rd_add_StaffAdmin, rd_add_StaffStandard, rd_add_StaffCashier;
     DatePicker dt_add_StaffDOB;
     Button btn_add_StaffCreate;
     String hoTen,tenDN,eMail,sDT,matKhau,gioiTinh,ngaySinh;
@@ -68,6 +68,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
         rd_add_StaffOther = (RadioButton)findViewById(R.id.rd_add_StaffOther);
         rd_add_StaffAdmin = (RadioButton)findViewById(R.id.rd_add_StaffAdmin);
         rd_add_StaffStandard = (RadioButton)findViewById(R.id.rd_add_StaffStandard);
+        rd_add_StaffCashier = (RadioButton)findViewById(R.id.rd_add_StaffCashier);
         dt_add_StaffDOB = (DatePicker)findViewById(R.id.dt_add_StaffDOB);
         btn_add_StaffCreate = (Button)findViewById(R.id.btn_add_StaffCreate);
         //endregion
@@ -95,6 +96,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                         else rd_add_StaffOther.setChecked(true);
 
                         if(res.getMaQuyen() == 1) rd_add_StaffAdmin.setChecked(true);
+                        else if (res.getMaQuyen() == 3) rd_add_StaffCashier.setChecked(true);
                         else rd_add_StaffStandard.setChecked(true);
 
                         String date = res.getNgaySinh();
@@ -140,6 +142,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                 switch (rg_add_StaffRole.getCheckedRadioButtonId()){
                     case R.id.rd_add_StaffAdmin: quyen = 1; break;
                     case R.id.rd_add_StaffStandard: quyen = 2; break;
+                    case R.id.rd_add_StaffCashier: quyen = 3; break;
                 }
 
                 // Định dạng ngày chuẩn MySQL: yyyy-MM-dd

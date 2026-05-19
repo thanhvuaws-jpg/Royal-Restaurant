@@ -34,6 +34,21 @@ public interface ApiService {
 
     @GET("api/get_staff.php")
     Call<List<StaffResponse>> getStaff();
+    // Thu ngân: Lấy danh sách đơn đang chờ
+    @GET("get_pending_orders.php")
+    Call<List<OrderResponse>> getPendingOrders();
+
+    // Thu ngân: Xác nhận thanh toán
+    @FormUrlEncoded
+    @POST("confirm_payment.php")
+    Call<OrderResponse> confirmPayment(
+            @Field("madondat") int madondat,
+            @Field("phuongthuc") String phuongthuc
+    );
+
+    // Nhân viên: Kiểm tra trạng thái đơn
+    @GET("check_order_status.php")
+    Call<OrderResponse> checkOrderStatus(@Query("madondat") int madondat);
 
     // Lấy danh sách loại món (Bữa sáng, trưa, tối...)
     @GET("api/get_categories.php")
@@ -41,7 +56,12 @@ public interface ApiService {
 
     // Lấy danh sách món ăn theo mã loại
     @GET("api/get_dishes.php")
-    Call<List<MonResponse>> getDishes(@Query("maloai") int maLoai);
+    Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> getDishes(
+            @Query("maloai") int maLoai,
+            @Query("page") int page,
+            @Query("limit") int limit,
+            @Query("search") String search
+    );
 
     // Bàn ăn
     @GET("api/get_tables.php")

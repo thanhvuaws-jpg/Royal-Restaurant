@@ -67,12 +67,11 @@
 
     </LinearLayout>
 
-    <GridView
-        android:id="@+id/gv_payment_DishList"
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rv_payment_DishList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:numColumns="1"
         android:padding="12dp"
         android:clipToPadding="false" />
 

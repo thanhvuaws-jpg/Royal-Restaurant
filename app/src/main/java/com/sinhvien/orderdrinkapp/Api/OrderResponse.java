@@ -9,6 +9,12 @@ public class OrderResponse {
     @SerializedName("message")
     private String message;
 
+    @SerializedName("tinhtrang")
+    private String tinhTrang;
+
+    @SerializedName("phuongthuc")
+    private String phuongThuc;
+
     @SerializedName("MADONDAT")
     private int maDonDat;
 
@@ -60,4 +66,6 @@ public class OrderResponse {
     public String getTongTien() { return tongTien; }
     public String getHoTenNV() { return hoTenNV; }
     public String getTenBan() { return tenBan; }
+    public String getTinhTrang() { return tinhTrang; }
+    public String getPhuongThuc() { return phuongThuc; }
 }

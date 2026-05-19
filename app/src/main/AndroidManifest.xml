@@ -18,6 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.OrderDrinkApp">
         <activity android:name=".Activities.DetailStatisticActivity" android:exported="false" />
+        <activity android:name=".Activities.CashierConfirmActivity" android:exported="false" />
         <activity android:name=".Activities.AddStaffActivity" android:exported="false" />
         <activity android:name=".Activities.PaymentActivity" android:exported="false" />
         <activity

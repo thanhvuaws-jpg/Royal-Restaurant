@@ -11,14 +11,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <GridView
-            android:id="@+id/gvStaff"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvStaff"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="8dp"
-            android:clipToPadding="false"
-            android:verticalSpacing="12dp"
-            android:numColumns="1" />
+            android:clipToPadding="false" />
 
         <include layout="@layout/layout_empty_state" />
 

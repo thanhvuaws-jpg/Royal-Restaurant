@@ -3,7 +3,6 @@ package com.sinhvien.orderdrinkapp.Fragments;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.ContextMenu;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -11,8 +10,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -23,19 +21,19 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.widget.SearchView;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.sinhvien.orderdrinkapp.Activities.AddMenuActivity;
-import com.sinhvien.orderdrinkapp.Activities.AmountMenuActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
-import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayMenu;
+import com.sinhvien.orderdrinkapp.Api.ApiClient;
+import com.sinhvien.orderdrinkapp.Api.ApiService;
+import com.sinhvien.orderdrinkapp.Api.DishPageResponse;
+import com.sinhvien.orderdrinkapp.Api.MonResponse;
+import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayMenuRecycler;
 import com.sinhvien.orderdrinkapp.DTO.MonDTO;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
-
-import com.sinhvien.orderdrinkapp.Api.ApiClient;
-import com.sinhvien.orderdrinkapp.Api.ApiService;
-import com.sinhvien.orderdrinkapp.Api.MonResponse;
-import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,14 +44,26 @@ import retrofit2.Response;
 
 public class DisplayMenuFragment extends Fragment {
 
+    // Hằng số phân trang
+    private static final int PAGE_SIZE = 10;
+
     int maloai, maban;
-    String tenloai, tinhtrang;
-    GridView gv_menu_DishList;
-    List<MonDTO> monDTOList;
-    AdapterDisplayMenu adapterDisplayMenu;
+    String tenloai;
+
+    RecyclerView rv_menu_DishList;
+    ProgressBar pb_menu_LoadMore;
+    List<MonDTO> monDTOList = new ArrayList<>();
+    AdapterDisplayMenuRecycler adapter;
     View view;
 
-    ActivityResultLauncher<Intent> resultLauncherMenu = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+    // Biến điều khiển phân trang và tìm kiếm
+    private int currentPage = 1;
+    private boolean isLoading = false;
+    private boolean hasMore = true;
+    private String currentSearch = ""; // Từ khóa tìm kiếm hiện tại
+
+    ActivityResultLauncher<Intent> resultLauncherMenu = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
                 public void onActivityResult(ActivityResult result) {
@@ -62,26 +72,21 @@ public class DisplayMenuFragment extends Fragment {
                         if (intent != null) {
                             boolean ktra = intent.getBooleanExtra("ktra", false);
                             String chucnang = intent.getStringExtra("chucnang");
-                            if ("themmon".equals(chucnang)) {
-                                if (ktra) {
-                                    HienThiDSMon();
-                                    Toast.makeText(getActivity(), R.string.add_sucessful, Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(getActivity(), R.string.add_failed, Toast.LENGTH_SHORT).show();
-                                }
+                            if (ktra) {
+                                // Reset và tải lại từ đầu khi có thay đổi
+                                resetVaTaiLai();
+                                Toast.makeText(getActivity(),
+                                        "themmon".equals(chucnang) ? R.string.add_sucessful : R.string.edit_sucessful,
+                                        Toast.LENGTH_SHORT).show();
                             } else {
-                                if (ktra) {
-                                    HienThiDSMon();
-                                    Toast.makeText(getActivity(), R.string.edit_sucessful, Toast.LENGTH_SHORT).show();
-                                } else {
-                                    Toast.makeText(getActivity(), "Sửa thất bại", Toast.LENGTH_SHORT).show();
-                                }
+                                Toast.makeText(getActivity(),
+                                        "themmon".equals(chucnang) ? R.string.add_failed : "Sửa thất bại",
+                                        Toast.LENGTH_SHORT).show();
                             }
                         }
                     }
                 }
             });
-
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -89,149 +94,171 @@ public class DisplayMenuFragment extends Fragment {
         if (getActivity() != null && ((HomeActivity) getActivity()).getSupportActionBar() != null) {
             ((HomeActivity) getActivity()).getSupportActionBar().setTitle(R.string.nav_menu);
         }
-        gv_menu_DishList = (GridView) view.findViewById(R.id.gv_menu_DishList);
 
-        
+        rv_menu_DishList = view.findViewById(R.id.rv_menu_DishList);
+        pb_menu_LoadMore = view.findViewById(R.id.pb_menu_LoadMore);
+
         Bundle bundle = getArguments();
         if (bundle != null) {
             maloai = bundle.getInt("maloai");
             tenloai = bundle.getString("tenloai");
             maban = bundle.getInt("maban");
-            HienThiDSMon();
 
-            gv_menu_DishList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            // Thiết lập RecyclerView dạng lưới 2 cột
+            GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 2);
+            rv_menu_DishList.setLayoutManager(layoutManager);
+
+            adapter = new AdapterDisplayMenuRecycler(getActivity(), monDTOList, maban);
+            rv_menu_DishList.setAdapter(adapter);
+
+            // Tải trang đầu tiên
+            taiThemMon();
+
+            // Lắng nghe sự kiện cuộn - Infinite Scroll
+            rv_menu_DishList.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
-                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                    tinhtrang = monDTOList.get(position).getTinhTrang();
-                    if (maban != 0) {
-                        if ("true".equals(tinhtrang)) {
-                            Intent iAmount = new Intent(getActivity(), AmountMenuActivity.class);
-                            iAmount.putExtra("maban", maban);
-                            iAmount.putExtra("mamon", monDTOList.get(position).getMaMon());
-                            startActivity(iAmount);
-                        } else {
-                            Toast.makeText(getActivity(),
-                                    R.string.dish_out_of_stock_msg,
-                                    Toast.LENGTH_SHORT).show();
+                public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                    super.onScrolled(recyclerView, dx, dy);
+                    if (dy > 0) { // Chỉ kích hoạt khi cuộn xuống
+                        int visibleItemCount = layoutManager.getChildCount();
+                        int totalItemCount = layoutManager.getItemCount();
+                        int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
+
+                        // Khi còn 4 item cuối thì bắt đầu tải thêm
+                        if (!isLoading && hasMore) {
+                            if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {
+                                taiThemMon();
+                            }
                         }
                     }
                 }
             });
         }
-        setHasOptionsMenu(true);
-        registerForContextMenu(gv_menu_DishList);
 
-        // Kết nối nút Thêm món nổi (FAB)
-        view.findViewById(R.id.fab_add_dish).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(getActivity(), AddMenuActivity.class);
-                intent.putExtra("maloai", maloai);
-                intent.putExtra("tenloai", tenloai);
-                resultLauncherMenu.launch(intent);
-            }
+        // Nút thêm món
+        view.findViewById(R.id.fab_add_dish).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), AddMenuActivity.class);
+            intent.putExtra("maloai", maloai);
+            intent.putExtra("tenloai", tenloai);
+            resultLauncherMenu.launch(intent);
         });
 
-        SearchView sv_menu_SearchDish = (SearchView) view.findViewById(R.id.sv_menu_SearchDish);
-        sv_menu_SearchDish.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+        // Thanh tìm kiếm → Gửi từ khóa lên Server
+        SearchView sv = view.findViewById(R.id.sv_menu_SearchDish);
+        sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                return false;
+                timKiemTrenServer(query.trim());
+                return true;
             }
-
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (adapterDisplayMenu != null) {
-                    adapterDisplayMenu.getFilter().filter(newText);
+                if (newText.trim().isEmpty()) {
+                    // Xóa từ khóa → quay về phân trang bình thường
+                    timKiemTrenServer("");
                 }
                 return true;
             }
         });
 
+        // Nút Back
         view.setFocusableInTouchMode(true);
         view.requestFocus();
-        view.setOnKeyListener(new View.OnKeyListener() {
-            @Override
-            public boolean onKey(View v, int keyCode, KeyEvent event) {
-                if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BACK) {
-                    getParentFragmentManager().popBackStack("hienthiloai", FragmentManager.POP_BACK_STACK_INCLUSIVE);
-                    return true;
-                }
-                return false;
+        view.setOnKeyListener((v, keyCode, event) -> {
+            if (event.getAction() == KeyEvent.ACTION_DOWN && keyCode == KeyEvent.KEYCODE_BACK) {
+                getParentFragmentManager().popBackStack("hienthiloai", FragmentManager.POP_BACK_STACK_INCLUSIVE);
+                return true;
             }
+            return false;
         });
 
+        setHasOptionsMenu(true);
         return view;
     }
 
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        if (SessionManager.isAdmin(getActivity())) {
-            getActivity().getMenuInflater().inflate(R.menu.edit_context_menu, menu);
-        }
+    // Tải thêm món từ Server (có phân trang)
+    private void taiThemMon() {
+        if (isLoading || !hasMore) return;
+        isLoading = true;
+        pb_menu_LoadMore.setVisibility(View.VISIBLE);
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getDishes(maloai, currentPage, PAGE_SIZE, currentSearch).enqueue(new Callback<DishPageResponse>() {
+            @Override
+            public void onResponse(Call<DishPageResponse> call, Response<DishPageResponse> response) {
+                if (!isAdded() || getActivity() == null) return;
+                pb_menu_LoadMore.setVisibility(View.GONE);
+                isLoading = false;
+
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    List<MonResponse> newItems = response.body().getData();
+                    hasMore = response.body().isHasMore();
+
+                    if (newItems != null && !newItems.isEmpty()) {
+                        int startPos = monDTOList.size();
+                        for (MonResponse res : newItems) {
+                            MonDTO dto = new MonDTO();
+                            dto.setMaMon(res.getMaMon());
+                            dto.setTenMon(res.getTenMon());
+                            dto.setGiaTien(res.getGiaTien());
+                            dto.setHinhAnhUrl(res.getHinhAnh());
+                            dto.setMaLoai(res.getMaLoai());
+                            dto.setTinhTrang(res.getTinhTrang());
+                            monDTOList.add(dto);
+                        }
+                        adapter.notifyItemRangeInserted(startPos, newItems.size());
+                        currentPage++;
+                    }
+                    capNhatTrangThai();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<DishPageResponse> call, Throwable t) {
+                if (!isAdded() || getActivity() == null) return;
+                pb_menu_LoadMore.setVisibility(View.GONE);
+                isLoading = false;
+                Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        AdapterView.AdapterContextMenuInfo menuInfo = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
-        int vitri = menuInfo.position;
-        int mamon = monDTOList.get(vitri).getMaMon();
+    // Reset và tải lại từ đầu (sau khi thêm/sửa/xóa)
+    private void resetVaTaiLai() {
+        currentPage = 1;
+        hasMore = true;
+        isLoading = false;
+        currentSearch = "";
+        monDTOList.clear();
+        adapter.notifyDataSetChanged();
+        taiThemMon();
+    }
 
-        if (id == R.id.itEdit) {
-            Intent iEdit = new Intent(getActivity(), AddMenuActivity.class);
-            iEdit.putExtra("mamon", mamon);
-            iEdit.putExtra("maloai", maloai);
-            iEdit.putExtra("tenloai", tenloai);
-            resultLauncherMenu.launch(iEdit);
-            return true;
-        } else if (id == R.id.itDelete) {
-            new android.app.AlertDialog.Builder(getActivity())
-                .setTitle("Xác nhận xóa")
-                .setMessage("Bạn có chắc chắn muốn xóa món này?")
-                .setPositiveButton("Xóa", new android.content.DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(android.content.DialogInterface dialog, int which) {
-                        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getActivity());
-                        progressDialog.setMessage("Đang xóa...");
-                        progressDialog.setCancelable(false);
-                        progressDialog.show();
+    // Tìm kiếm trên Server (trả về toàn bộ kết quả khớp)
+    private void timKiemTrenServer(String query) {
+        currentSearch = query;
+        currentPage = 1;
+        hasMore = true;
+        isLoading = false;
+        monDTOList.clear();
+        adapter.notifyDataSetChanged();
+        taiThemMon();
+    }
 
-                        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                        apiService.manageDish("delete", mamon, "", "", 0, "", "").enqueue(new Callback<OrderResponse>() {
-                            @Override
-                            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                                if (progressDialog.isShowing()) progressDialog.dismiss();
-                                if (!isAdded() || getActivity() == null) return;
-                                if (response.isSuccessful() && response.body() != null) {
-                                    OrderResponse res = response.body();
-                                    if ("success".equals(res.getStatus())) {
-                                        HienThiDSMon();
-                                        Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
-                                    } else {
-                                        Toast.makeText(getActivity(), "Lỗi: " + res.getMessage(), Toast.LENGTH_LONG).show();
-                                    }
-                                } else {
-                                    Toast.makeText(getActivity(), R.string.delete_failed, Toast.LENGTH_SHORT).show();
-                                }
-                            }
-
-                            @Override
-                            public void onFailure(Call<OrderResponse> call, Throwable t) {
-                                if (progressDialog.isShowing()) progressDialog.dismiss();
-                                if (isAdded() && getActivity() != null) {
-                                    Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            }
-                        });
-                    }
-                })
-                .setNegativeButton("Hủy", null)
-                .show();
-            return true;
+    // Cập nhật trạng thái hiển thị danh sách hoặc empty state
+    private void capNhatTrangThai() {
+        View emptyState = view.findViewById(R.id.layout_empty_state);
+        if (monDTOList.isEmpty()) {
+            rv_menu_DishList.setVisibility(View.GONE);
+            if (emptyState != null) {
+                emptyState.setVisibility(View.VISIBLE);
+                ((TextView) view.findViewById(R.id.txt_empty_StateTitle)).setText("Chưa có món ăn");
+                ((TextView) view.findViewById(R.id.txt_empty_StateDesc)).setText("Hãy nhấn nút + để thêm món mới.");
+            }
+        } else {
+            rv_menu_DishList.setVisibility(View.VISIBLE);
+            if (emptyState != null) emptyState.setVisibility(View.GONE);
         }
-        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -246,8 +273,7 @@ public class DisplayMenuFragment extends Fragment {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.itAddMenu) {
+        if (item.getItemId() == R.id.itAddMenu) {
             Intent intent = new Intent(getActivity(), AddMenuActivity.class);
             intent.putExtra("maloai", maloai);
             intent.putExtra("tenloai", tenloai);
@@ -255,54 +281,5 @@ public class DisplayMenuFragment extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void HienThiDSMon() {
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getDishes(maloai).enqueue(new Callback<List<MonResponse>>() {
-            @Override
-            public void onResponse(Call<List<MonResponse>> call, Response<List<MonResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    monDTOList = new ArrayList<>();
-                    for (MonResponse res : response.body()) {
-                        MonDTO dto = new MonDTO();
-                        dto.setMaMon(res.getMaMon());
-                        dto.setTenMon(res.getTenMon());
-                        dto.setGiaTien(res.getGiaTien());
-                        dto.setHinhAnhUrl(res.getHinhAnh());
-                        dto.setMaLoai(res.getMaLoai());
-                        dto.setTinhTrang(res.getTinhTrang());
-                        monDTOList.add(dto);
-                    }
-                    capNhatGiaoDien();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<MonResponse>> call, Throwable t) {
-                if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    private void capNhatGiaoDien() {
-        View layout_empty_state = view.findViewById(R.id.layout_empty_state);
-        if (monDTOList != null && monDTOList.size() > 0) {
-            adapterDisplayMenu = new AdapterDisplayMenu(getActivity(), R.layout.custom_layout_displaymenu, monDTOList, maban);
-            gv_menu_DishList.setAdapter(adapterDisplayMenu);
-            adapterDisplayMenu.notifyDataSetChanged();
-            if (layout_empty_state != null) layout_empty_state.setVisibility(View.GONE);
-            gv_menu_DishList.setVisibility(View.VISIBLE);
-        } else {
-            gv_menu_DishList.setVisibility(View.GONE);
-            if (layout_empty_state != null) {
-                layout_empty_state.setVisibility(View.VISIBLE);
-                ((TextView) view.findViewById(R.id.txt_empty_StateTitle)).setText("Chưa có món ăn");
-                ((TextView) view.findViewById(R.id.txt_empty_StateDesc)).setText("Hãy nhấn nút + để thêm món mới vào thực đơn này.");
-            }
-        }
     }
 }

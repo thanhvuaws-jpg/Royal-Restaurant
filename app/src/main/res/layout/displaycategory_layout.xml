@@ -12,14 +12,12 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <GridView
-            android:id="@+id/gv_category_CategoryList"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_category_CategoryList"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:padding="8dp"
-            android:clipToPadding="false"
-            android:verticalSpacing="12dp"
-            android:numColumns="1" />
+            android:clipToPadding="false" />
 
         <include layout="@layout/layout_empty_state" />
 

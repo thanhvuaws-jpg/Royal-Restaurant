@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.google.android.material.navigation.NavigationView;
+import com.sinhvien.orderdrinkapp.Fragments.DisplayCashierFragment;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayCategoryFragment;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayStaffFragment;
@@ -72,9 +73,30 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         txt_menu_tennv.setText(hoten);
 
         // Phân quyền menu
-        if (!SessionManager.isAdmin(this)) {
+        if (SessionManager.isCashier(this)) {
+            // Thu ngân chỉ thấy Trang chủ, Thu ngân, Thống kê, Đăng xuất
             navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
-            navigationView.getMenu().findItem(R.id.nav_statistic).setVisible(false);
+            navigationView.getMenu().findItem(R.id.nav_table).setVisible(false);
+            navigationView.getMenu().findItem(R.id.nav_category).setVisible(false);
+            
+            // Thu ngân mặc định mở trang Thu ngân
+            FragmentTransaction tranDisplayCashier = fragmentManager.beginTransaction();
+            tranDisplayCashier.replace(R.id.contentView, new DisplayCashierFragment());
+            tranDisplayCashier.commit();
+            navigationView.setCheckedItem(R.id.nav_cashier);
+        } else {
+            // Admin hoặc Nhân viên
+            navigationView.getMenu().findItem(R.id.nav_cashier).setVisible(false);
+            if (!SessionManager.isAdmin(this)) {
+                // Nhân viên
+                navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
+                navigationView.getMenu().findItem(R.id.nav_statistic).setVisible(false);
+            }
+            // Admin và Nhân viên mặc định mở Trang chủ
+            FragmentTransaction tranDisplayHome = fragmentManager.beginTransaction();
+            tranDisplayHome.replace(R.id.contentView, new DisplayHomeFragment());
+            tranDisplayHome.commit();
+            navigationView.setCheckedItem(R.id.nav_home);
         }
 
         fragmentManager = getSupportFragmentManager();
@@ -112,15 +134,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     navigationView.setCheckedItem(R.id.nav_category);
                 } else if (currentFragment instanceof DisplayStaffFragment) {
                     navigationView.setCheckedItem(R.id.nav_staff);
+                } else if (currentFragment instanceof DisplayCashierFragment) {
+                    navigationView.setCheckedItem(R.id.nav_cashier);
                 }
             }
         });
 
-        FragmentTransaction tranDisplayHome = fragmentManager.beginTransaction();
-        DisplayHomeFragment displayHomeFragment = new DisplayHomeFragment();
-        tranDisplayHome.replace(R.id.contentView,displayHomeFragment);
-        tranDisplayHome.commit();
-        navigationView.setCheckedItem(R.id.nav_home);
+        // Removed default home fragment load to prevent overriding the role-based logic above
     }
 
     @Override
@@ -151,6 +171,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             tranDisplayStatistic.replace(R.id.contentView,fragment, tag);
             tranDisplayStatistic.addToBackStack(null);
             tranDisplayStatistic.commit();
+            drawerLayout.closeDrawers();
+        } else if (id == R.id.nav_cashier) {
+            String tag = "CashierFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new DisplayCashierFragment();
+            FragmentTransaction tranDisplayCashier = fragmentManager.beginTransaction();
+            tranDisplayCashier.replace(R.id.contentView,fragment, tag);
+            tranDisplayCashier.addToBackStack(null);
+            tranDisplayCashier.commit();
             drawerLayout.closeDrawers();
         } else if (id == R.id.nav_table) {
             String tag = "TableFragment";

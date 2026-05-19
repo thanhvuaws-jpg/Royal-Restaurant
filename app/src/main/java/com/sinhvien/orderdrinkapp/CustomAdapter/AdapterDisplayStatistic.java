@@ -4,84 +4,71 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
-import com.sinhvien.orderdrinkapp.DTO.DonDatDTO;
-import com.sinhvien.orderdrinkapp.DTO.NhanVienDTO;
-import com.sinhvien.orderdrinkapp.R;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
 
-import org.w3c.dom.Text;
+import com.sinhvien.orderdrinkapp.DTO.DonDatDTO;
+import com.sinhvien.orderdrinkapp.R;
 
 import java.util.List;
 
-public class AdapterDisplayStatistic extends BaseAdapter {
+public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplayStatistic.ViewHolder> {
 
-    Context context;
-    int layout;
-    List<DonDatDTO> donDatDTOS;
+    private final Context context;
+    private final List<DonDatDTO> donDatDTOS;
 
-    public AdapterDisplayStatistic(Context context, int layout, List<DonDatDTO> donDatDTOS){
+    public interface OnItemClickListener {
+        void onItemClick(int position);
+    }
+    private OnItemClickListener listener;
+    public void setOnItemClickListener(OnItemClickListener listener) {
+        this.listener = listener;
+    }
+
+    public AdapterDisplayStatistic(Context context, List<DonDatDTO> donDatDTOS) {
         this.context = context;
-        this.layout = layout;
         this.donDatDTOS = donDatDTOS;
     }
 
+    @NonNull
     @Override
-    public int getCount() {
-        return donDatDTOS.size();
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(context).inflate(R.layout.custom_layout_displaystatistic, parent, false);
+        return new ViewHolder(view);
     }
 
     @Override
-    public Object getItem(int position) {
-        return donDatDTOS.get(position);
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        DonDatDTO don = donDatDTOS.get(position);
+
+        holder.txt_OrderId.setText("Mã đơn: " + don.getMaDonDat());
+        holder.txt_OrderDate.setText(don.getNgayDat());
+        holder.txt_TotalAmount.setText(don.getTongTien() + " VNĐ");
+        holder.txt_StaffName.setText(don.getTenNV());
+        holder.txt_TableName.setText(don.getTenBan());
+        holder.txt_Status.setText("true".equals(don.getTinhTrang()) ? "Đã thanh toán" : "Chưa thanh toán");
+
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onItemClick(position);
+        });
     }
 
     @Override
-    public long getItemId(int position) {
-        return donDatDTOS.get(position).getMaDonDat();
-    }
+    public int getItemCount() { return donDatDTOS.size(); }
 
-    @Override
-    public View getView(int int_position, View convertView, ViewGroup parent) {
-        View view = convertView;
-        ViewHolder viewHolder;
-        if(view == null){
-            viewHolder = new ViewHolder();
-            LayoutInflater inflater = (LayoutInflater)context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-            view = inflater.inflate(layout,parent,false);
+    public static class ViewHolder extends RecyclerView.ViewHolder {
+        TextView txt_OrderId, txt_OrderDate, txt_StaffName, txt_TotalAmount, txt_Status, txt_TableName;
 
-            viewHolder.txt_customstatistic_OrderId = (TextView)view.findViewById(R.id.txt_customstatistic_OrderId);
-            viewHolder.txt_customstatistic_OrderDate = (TextView)view.findViewById(R.id.txt_customstatistic_OrderDate);
-            viewHolder.txt_customstatistic_StaffName = (TextView)view.findViewById(R.id.txt_customstatistic_StaffName);
-            viewHolder.txt_customstatistic_TotalAmount = (TextView)view.findViewById(R.id.txt_customstatistic_TotalAmount);
-            viewHolder.txt_customstatistic_Status = (TextView)view.findViewById(R.id.txt_customstatistic_Status);
-            viewHolder.txt_customstatistic_TableName = (TextView)view.findViewById(R.id.txt_customstatistic_TableName);
-            view.setTag(viewHolder);
-        }else {
-            viewHolder = (ViewHolder) view.getTag();
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            txt_OrderId     = itemView.findViewById(R.id.txt_customstatistic_OrderId);
+            txt_OrderDate   = itemView.findViewById(R.id.txt_customstatistic_OrderDate);
+            txt_StaffName   = itemView.findViewById(R.id.txt_customstatistic_StaffName);
+            txt_TotalAmount = itemView.findViewById(R.id.txt_customstatistic_TotalAmount);
+            txt_Status      = itemView.findViewById(R.id.txt_customstatistic_Status);
+            txt_TableName   = itemView.findViewById(R.id.txt_customstatistic_TableName);
         }
-        DonDatDTO donDatDTO = donDatDTOS.get(int_position);
-
-        viewHolder.txt_customstatistic_OrderId.setText("Mã đơn: "+donDatDTO.getMaDonDat());
-        viewHolder.txt_customstatistic_OrderDate.setText(donDatDTO.getNgayDat());
-        viewHolder.txt_customstatistic_TotalAmount.setText(donDatDTO.getTongTien()+" VNĐ");
-        if (donDatDTO.getTinhTrang().equals("true"))
-        {
-            viewHolder.txt_customstatistic_Status.setText("Đã thanh toán");
-        }else {
-            viewHolder.txt_customstatistic_Status.setText("Chưa thanh toán");
-        }
-        viewHolder.txt_customstatistic_StaffName.setText(donDatDTO.getTenNV());
-        viewHolder.txt_customstatistic_TableName.setText(donDatDTO.getTenBan());
-
-        return view;
-    }
-    public class ViewHolder{
-        TextView txt_customstatistic_OrderId, txt_customstatistic_OrderDate, txt_customstatistic_StaffName
-                ,txt_customstatistic_TotalAmount,txt_customstatistic_Status, txt_customstatistic_TableName;
-
     }
 }

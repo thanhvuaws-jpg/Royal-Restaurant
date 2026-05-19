@@ -93,6 +93,14 @@
                         android:buttonTint="@color/colorPrimary"
                         tools:targetApi="lollipop" />
 
+                    <RadioButton
+                        android:id="@+id/rd_add_StaffCashier"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Thu ngân"
+                        android:buttonTint="@color/colorPrimary"
+                        tools:targetApi="lollipop" />
+
                 </RadioGroup>
             </RelativeLayout>
 

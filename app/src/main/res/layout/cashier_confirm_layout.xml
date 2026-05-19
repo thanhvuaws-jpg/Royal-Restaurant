@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.DetailStatisticActivity"
     android:orientation="vertical"
     android:background="@color/white">
 
@@ -16,27 +15,25 @@
         tools:targetApi="lollipop">
         
         <ImageView
-            android:id="@+id/img_detail_BackBtn"
+            android:id="@+id/img_cashier_BackBtn"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:padding="12dp"
             android:src="@drawable/ic_baseline_arrow_back_24"
             android:layout_centerVertical="true"
-            app:tint="@color/black"
-            android:contentDescription="@string/back" />
+            app:tint="@color/black" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/order_detail_title"
+            android:text="Xác nhận thanh toán"
             android:textSize="20sp"
             android:fontFamily="@font/muli_black"
             android:textAllCaps="true"
             android:textColor="@color/black"
             android:layout_centerVertical="true"
-            android:layout_toEndOf="@+id/img_detail_BackBtn"
-            android:layout_toRightOf="@+id/img_detail_BackBtn" />
-
+            android:layout_toEndOf="@+id/img_cashier_BackBtn"
+            android:layout_toRightOf="@+id/img_cashier_BackBtn" />
     </RelativeLayout>
 
     <RelativeLayout
@@ -45,33 +42,39 @@
         android:padding="20dp">
 
         <TextView
-            android:id="@+id/txt_detail_OrderId"
+            android:id="@+id/txt_cashier_TableName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="Mã đơn: #1"
+            tools:text="Bàn 01"
             android:textSize="18sp"
             android:fontFamily="@font/muli_black"
             android:textColor="@color/black"
-            android:layout_centerVertical="true"
-            android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true" />
+            
+        <TextView
+            android:id="@+id/txt_cashier_StaffName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            tools:text="Nhân viên: Gia Huy"
+            android:textSize="14sp"
+            android:fontFamily="@font/muli"
+            android:textColor="@color/grey"
+            android:layout_below="@id/txt_cashier_TableName"
+            android:layout_marginTop="4dp" />
 
         <TextView
-            android:id="@+id/txt_detail_OrderDate"
+            android:id="@+id/txt_cashier_OrderDate"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             tools:text="20/12/2026"
             android:textSize="16sp"
             android:fontFamily="@font/muli"
             android:textColor="@color/grey"
-            android:layout_centerVertical="true"
-            android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true" />
-
     </RelativeLayout>
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rvDetailStatistic"
+        android:id="@+id/rv_cashier_DishList"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
@@ -84,73 +87,70 @@
         android:layout_margin="16dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        app:strokeWidth="0dp"
-        tools:targetApi="lollipop">
+        app:strokeWidth="0dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:orientation="vertical"
             android:padding="20dp">
 
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:layout_centerVertical="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true">
+                android:orientation="horizontal"
+                android:layout_marginBottom="16dp">
                 
                 <TextView
-                    android:id="@+id/txt_detail_TableName"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
                     android:layout_height="wrap_content"
-                    tools:text="Bàn 01"
+                    android:text="TỔNG TIỀN:"
+                    android:textColor="@color/grey"
                     android:fontFamily="@font/muli_black"
-                    android:textColor="@color/black"
-                    android:textSize="18sp" />
+                    android:textSize="16sp" />
                     
                 <TextView
-                    android:id="@+id/txt_detail_StaffName"
+                    android:id="@+id/txt_cashier_TotalAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    tools:text="Lê Gia Huy"
-                    android:textColor="@color/grey"
-                    android:fontFamily="@font/muli"
-                    android:textSize="14sp" />
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:gravity="end"
-                android:layout_centerVertical="true"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true">
-                
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/total_label"
-                    android:textColor="@color/grey"
-                    android:fontFamily="@font/muli"
-                    android:textSize="14sp" />
-                    
-                <TextView
-                    android:id="@+id/txt_detail_TotalAmount"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
                     tools:text="780,000 VNĐ"
                     android:textColor="@color/colorPrimary"
                     android:fontFamily="@font/muli_black"
-                    android:textSize="20sp" />
+                    android:textSize="22sp" />
             </LinearLayout>
 
-        </RelativeLayout>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                
+                <Button
+                    android:id="@+id/btn_cashier_Cash"
+                    android:layout_width="0dp"
+                    android:layout_height="55dp"
+                    android:layout_weight="1"
+                    android:layout_marginEnd="8dp"
+                    android:background="@drawable/corner_border_primary"
+                    app:backgroundTint="@color/colorPrimary"
+                    android:text="Tiền mặt"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/muli_black" />
+                    
+                <Button
+                    android:id="@+id/btn_cashier_Bank"
+                    android:layout_width="0dp"
+                    android:layout_height="55dp"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:background="@drawable/corner_border_primary"
+                    app:backgroundTint="#2196F3"
+                    android:text="Chuyển khoản"
+                    android:textColor="@color/white"
+                    android:fontFamily="@font/muli_black" />
+            </LinearLayout>
 
+        </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
 </LinearLayout>
