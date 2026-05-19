@@ -3,7 +3,7 @@ package com.sinhvien.orderdrinkapp.DTO;
 public class DonDatDTO {
 
     int MaDonDat,MaBan ,MaNV;
-    String TinhTrang,NgayDat,TongTien, TenNV, TenBan;
+    String TinhTrang,NgayDat,TongTien, TenNV, TenBan, phuongThucTT;
 
     public int getMaDonDat() {
         return MaDonDat;
@@ -57,4 +57,6 @@ public class DonDatDTO {
     public void setTenNV(String tenNV) { TenNV = tenNV; }
     public String getTenBan() { return TenBan; }
     public void setTenBan(String tenBan) { TenBan = tenBan; }
+    public String getPhuongThucTT() { return phuongThucTT; }
+    public void setPhuongThucTT(String phuongThucTT) { this.phuongThucTT = phuongThucTT; }
 }

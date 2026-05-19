@@ -97,7 +97,8 @@ public interface ApiService {
     @POST("api/checkout_order.php")
     Call<OrderResponse> checkoutOrder(
             @Field("madondat") int madondat,
-            @Field("tongtien") long tongtien
+            @Field("tongtien") long tongtien,
+            @Field("phuongthuc") String phuongthuc
     );
 
     @FormUrlEncoded

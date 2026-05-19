@@ -47,8 +47,23 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
         holder.txt_OrderDate.setText(don.getNgayDat());
         holder.txt_TotalAmount.setText(don.getTongTien() + " VNĐ");
         holder.txt_StaffName.setText(don.getTenNV());
-        holder.txt_TableName.setText(don.getTenBan());
-        holder.txt_Status.setText("true".equals(don.getTinhTrang()) ? "Đã thanh toán" : "Chưa thanh toán");
+        
+        String banText = don.getTenBan();
+        if (don.getPhuongThucTT() != null && !don.getPhuongThucTT().isEmpty()) {
+            banText += " (" + don.getPhuongThucTT() + ")";
+        }
+        holder.txt_TableName.setText(banText);
+
+        if ("true".equals(don.getTinhTrang())) {
+            holder.txt_Status.setText("Đã thanh toán");
+            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_primary);
+        } else if ("pending".equals(don.getTinhTrang())) {
+            holder.txt_Status.setText("Chờ duyệt");
+            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);
+        } else {
+            holder.txt_Status.setText("Chưa thanh toán");
+            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);
+        }
 
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(position);

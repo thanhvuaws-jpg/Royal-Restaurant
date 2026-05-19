@@ -12,7 +12,7 @@ public class OrderResponse {
     @SerializedName("tinhtrang")
     private String tinhTrang;
 
-    @SerializedName("phuongthuc")
+    @SerializedName(value = "phuongthuc", alternate = {"PHUONGTHUCTT"})
     private String phuongThuc;
 
     @SerializedName("MADONDAT")

@@ -30,12 +30,12 @@ import retrofit2.Response;
 public class CashierConfirmActivity extends AppCompatActivity {
 
     ImageView img_cashier_BackBtn;
-    TextView txt_cashier_TableName, txt_cashier_StaffName, txt_cashier_OrderDate, txt_cashier_TotalAmount;
+    TextView txt_cashier_TableName, txt_cashier_StaffName, txt_cashier_OrderDate, txt_cashier_TotalAmount, txt_cashier_ProposedMethod;
     RecyclerView rv_cashier_DishList;
     Button btn_cashier_Cash, btn_cashier_Bank;
 
     int madon, manv, maban;
-    String ngaydat, tongtien, tenNv, tenBan;
+    String ngaydat, tongtien, tenNv, tenBan, phuongthuc;
     List<ThanhToanDTO> thanhToanDTOList;
     AdapterDisplayPayment adapterDisplayPayment;
 
@@ -50,6 +50,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
         txt_cashier_StaffName = findViewById(R.id.txt_cashier_StaffName);
         txt_cashier_OrderDate = findViewById(R.id.txt_cashier_OrderDate);
         txt_cashier_TotalAmount = findViewById(R.id.txt_cashier_TotalAmount);
+        txt_cashier_ProposedMethod = findViewById(R.id.txt_cashier_ProposedMethod);
         rv_cashier_DishList = findViewById(R.id.rv_cashier_DishList);
         rv_cashier_DishList.setLayoutManager(new LinearLayoutManager(this));
         btn_cashier_Cash = findViewById(R.id.btn_cashier_Cash);
@@ -64,11 +65,13 @@ public class CashierConfirmActivity extends AppCompatActivity {
         tongtien = intent.getStringExtra("tongtien");
         tenNv = intent.getStringExtra("tennv");
         tenBan = intent.getStringExtra("tenban");
+        phuongthuc = intent.getStringExtra("phuongthuc");
 
         if (madon != 0) {
             txt_cashier_OrderDate.setText(ngaydat);
             txt_cashier_TableName.setText(tenBan != null ? tenBan : "Bàn " + maban);
             txt_cashier_StaffName.setText("Nhân viên: " + (tenNv != null ? tenNv : "ID " + manv));
+            txt_cashier_ProposedMethod.setText(phuongthuc != null && !phuongthuc.isEmpty() ? phuongthuc : "Không rõ");
             
             try {
                 long total = (long) Double.parseDouble(tongtien);

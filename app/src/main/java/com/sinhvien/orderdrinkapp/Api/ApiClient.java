@@ -9,6 +9,9 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class ApiClient {
     // Địa chỉ VPS của bạn
     public static final String BASE_URL = "http://103.157.204.120:8081/";
+    public static final String BANK_ID = "BIDV";
+    public static final String BANK_ACC = "6151099464";
+    public static final String BANK_NAME = "VU THANH";
     private static Retrofit retrofit = null;
 
     public static Retrofit getClient() {

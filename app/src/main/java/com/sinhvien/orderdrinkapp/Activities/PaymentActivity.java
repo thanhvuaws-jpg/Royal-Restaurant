@@ -125,36 +125,104 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_payment_Pay) {
-            android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
-            progressDialog.setMessage("Đang gửi yêu cầu thanh toán...");
-            progressDialog.setCancelable(false);
-            progressDialog.show();
-
-            // YÊU CẦU THANH TOÁN LÊN CLOUD
-            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            apiService.checkoutOrder(madondat, tongtien).enqueue(new Callback<OrderResponse>() {
-                @Override
-                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                    if (progressDialog.isShowing()) progressDialog.dismiss();
-                    if (isFinishing() || isDestroyed()) return;
-                    if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                        startPollingForApproval();
-                    } else {
-                        Toast.makeText(PaymentActivity.this, "Lỗi gửi yêu cầu", Toast.LENGTH_SHORT).show();
-                    }
-                }
-
-                @Override
-                public void onFailure(Call<OrderResponse> call, Throwable t) {
-                    if (progressDialog.isShowing()) progressDialog.dismiss();
-                    if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                }
-            });
+            hienThiDialogChonPhuongThuc();
         } else if (id == R.id.img_payment_BackBtn) {
             finish();
         }
+    }
+
+    private void hienThiDialogChonPhuongThuc() {
+        String[] options = {"Tiền mặt", "Chuyển khoản (VietQR)"};
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Chọn phương thức thanh toán")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        thucHienThanhToan("Tiền mặt");
+                    } else {
+                        hienThiDialogVietQR();
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void hienThiDialogVietQR() {
+        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_vietqr, null);
+        ImageView imgQR = dialogView.findViewById(R.id.img_dialogqr_QR);
+        TextView txtBank = dialogView.findViewById(R.id.txt_dialogqr_Bank);
+        TextView txtAccount = dialogView.findViewById(R.id.txt_dialogqr_Account);
+        TextView txtAmount = dialogView.findViewById(R.id.txt_dialogqr_Amount);
+        TextView txtMessage = dialogView.findViewById(R.id.txt_dialogqr_Message);
+        Button btnConfirm = dialogView.findViewById(R.id.btn_dialogqr_Confirm);
+        Button btnCancel = dialogView.findViewById(R.id.btn_dialogqr_Cancel);
+
+        String message = "Thanh toan Ban " + tenban + " Don " + madondat;
+        String qrUrl = "";
+        try {
+            String encodedMsg = java.net.URLEncoder.encode(message, "UTF-8");
+            String encodedName = java.net.URLEncoder.encode(ApiClient.BANK_NAME, "UTF-8");
+            qrUrl = "https://img.vietqr.io/image/" + ApiClient.BANK_ID + "-" + ApiClient.BANK_ACC + "-compact2.png"
+                    + "?amount=" + tongtien
+                    + "&addInfo=" + encodedMsg
+                    + "&accountName=" + encodedName;
+        } catch (Exception e) {
+            qrUrl = "https://img.vietqr.io/image/" + ApiClient.BANK_ID + "-" + ApiClient.BANK_ACC + "-compact2.png"
+                    + "?amount=" + tongtien
+                    + "&addInfo=" + message;
+        }
+
+        txtBank.setText(ApiClient.BANK_ID);
+        txtAccount.setText(ApiClient.BANK_ACC);
+        txtAmount.setText(String.format("%,d", tongtien) + " VNĐ");
+        txtMessage.setText(message);
+
+        com.bumptech.glide.Glide.with(this)
+                .load(qrUrl)
+                .placeholder(android.R.drawable.ic_menu_report_image)
+                .into(imgQR);
+
+        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(false)
+                .create();
+
+        btnConfirm.setOnClickListener(v -> {
+            dialog.dismiss();
+            thucHienThanhToan("Chuyển khoản");
+        });
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        dialog.show();
+    }
+
+    private void thucHienThanhToan(String phuongthuc) {
+        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
+        progressDialog.setMessage("Đang gửi yêu cầu thanh toán...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.checkoutOrder(madondat, tongtien, phuongthuc).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                if (progressDialog.isShowing()) progressDialog.dismiss();
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    startPollingForApproval();
+                } else {
+                    Toast.makeText(PaymentActivity.this, "Lỗi gửi yêu cầu", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                if (progressDialog.isShowing()) progressDialog.dismiss();
+                if (!isFinishing() && !isDestroyed()) {
+                    Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void startPollingForApproval() {

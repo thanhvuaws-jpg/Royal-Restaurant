@@ -99,6 +99,31 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:text="Hình thức đề xuất:"
+                    android:textColor="@color/grey"
+                    android:fontFamily="@font/muli"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/txt_cashier_ProposedMethod"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    tools:text="Chuyển khoản"
+                    android:textColor="@color/black"
+                    android:fontFamily="@font/muli_black"
+                    android:textSize="14sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
                 android:layout_marginBottom="16dp">
                 
                 <TextView
