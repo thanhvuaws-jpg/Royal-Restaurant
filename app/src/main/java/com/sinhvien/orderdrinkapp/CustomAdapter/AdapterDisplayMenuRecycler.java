@@ -24,7 +24,6 @@ import com.sinhvien.orderdrinkapp.Activities.AmountMenuActivity;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
-import com.sinhvien.orderdrinkapp.DAO.MonDAO;
 import com.sinhvien.orderdrinkapp.DTO.MonDTO;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
@@ -40,14 +39,12 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
     private final Context context;
     private final List<MonDTO> monDTOList;
     private final int maban;
-    private final MonDAO monDAO;
     private final boolean isAdmin;
 
     public AdapterDisplayMenuRecycler(Context context, List<MonDTO> monDTOList, int maban) {
         this.context = context;
         this.monDTOList = monDTOList;
         this.maban = maban;
-        this.monDAO = new MonDAO(context);
         this.isAdmin = SessionManager.isAdmin(context);
     }
 
@@ -114,7 +111,6 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                     if (response.isSuccessful()) {
                         monDTO.setTinhTrang(trangThaiMoi);
                         notifyItemChanged(position);
-                        monDAO.CapNhatTinhTrang(monDTO.getMaMon(), trangThaiMoi);
                     } else {
                         Toast.makeText(context, "Lỗi cập nhật Cloud", Toast.LENGTH_SHORT).show();
                         holder.sw_ToggleStatus.setChecked(!isChecked);

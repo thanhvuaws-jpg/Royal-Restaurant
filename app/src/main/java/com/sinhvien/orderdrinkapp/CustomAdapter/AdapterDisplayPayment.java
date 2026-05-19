@@ -31,7 +31,7 @@ public class AdapterDisplayPayment extends RecyclerView.Adapter<AdapterDisplayPa
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.custom_layout_payment, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.custom_layout_paymentmenu, parent, false);
         return new ViewHolder(view);
     }
 

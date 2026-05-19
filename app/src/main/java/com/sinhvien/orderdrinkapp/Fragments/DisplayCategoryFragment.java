@@ -64,7 +64,7 @@ public class DisplayCategoryFragment extends Fragment {
                                     Toast.LENGTH_SHORT).show();
                         } else {
                             Toast.makeText(getActivity(),
-                                    "themloai".equals(chucnang) ? R.string.add_failed : "Sửa thất bại",
+                                    "themloai".equals(chucnang) ? getString(R.string.add_failed) : "Sửa thất bại",
                                     Toast.LENGTH_SHORT).show();
                         }
                     }

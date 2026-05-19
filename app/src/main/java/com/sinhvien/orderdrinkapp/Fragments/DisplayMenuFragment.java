@@ -14,6 +14,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -80,7 +82,7 @@ public class DisplayMenuFragment extends Fragment {
                                         Toast.LENGTH_SHORT).show();
                             } else {
                                 Toast.makeText(getActivity(),
-                                        "themmon".equals(chucnang) ? R.string.add_failed : "Sửa thất bại",
+                                        "themmon".equals(chucnang) ? getString(R.string.add_failed) : "Sửa thất bại",
                                         Toast.LENGTH_SHORT).show();
                             }
                         }
