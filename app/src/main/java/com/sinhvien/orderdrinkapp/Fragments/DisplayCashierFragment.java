@@ -244,7 +244,9 @@ public class DisplayCashierFragment extends Fragment {
                     
                     SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
+                    
                     SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+                    dateOnlyFormat.setTimeZone(java.util.TimeZone.getTimeZone("GMT+7"));
                     String todayStr = dateOnlyFormat.format(new Date());
                     
                     for (OrderResponse res : response.body()) {
