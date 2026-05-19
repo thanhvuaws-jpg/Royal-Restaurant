@@ -63,19 +63,15 @@
                     android:text="@string/permission_label"
                     android:textColor="@color/black"
                     android:textSize="16sp"
-                    android:fontFamily="@font/muli_black"
-                    android:layout_centerVertical="true" />
+                    android:fontFamily="@font/muli_black" />
 
                 <RadioGroup
                     android:id="@+id/rg_add_StaffRole"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_toEndOf="@id/txt_add_PermissionLabel"
-                    android:layout_toRightOf="@id/txt_add_PermissionLabel"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginLeft="12dp">
+                    android:layout_below="@id/txt_add_PermissionLabel"
+                    android:layout_marginTop="8dp">
 
                     <RadioButton
                         android:id="@+id/rd_add_StaffAdmin"
@@ -194,19 +190,15 @@
                     android:text="@string/gender_label"
                     android:textColor="@color/black"
                     android:textSize="16sp"
-                    android:fontFamily="@font/muli_black"
-                    android:layout_centerVertical="true" />
+                    android:fontFamily="@font/muli_black" />
 
                 <RadioGroup
                     android:id="@+id/rg_add_StaffGender"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:layout_toEndOf="@id/txt_add_GenderLabel"
-                    android:layout_toRightOf="@id/txt_add_GenderLabel"
-                    android:layout_centerVertical="true"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginLeft="12dp">
+                    android:layout_below="@id/txt_add_GenderLabel"
+                    android:layout_marginTop="8dp">
 
                     <RadioButton
                         android:id="@+id/rd_add_StaffMale"
