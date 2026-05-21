@@ -86,8 +86,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
 
-        // Khởi động kiểm tra session đăng nhập song song
-        startSessionCheck();
+        // Khởi động kiểm tra session sẽ được tự động chạy trong onResume()
 
         fragmentManager = getSupportFragmentManager();
 
@@ -236,6 +235,18 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             finish();
         }
         return true;
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        startSessionCheck();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopSessionCheck();
     }
 
     @Override
