@@ -312,7 +312,12 @@ public class DisplayStatisticFragment extends Fragment {
             @Override
             public String getFormattedValue(float value) {
                 if (value <= 0) return "";
-                return String.format("%,.0f", value) + "đ";
+                if (value >= 1000000) {
+                    return String.format(Locale.US, "%.1ftr", value / 1000000f);
+                } else if (value >= 1000) {
+                    return String.format(Locale.US, "%.0fk", value / 1000f);
+                }
+                return String.format(Locale.US, "%.0f", value);
             }
         });
 
