@@ -113,6 +113,11 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                     if (response.isSuccessful()) {
                         monDTO.setTinhTrang(trangThaiMoi);
                         notifyItemChanged(position);
+                        
+                        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                        if (socket != null && socket.connected()) {
+                            socket.emit("refresh_orders");
+                        }
                     } else {
                         Toast.makeText(context, "Lỗi cập nhật Cloud", Toast.LENGTH_SHORT).show();
                         holder.sw_ToggleStatus.setChecked(!isChecked);

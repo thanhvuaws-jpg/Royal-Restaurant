@@ -27,6 +27,9 @@ import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 import com.sinhvien.orderdrinkapp.Activities.AddMenuActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
@@ -68,6 +71,16 @@ public class DisplayMenuFragment extends Fragment {
 
     private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable searchRunnable;
+
+    private Socket mSocket;
+    private final Emitter.Listener onRefreshOrders = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> refreshMenuInPlace());
+            }
+        }
+    };
 
     ActivityResultLauncher<Intent> resultLauncherMenu = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -343,6 +356,84 @@ public class DisplayMenuFragment extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    private void refreshMenuInPlace() {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getDishes(maloai, 1, 100, currentSearch).enqueue(new retrofit2.Callback<DishPageResponse>() {
+            @Override
+            public void onResponse(retrofit2.Call<DishPageResponse> call, retrofit2.Response<DishPageResponse> response) {
+                if (!isAdded() || getActivity() == null) return;
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    List<MonResponse> newItems = response.body().getData();
+                    if (newItems != null) {
+                        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+                        dbHelper.syncDishes(maloai, newItems, true);
+
+                        List<MonDTO> updatedList = dbHelper.getDishes(maloai, currentSearch);
+                        
+                        // 1. Remove items not in updatedList
+                        for (int i = monDTOList.size() - 1; i >= 0; i--) {
+                            MonDTO oldItem = monDTOList.get(i);
+                            boolean found = false;
+                            for (MonDTO newItem : updatedList) {
+                                if (oldItem.getMaMon() == newItem.getMaMon()) {
+                                    found = true;
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                monDTOList.remove(i);
+                                adapter.notifyItemRemoved(i);
+                            }
+                        }
+
+                        // 2. Update existing items and add new items
+                        for (int i = 0; i < updatedList.size(); i++) {
+                            MonDTO newItem = updatedList.get(i);
+                            boolean found = false;
+                            for (int j = 0; j < monDTOList.size(); j++) {
+                                MonDTO oldItem = monDTOList.get(j);
+                                if (oldItem.getMaMon() == newItem.getMaMon()) {
+                                    found = true;
+                                    oldItem.setTenMon(newItem.getTenMon());
+                                    oldItem.setGiaTien(newItem.getGiaTien());
+                                    oldItem.setTinhTrang(newItem.getTinhTrang());
+                                    oldItem.setHinhAnhUrl(newItem.getHinhAnhUrl());
+                                    adapter.notifyItemChanged(j);
+                                    break;
+                                }
+                            }
+                            if (!found) {
+                                monDTOList.add(newItem);
+                                adapter.notifyItemInserted(monDTOList.size() - 1);
+                            }
+                        }
+                        capNhatTrangThai();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(retrofit2.Call<DishPageResponse> call, Throwable t) {}
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (mSocket != null) {
+            mSocket.on("refresh_orders", onRefreshOrders);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mSocket != null) {
+            mSocket.off("refresh_orders", onRefreshOrders);
+        }
     }
 
     @Override

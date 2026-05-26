@@ -35,6 +35,9 @@ import com.sinhvien.orderdrinkapp.DTO.LoaiMonDTO;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 
+import io.socket.client.Socket;
+import io.socket.emitter.Emitter;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -50,6 +53,16 @@ public class DisplayCategoryFragment extends Fragment {
     FragmentManager fragmentManager;
     int maban;
     View view;
+
+    private Socket mSocket;
+    private final Emitter.Listener onRefreshOrders = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> refreshCategoriesInPlace());
+            }
+        }
+    };
 
     ActivityResultLauncher<Intent> resultLauncherCategory = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -203,6 +216,77 @@ public class DisplayCategoryFragment extends Fragment {
                 ((TextView) view.findViewById(R.id.txt_empty_StateTitle)).setText(R.string.empty_list_title);
                 ((TextView) view.findViewById(R.id.txt_empty_StateDesc)).setText(R.string.empty_list_desc);
             }
+        }
+    }
+    private void refreshCategoriesInPlace() {
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getCategories().enqueue(new Callback<List<LoaiMonResponse>>() {
+            @Override
+            public void onResponse(Call<List<LoaiMonResponse>> call, Response<List<LoaiMonResponse>> response) {
+                if (!isAdded() || getActivity() == null) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    dbHelper.syncCategories(response.body());
+                    List<LoaiMonDTO> updatedList = dbHelper.getCategories();
+
+                    // Remove items not in updatedList
+                    for (int i = loaiMonDTOList.size() - 1; i >= 0; i--) {
+                        LoaiMonDTO oldItem = loaiMonDTOList.get(i);
+                        boolean found = false;
+                        for (LoaiMonDTO newItem : updatedList) {
+                            if (oldItem.getMaLoai() == newItem.getMaLoai()) {
+                                found = true;
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            loaiMonDTOList.remove(i);
+                            adapter.notifyItemRemoved(i);
+                        }
+                    }
+
+                    // Update existing items and add new items
+                    for (int i = 0; i < updatedList.size(); i++) {
+                        LoaiMonDTO newItem = updatedList.get(i);
+                        boolean found = false;
+                        for (int j = 0; j < loaiMonDTOList.size(); j++) {
+                            LoaiMonDTO oldItem = loaiMonDTOList.get(j);
+                            if (oldItem.getMaLoai() == newItem.getMaLoai()) {
+                                found = true;
+                                oldItem.setTenLoai(newItem.getTenLoai());
+                                oldItem.setHinhAnh(newItem.getHinhAnh());
+                                adapter.notifyItemChanged(j);
+                                break;
+                            }
+                        }
+                        if (!found) {
+                            loaiMonDTOList.add(newItem);
+                            adapter.notifyItemInserted(loaiMonDTOList.size() - 1);
+                        }
+                    }
+                    capNhatTrangThai();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<LoaiMonResponse>> call, Throwable t) {}
+        });
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (mSocket != null) {
+            mSocket.on("refresh_orders", onRefreshOrders);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mSocket != null) {
+            mSocket.off("refresh_orders", onRefreshOrders);
         }
     }
 }
