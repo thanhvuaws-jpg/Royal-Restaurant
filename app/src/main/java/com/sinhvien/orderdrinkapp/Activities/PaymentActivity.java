@@ -201,11 +201,15 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 .create();
 
         btnConfirm.setOnClickListener(v -> {
+            com.bumptech.glide.Glide.with(this).clear(imgQR);
             dialog.dismiss();
             thucHienThanhToan("Chuyển khoản");
         });
 
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        btnCancel.setOnClickListener(v -> {
+            com.bumptech.glide.Glide.with(this).clear(imgQR);
+            dialog.dismiss();
+        });
 
         dialog.show();
     }
