@@ -22,6 +22,7 @@ import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.sinhvien.orderdrinkapp.Activities.AddCategoryActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
@@ -112,6 +113,11 @@ public class DisplayCategoryFragment extends Fragment {
             resultLauncherCategory.launch(new Intent(getActivity(), AddCategoryActivity.class));
         });
 
+        SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            HienThiDSLoai(swipeRefreshLayout);
+        });
+
         HienThiDSLoai();
         return view;
     }
@@ -136,6 +142,13 @@ public class DisplayCategoryFragment extends Fragment {
     }
 
     private void HienThiDSLoai() {
+        HienThiDSLoai(null);
+    }
+
+    private void HienThiDSLoai(SwipeRefreshLayout swipeRefresh) {
+        if (swipeRefresh != null) {
+            swipeRefresh.setRefreshing(true);
+        }
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         List<LoaiMonDTO> cachedList = dbHelper.getCategories();
@@ -149,6 +162,9 @@ public class DisplayCategoryFragment extends Fragment {
         apiService.getCategories().enqueue(new Callback<List<LoaiMonResponse>>() {
             @Override
             public void onResponse(Call<List<LoaiMonResponse>> call, Response<List<LoaiMonResponse>> response) {
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
                     // Cập nhật dữ liệu mới vào SQLite
@@ -164,9 +180,12 @@ public class DisplayCategoryFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<LoaiMonResponse>> call, Throwable t) {
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
                 // Khi không có mạng, vẫn giữ nguyên dữ liệu từ SQLite đã hiển thị trước đó
                 if (isAdded() && getActivity() != null) {
-                    // Không Toast báo lỗi phiền toái để đảm bảo trải nghiệm offline mượt mà
+                    Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });

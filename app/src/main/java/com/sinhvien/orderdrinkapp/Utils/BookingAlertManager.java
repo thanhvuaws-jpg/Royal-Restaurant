@@ -57,15 +57,32 @@ public class BookingAlertManager {
         }
     }
 
+    private io.socket.emitter.Emitter.Listener onBookingStatusUpdated = new io.socket.emitter.Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            checkOverdueBookings();
+        }
+    };
+
     public void startChecking() {
         if (isRunning) return;
         isRunning = true;
+
+        io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
+        if (socket != null) {
+            socket.on("booking_status_updated", onBookingStatusUpdated);
+        }
 
         runnable = new Runnable() {
             @Override
             public void run() {
                 if (!isRunning) return;
-                checkOverdueBookings();
+                
+                io.socket.client.Socket currentSocket = SocketManager.getInstance().getSocket();
+                if (currentSocket == null || !currentSocket.connected()) {
+                    checkOverdueBookings();
+                }
+                
                 handler.postDelayed(this, CHECK_INTERVAL);
             }
         };
@@ -76,6 +93,10 @@ public class BookingAlertManager {
         isRunning = false;
         if (runnable != null) {
             handler.removeCallbacks(runnable);
+        }
+        io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
+        if (socket != null) {
+            socket.off("booking_status_updated", onBookingStatusUpdated);
         }
     }
 

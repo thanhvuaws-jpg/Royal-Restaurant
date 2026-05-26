@@ -20,6 +20,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.sinhvien.orderdrinkapp.Activities.AddTableActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
@@ -89,6 +90,11 @@ public class DisplayTableFragment extends Fragment {
 
         adapterDisplayTable = new AdapterDisplayTable(getActivity(), filteredList);
         rvDisplayTable.setAdapter(adapterDisplayTable);
+
+        SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            HienThiDSBan(swipeRefreshLayout);
+        });
 
         view.findViewById(R.id.fab_add_table).setOnClickListener(v ->
                 resultLauncherAdd.launch(new Intent(getActivity(), AddTableActivity.class)));
@@ -167,6 +173,13 @@ public class DisplayTableFragment extends Fragment {
     }
 
     private void HienThiDSBan() {
+        HienThiDSBan(null);
+    }
+
+    private void HienThiDSBan(SwipeRefreshLayout swipeRefresh) {
+        if (swipeRefresh != null) {
+            swipeRefresh.setRefreshing(true);
+        }
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         List<BanAnDTO> cachedList = dbHelper.getTables();
@@ -179,6 +192,9 @@ public class DisplayTableFragment extends Fragment {
         apiService.getTables().enqueue(new Callback<List<TableResponse>>() {
             @Override
             public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
                     // Cập nhật dữ liệu mới vào SQLite
@@ -193,7 +209,12 @@ public class DisplayTableFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<TableResponse>> call, Throwable t) {
-                // Giữ nguyên dữ liệu từ SQLite
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
+                if (isAdded() && getActivity() != null) {
+                    Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }

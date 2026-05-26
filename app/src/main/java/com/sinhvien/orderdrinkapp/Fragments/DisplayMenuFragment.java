@@ -25,6 +25,7 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.sinhvien.orderdrinkapp.Activities.AddMenuActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
@@ -121,6 +122,14 @@ public class DisplayMenuFragment extends Fragment {
             adapter.notifyDataSetChanged();
             capNhatTrangThai();
 
+            SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+            swipeRefreshLayout.setOnRefreshListener(() -> {
+                currentPage = 1;
+                hasMore = true;
+                isLoading = false;
+                taiThemMon(swipeRefreshLayout);
+            });
+
             // Tải trang đầu tiên từ Server để đồng bộ
             taiThemMon();
 
@@ -194,15 +203,29 @@ public class DisplayMenuFragment extends Fragment {
 
     // Tải thêm món từ Server (có phân trang)
     private void taiThemMon() {
-        if (isLoading || !hasMore) return;
+        taiThemMon(null);
+    }
+
+    private void taiThemMon(SwipeRefreshLayout swipeRefresh) {
+        if (isLoading || (!hasMore && swipeRefresh == null)) {
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+            return;
+        }
         isLoading = true;
-        pb_menu_LoadMore.setVisibility(View.VISIBLE);
+        if (swipeRefresh == null) {
+            pb_menu_LoadMore.setVisibility(View.VISIBLE);
+        }
 
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getDishes(maloai, currentPage, PAGE_SIZE, currentSearch).enqueue(new Callback<DishPageResponse>() {
             @Override
             public void onResponse(Call<DishPageResponse> call, Response<DishPageResponse> response) {
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
                 if (!isAdded() || getActivity() == null) return;
                 pb_menu_LoadMore.setVisibility(View.GONE);
                 isLoading = false;
@@ -229,10 +252,13 @@ public class DisplayMenuFragment extends Fragment {
 
             @Override
             public void onFailure(Call<DishPageResponse> call, Throwable t) {
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
                 if (!isAdded() || getActivity() == null) return;
                 pb_menu_LoadMore.setVisibility(View.GONE);
                 isLoading = false;
-                // Offline thì giữ nguyên dữ liệu đã có từ SQLite
+                Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
     }

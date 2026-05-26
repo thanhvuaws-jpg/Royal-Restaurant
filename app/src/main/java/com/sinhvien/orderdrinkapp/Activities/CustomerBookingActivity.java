@@ -25,6 +25,7 @@ import com.sinhvien.orderdrinkapp.Api.BookingResponse;
 import com.sinhvien.orderdrinkapp.Api.TableResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.PreorderDishesAdapter;
 import com.sinhvien.orderdrinkapp.DTO.MonDTO;
+import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
 import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
@@ -95,32 +96,50 @@ public class CustomerBookingActivity extends AppCompatActivity {
     }
 
     private void loadTables() {
+        // 1. Tải từ SQLite trước
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(this);
+        List<BanAnDTO> cachedList = dbHelper.getTables();
+        updateSpinnerWithTables(cachedList);
+
+        // 2. Đồng bộ từ network
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getTables().enqueue(new Callback<List<TableResponse>>() {
             @Override
             public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    tableList.clear();
-                    tableNames.clear();
-                    // Chỉ cho đặt các bàn trống (tinhTrang = false)
-                    for (TableResponse t : response.body()) {
-                        if ("false".equalsIgnoreCase(t.getTinhTrang())) {
-                            tableList.add(t);
-                            tableNames.add(t.getTenBan());
-                        }
-                    }
-                    if (tableList.isEmpty()) {
-                        tableNames.add("Hiện tại không có bàn trống");
-                    }
-                    tableAdapter.notifyDataSetChanged();
+                    dbHelper.syncTables(response.body());
+                    List<BanAnDTO> updatedList = dbHelper.getTables();
+                    updateSpinnerWithTables(updatedList);
                 }
             }
 
             @Override
             public void onFailure(Call<List<TableResponse>> call, Throwable t) {
-                Toast.makeText(CustomerBookingActivity.this, "Lỗi tải bàn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                if (tableList.isEmpty()) {
+                    Toast.makeText(CustomerBookingActivity.this, "Lỗi tải bàn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
+    }
+
+    private void updateSpinnerWithTables(List<BanAnDTO> list) {
+        tableList.clear();
+        tableNames.clear();
+        for (BanAnDTO ban : list) {
+            // Chỉ hiển thị các bàn trống (tinhTrang = false)
+            if ("false".equalsIgnoreCase(ban.getTinhTrang())) {
+                TableResponse t = new TableResponse();
+                t.setMaBan(ban.getMaBan());
+                t.setTenBan(ban.getTenBan());
+                t.setTinhTrang(ban.getTinhTrang());
+                tableList.add(t);
+                tableNames.add(ban.getTenBan());
+            }
+        }
+        if (tableList.isEmpty()) {
+            tableNames.add("Hiện tại không có bàn trống");
+        }
+        tableAdapter.notifyDataSetChanged();
     }
 
     private void setupDateTimePickers() {

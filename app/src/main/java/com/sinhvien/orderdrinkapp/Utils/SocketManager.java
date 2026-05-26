@@ -22,6 +22,15 @@ public class SocketManager {
             
             Log.d(TAG, "Initializing Socket.io client pointing to: " + socketUrl);
             socket = IO.socket(socketUrl, options);
+            
+            socket.on(Socket.EVENT_DISCONNECT, args -> {
+                Log.d(TAG, "Socket disconnected. Reconnecting in 3 seconds...");
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                    if (socket != null && !socket.connected()) {
+                        socket.connect();
+                    }
+                }, 3000);
+            });
         } catch (URISyntaxException e) {
             Log.e(TAG, "Socket initialization failed: " + e.getMessage());
         }

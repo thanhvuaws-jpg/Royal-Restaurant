@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.sinhvien.orderdrinkapp.Activities.AddStaffActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
@@ -98,6 +99,11 @@ public class DisplayStaffFragment extends Fragment {
                 String tenNV = nhanVienDTOS.get(position).getHOTENNV();
                 hienThiMenuTuyChon(manv, tenNV, position);
             }
+        });
+
+        SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
+        swipeRefreshLayout.setOnRefreshListener(() -> {
+            HienThiDSNV(swipeRefreshLayout);
         });
 
         HienThiDSNV();
@@ -179,6 +185,13 @@ public class DisplayStaffFragment extends Fragment {
     }
 
     private void HienThiDSNV() {
+        HienThiDSNV(null);
+    }
+
+    private void HienThiDSNV(SwipeRefreshLayout swipeRefresh) {
+        if (swipeRefresh != null) {
+            swipeRefresh.setRefreshing(true);
+        }
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         List<NhanVienDTO> cachedList = dbHelper.getStaff();
@@ -192,6 +205,9 @@ public class DisplayStaffFragment extends Fragment {
         apiService.getStaff().enqueue(new Callback<List<StaffResponse>>() {
             @Override
             public void onResponse(Call<List<StaffResponse>> call, Response<List<StaffResponse>> response) {
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
                     // Cập nhật dữ liệu mới vào SQLite
@@ -207,7 +223,12 @@ public class DisplayStaffFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<StaffResponse>> call, Throwable t) {
-                // Giữ nguyên dữ liệu từ SQLite
+                if (swipeRefresh != null) {
+                    swipeRefresh.setRefreshing(false);
+                }
+                if (isAdded() && getActivity() != null) {
+                    Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
