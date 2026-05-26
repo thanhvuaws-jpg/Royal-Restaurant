@@ -18,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.sinhvien.orderdrinkapp.Activities.AddMenuActivity;
 import com.sinhvien.orderdrinkapp.Activities.AmountMenuActivity;
@@ -89,6 +90,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             String url = ApiClient.getBaseUrl() + monDTO.getHinhAnhUrl();
             Glide.with(context)
                     .load(url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.cafe_americano)
                     .error(R.drawable.cafe_americano)
                     .into(holder.img_DishImage);

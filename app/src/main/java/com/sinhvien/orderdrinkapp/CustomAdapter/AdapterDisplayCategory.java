@@ -17,6 +17,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.sinhvien.orderdrinkapp.Activities.AddCategoryActivity;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
@@ -70,6 +71,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
             String url = ApiClient.getBaseUrl() + loaiMonDTO.getHinhAnhPath();
             Glide.with(context)
                     .load(url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.ic_dash_menu)
                     .error(R.drawable.ic_dash_menu)
                     .into(holder.img_CategoryImage);

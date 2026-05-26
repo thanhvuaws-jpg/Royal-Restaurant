@@ -10,6 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.DTO.ThanhToanDTO;
 import com.sinhvien.orderdrinkapp.R;
@@ -52,6 +53,7 @@ public class AdapterDisplayPayment extends RecyclerView.Adapter<AdapterDisplayPa
             String imageUrl = ApiClient.BASE_URL + item.getHinhAnhPath();
             Glide.with(context)
                     .load(imageUrl)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(android.R.drawable.ic_menu_gallery)
                     .error(android.R.drawable.ic_menu_gallery)
                     .into(holder.img_DishImage);

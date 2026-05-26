@@ -29,6 +29,7 @@ import com.sinhvien.orderdrinkapp.Api.MonResponse;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -137,7 +138,10 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
 
                         if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
                             String imageUrl = ApiClient.BASE_URL + res.getHinhAnh();
-                            Glide.with(AddMenuActivity.this).load(imageUrl).into(img_add_DishImage);
+                            Glide.with(AddMenuActivity.this)
+                                    .load(imageUrl)
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .into(img_add_DishImage);
                         }
 
                         layout_add_DishStatus.setVisibility(View.VISIBLE);

@@ -105,7 +105,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
 
         // Khởi động kiểm tra session sẽ được tự động chạy trong onResume()
-        bookingAlertManager = new com.sinhvien.orderdrinkapp.Utils.BookingAlertManager(this);
+        if (SessionManager.isAdmin(this) || SessionManager.isCashier(this)) {
+            bookingAlertManager = new com.sinhvien.orderdrinkapp.Utils.BookingAlertManager(this);
+        }
 
         fragmentManager = getSupportFragmentManager();
 

@@ -43,6 +43,9 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     AdapterRecycleViewCategory adapterRecycleViewCategory;
     AdapterRecycleViewStatistic adapterRecycleViewStatistic;
 
+    private static List<DonDatDTO> cachedDonDatDTOS = new ArrayList<>();
+    private static long lastLoadTime = 0;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.displayhome_layout, container, false);
@@ -113,7 +116,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
                 getActivity().runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        HienThiDonTrongNgay();
+                        HienThiDonTrongNgay(true);
                     }
                 });
             }
@@ -177,11 +180,27 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     }
 
     private void HienThiDonTrongNgay() {
+        HienThiDonTrongNgay(false);
+    }
+
+    private void HienThiDonTrongNgay(boolean forceRefresh) {
         rcv_display_HomeOrderToday.setHasFixedSize(true);
         rcv_display_HomeOrderToday.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         donDatDTOS = new ArrayList<>();
         adapterRecycleViewStatistic = new AdapterRecycleViewStatistic(getActivity(), R.layout.custom_layout_displaystatistic, donDatDTOS);
         rcv_display_HomeOrderToday.setAdapter(adapterRecycleViewStatistic);
+
+        // Hiển thị từ cache tĩnh trước
+        if (cachedDonDatDTOS != null && !cachedDonDatDTOS.isEmpty()) {
+            donDatDTOS.addAll(cachedDonDatDTOS);
+            adapterRecycleViewStatistic.notifyDataSetChanged();
+        }
+
+        // Kiểm tra nếu không phải forceRefresh và lần gọi trước cách dưới 30 giây thì không gọi API
+        long currentTime = System.currentTimeMillis();
+        if (!forceRefresh && (currentTime - lastLoadTime < 30000) && !donDatDTOS.isEmpty()) {
+            return;
+        }
 
         Calendar calendar = Calendar.getInstance();
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
@@ -216,6 +235,10 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
                             donDatDTOS.add(dto);
                         }
                     }
+                    cachedDonDatDTOS.clear();
+                    cachedDonDatDTOS.addAll(donDatDTOS);
+                    lastLoadTime = System.currentTimeMillis();
+
                     adapterRecycleViewStatistic.notifyDataSetChanged();
                 }
             }

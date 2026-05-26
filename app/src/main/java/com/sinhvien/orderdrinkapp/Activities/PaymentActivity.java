@@ -191,6 +191,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
 
         com.bumptech.glide.Glide.with(this)
                 .load(qrUrl)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
                 .placeholder(android.R.drawable.ic_menu_report_image)
                 .into(imgQR);
 

@@ -13,6 +13,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.DTO.MonDTO;
 import com.sinhvien.orderdrinkapp.R;
@@ -68,6 +69,7 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
             String url = ApiClient.getBaseUrl() + dish.getHinhAnhUrl();
             Glide.with(context)
                     .load(url)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .placeholder(R.drawable.cafe_americano)
                     .error(R.drawable.cafe_americano)
                     .into(holder.img_dish);

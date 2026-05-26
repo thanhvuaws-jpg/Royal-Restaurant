@@ -11,6 +11,7 @@ public class SocketManager {
     private static final String TAG = "SocketManager";
     private static SocketManager instance;
     private Socket socket;
+    private boolean intentionalDisconnect = false;
 
     private SocketManager() {
         try {
@@ -22,14 +23,22 @@ public class SocketManager {
             
             Log.d(TAG, "Initializing Socket.io client pointing to: " + socketUrl);
             socket = IO.socket(socketUrl, options);
+
+            socket.on(Socket.EVENT_CONNECT, args -> {
+                Log.d(TAG, "Socket connected successfully.");
+                intentionalDisconnect = false;
+            });
             
             socket.on(Socket.EVENT_DISCONNECT, args -> {
-                Log.d(TAG, "Socket disconnected. Reconnecting in 3 seconds...");
-                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
-                    if (socket != null && !socket.connected()) {
-                        socket.connect();
-                    }
-                }, 3000);
+                Log.d(TAG, "Socket disconnected. intentionalDisconnect=" + intentionalDisconnect);
+                if (!intentionalDisconnect) {
+                    Log.d(TAG, "Reconnecting in 3 seconds...");
+                    new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+                        if (socket != null && !socket.connected() && !intentionalDisconnect) {
+                            socket.connect();
+                        }
+                    }, 3000);
+                }
             });
         } catch (URISyntaxException e) {
             Log.e(TAG, "Socket initialization failed: " + e.getMessage());
@@ -48,6 +57,7 @@ public class SocketManager {
     }
 
     public void connect() {
+        intentionalDisconnect = false;
         if (socket != null && !socket.connected()) {
             socket.connect();
             Log.d(TAG, "Connecting to WebSocket server...");
@@ -55,6 +65,7 @@ public class SocketManager {
     }
 
     public void disconnect() {
+        intentionalDisconnect = true;
         if (socket != null && socket.connected()) {
             socket.disconnect();
             Log.d(TAG, "Disconnecting from WebSocket server...");

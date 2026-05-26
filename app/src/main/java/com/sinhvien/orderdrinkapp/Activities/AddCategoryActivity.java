@@ -27,6 +27,7 @@ import com.sinhvien.orderdrinkapp.Api.LoaiMonResponse;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -95,7 +96,10 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     if (response.isSuccessful() && response.body() != null) {
                         TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
                         String imageUrl = ApiClient.BASE_URL + response.body().getHinhAnh();
-                        Glide.with(AddCategoryActivity.this).load(imageUrl).into(IMG_addcategory_AddImage);
+                        Glide.with(AddCategoryActivity.this)
+                                .load(imageUrl)
+                                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                .into(IMG_addcategory_AddImage);
                         BTN_addcategory_CreateCategory.setText("Sửa loại");
                     }
                 }
