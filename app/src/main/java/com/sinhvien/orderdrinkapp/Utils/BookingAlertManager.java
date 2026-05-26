@@ -110,6 +110,7 @@ public class BookingAlertManager {
                     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     Calendar now = Calendar.getInstance();
 
+                    StringBuilder sb = new StringBuilder();
                     for (BookingResponse booking : response.body()) {
                         if ("pending".equalsIgnoreCase(booking.getTinhtrang())) {
                             try {
@@ -120,8 +121,10 @@ public class BookingAlertManager {
                                     long diffInMinutes = diffInMillis / 60000;
 
                                     if (diffInMinutes >= 15) {
-                                        // 1. Cập nhật trạng thái thành overdue lên VPS
-                                        updateBookingStatus(booking.getMaDatBan(), "overdue");
+                                        if (sb.length() > 0) {
+                                            sb.append(",");
+                                        }
+                                        sb.append(booking.getMaDatBan());
 
                                         // 2. Hiển thị thông báo đẩy lên điện thoại
                                         showOverdueNotification(booking);
@@ -129,6 +132,9 @@ public class BookingAlertManager {
                                 }
                             } catch (ParseException ignored) {}
                         }
+                    }
+                    if (sb.length() > 0) {
+                        updateBatchBookingStatus(sb.toString(), "overdue");
                     }
                 }
             }
@@ -138,9 +144,9 @@ public class BookingAlertManager {
         });
     }
 
-    private void updateBookingStatus(int madatban, String status) {
+    private void updateBatchBookingStatus(String madatbans, String status) {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.updateBookingStatus(madatban, status).enqueue(new Callback<BookingResponse>() {
+        apiService.batchUpdateBookingStatus(madatbans, status).enqueue(new Callback<BookingResponse>() {
             @Override
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {}
             @Override

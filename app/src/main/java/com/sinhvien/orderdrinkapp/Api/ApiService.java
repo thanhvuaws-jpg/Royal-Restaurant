@@ -207,4 +207,17 @@ public interface ApiService {
             @Field("madatban") int madatban,
             @Field("manv") int manv
     );
+
+    @GET("api/get_customer_profile.php")
+    Call<CustomerProfileResponse> getCustomerProfile(@Query("makh") int maKH);
+
+    @FormUrlEncoded
+    @POST("api/batch_update_booking_status.php")
+    Call<BookingResponse> batchUpdateBookingStatus(
+            @Field("madatbans") String madatbans,
+            @Field("tinhtrang") String tinhtrang
+    );
+
+    @GET("api/get_paid_orders.php")
+    Call<List<OrderResponse>> getPaidOrders(@Query("date") String date);
 }

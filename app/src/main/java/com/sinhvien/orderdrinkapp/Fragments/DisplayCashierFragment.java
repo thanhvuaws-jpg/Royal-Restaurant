@@ -261,7 +261,11 @@ public class DisplayCashierFragment extends Fragment {
         });
 
         // 2. Load paid orders for today summary and history tab
-        apiService.getPaidOrders().enqueue(new Callback<List<OrderResponse>>() {
+        SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+        dateOnlyFormat.setTimeZone(java.util.TimeZone.getTimeZone("GMT+7"));
+        String queryDate = dateOnlyFormat.format(new Date());
+
+        apiService.getPaidOrders(queryDate).enqueue(new Callback<List<OrderResponse>>() {
             @Override
             public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
@@ -275,17 +279,7 @@ public class DisplayCashierFragment extends Fragment {
                     SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
                     
-                    SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-                    dateOnlyFormat.setTimeZone(java.util.TimeZone.getTimeZone("GMT+7"));
-                    String todayStr = dateOnlyFormat.format(new Date());
-                    
                     for (OrderResponse res : response.body()) {
-                        boolean isToday = false;
-                        String ngayDatRaw = res.getNgayDat();
-                        if (ngayDatRaw != null && ngayDatRaw.startsWith(todayStr)) {
-                            isToday = true;
-                        }
-                        
                         DonDatDTO dto = new DonDatDTO();
                         dto.setMaDonDat(res.getMaDonDat());
                         dto.setMaNV(res.getMaNV());
@@ -302,20 +296,18 @@ public class DisplayCashierFragment extends Fragment {
                             dto.setNgayDat(res.getNgayDat());
                         }
 
-                        if (isToday) {
-                            paidOrdersList.add(dto);
-                            
-                            long orderAmount = 0;
-                            try {
-                                orderAmount = Long.parseLong(res.getTongTien());
-                            } catch (Exception ignored) {}
-                            
-                            totalRevenue += orderAmount;
-                            if ("Chuyển khoản".equals(res.getPhuongThuc())) {
-                                totalTransfer += orderAmount;
-                            } else {
-                                totalCash += orderAmount;
-                            }
+                        paidOrdersList.add(dto);
+                        
+                        long orderAmount = 0;
+                        try {
+                            orderAmount = Long.parseLong(res.getTongTien());
+                        } catch (Exception ignored) {}
+                        
+                        totalRevenue += orderAmount;
+                        if ("Chuyển khoản".equals(res.getPhuongThuc())) {
+                            totalTransfer += orderAmount;
+                        } else {
+                            totalCash += orderAmount;
                         }
                     }
                     

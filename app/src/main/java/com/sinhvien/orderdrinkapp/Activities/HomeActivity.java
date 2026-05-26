@@ -46,6 +46,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private Runnable sessionRunnable;
     private static final int SESSION_CHECK_INTERVAL = 10000; // 10s
     private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
+    private io.socket.emitter.Emitter.Listener connectListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +92,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().connect();
         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (socket != null) {
-            socket.on(io.socket.client.Socket.EVENT_CONNECT, args -> {
+            connectListener = args -> {
                 runOnUiThread(() -> {
                     Toast.makeText(HomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT).show();
                     // Đăng ký phòng tương ứng quyền để nhận sự kiện phù hợp
@@ -101,7 +102,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                         socket.emit("join_admin");
                     }
                 });
-            });
+            };
+            socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
         }
 
         // Khởi động kiểm tra session sẽ được tự động chạy trong onResume()
@@ -258,6 +260,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (id == R.id.nav_logout) {
             // XÓA PHIÊN ĐĂNG NHẬP
             stopSessionCheck();
+            com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
+            com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment.clearCache();
+            com.sinhvien.orderdrinkapp.Fragments.DisplayStatisticFragment.clearCache();
             SessionManager.clearSession(this);
             
             Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
@@ -289,6 +294,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     protected void onDestroy() {
         super.onDestroy();
         stopSessionCheck();
+        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (socket != null && connectListener != null) {
+            socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
+        }
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
     }
 

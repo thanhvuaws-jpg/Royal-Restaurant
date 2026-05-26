@@ -46,6 +46,11 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     private static List<DonDatDTO> cachedDonDatDTOS = new ArrayList<>();
     private static long lastLoadTime = 0;
 
+    public static void clearCache() {
+        cachedDonDatDTOS.clear();
+        lastLoadTime = 0;
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.displayhome_layout, container, false);
@@ -95,8 +100,18 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             layout_display_HomeViewMenu.setLayoutParams(paramsMenu);
         }
 
-        HienThiDSLoai();
-        HienThiDonTrongNgay();
+        // Initialize lists and adapters once
+        rcv_display_HomeCategoryList.setHasFixedSize(true);
+        rcv_display_HomeCategoryList.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        loaiMonDTOList = new ArrayList<>();
+        adapterRecycleViewCategory = new AdapterRecycleViewCategory(getActivity(), R.layout.custom_layout_displaycategory, loaiMonDTOList);
+        rcv_display_HomeCategoryList.setAdapter(adapterRecycleViewCategory);
+
+        rcv_display_HomeOrderToday.setHasFixedSize(true);
+        rcv_display_HomeOrderToday.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
+        donDatDTOS = new ArrayList<>();
+        adapterRecycleViewStatistic = new AdapterRecycleViewStatistic(getActivity(), R.layout.custom_layout_displaystatistic, donDatDTOS);
+        rcv_display_HomeOrderToday.setAdapter(adapterRecycleViewStatistic);
 
         layout_display_HomeStatistic.setOnClickListener(this);
         layout_display_HomeViewTable.setOnClickListener(this);
@@ -127,7 +142,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     public void onResume() {
         super.onResume();
         HienThiDSLoai();
-        HienThiDonTrongNgay();
+        HienThiDonTrongNgay(false);
 
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null) {
@@ -144,14 +159,11 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     }
 
     private void HienThiDSLoai() {
-        rcv_display_HomeCategoryList.setHasFixedSize(true);
-        rcv_display_HomeCategoryList.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
-        loaiMonDTOList = new ArrayList<>();
-        adapterRecycleViewCategory = new AdapterRecycleViewCategory(getActivity(), R.layout.custom_layout_displaycategory, loaiMonDTOList);
-        rcv_display_HomeCategoryList.setAdapter(adapterRecycleViewCategory);
-
+        if (loaiMonDTOList == null) return;
+        
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+        loaiMonDTOList.clear();
         loaiMonDTOList.addAll(dbHelper.getCategories());
         adapterRecycleViewCategory.notifyDataSetChanged();
 
@@ -184,13 +196,10 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     }
 
     private void HienThiDonTrongNgay(boolean forceRefresh) {
-        rcv_display_HomeOrderToday.setHasFixedSize(true);
-        rcv_display_HomeOrderToday.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
-        donDatDTOS = new ArrayList<>();
-        adapterRecycleViewStatistic = new AdapterRecycleViewStatistic(getActivity(), R.layout.custom_layout_displaystatistic, donDatDTOS);
-        rcv_display_HomeOrderToday.setAdapter(adapterRecycleViewStatistic);
+        if (donDatDTOS == null) return;
 
         // Hiển thị từ cache tĩnh trước
+        donDatDTOS.clear();
         if (cachedDonDatDTOS != null && !cachedDonDatDTOS.isEmpty()) {
             donDatDTOS.addAll(cachedDonDatDTOS);
             adapterRecycleViewStatistic.notifyDataSetChanged();
@@ -206,8 +215,11 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
         String ngaydat = dateFormat.format(calendar.getTime());
 
+        SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
+        String queryDate = apiDateFormat.format(calendar.getTime());
+
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getPaidOrders().enqueue(new retrofit2.Callback<List<OrderResponse>>() {
+        apiService.getPaidOrders(queryDate).enqueue(new retrofit2.Callback<List<OrderResponse>>() {
             @Override
             public void onResponse(retrofit2.Call<List<OrderResponse>> call, retrofit2.Response<List<OrderResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;

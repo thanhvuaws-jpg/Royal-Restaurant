@@ -116,7 +116,26 @@ public class DisplayStatisticFragment extends Fragment {
         return view;
     }
 
+    private static List<DonDatDTO> cachedStatisticOrders = new ArrayList<>();
+    private static long lastLoadTime = 0;
+
+    public static void clearCache() {
+        cachedStatisticOrders.clear();
+        lastLoadTime = 0;
+    }
+
     private void HienThiDSThongKe(){
+        HienThiDSThongKe(false);
+    }
+
+    private void HienThiDSThongKe(boolean forceRefresh) {
+        long currentTime = System.currentTimeMillis();
+        if (!forceRefresh && !cachedStatisticOrders.isEmpty() && (currentTime - lastLoadTime < 30000)) {
+            tatCaDonDat = new ArrayList<>(cachedStatisticOrders);
+            capNhatDashboard();
+            return;
+        }
+
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getPaidOrders().enqueue(new Callback<List<OrderResponse>>() {
             @Override
@@ -124,7 +143,7 @@ public class DisplayStatisticFragment extends Fragment {
                 if (!isAdded() || getActivity() == null) return;
 
                 if (response.isSuccessful() && response.body() != null) {
-                    tatCaDonDat = new ArrayList<>();
+                    cachedStatisticOrders.clear();
                     SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     for (OrderResponse res : response.body()) {
                         DonDatDTO dto = new DonDatDTO();
@@ -143,8 +162,10 @@ public class DisplayStatisticFragment extends Fragment {
                         } catch (Exception e) {
                             dto.setNgayDat(res.getNgayDat());
                         }
-                        tatCaDonDat.add(dto);
+                        cachedStatisticOrders.add(dto);
                     }
+                    lastLoadTime = System.currentTimeMillis();
+                    tatCaDonDat = new ArrayList<>(cachedStatisticOrders);
                     capNhatDashboard();
                 }
             }

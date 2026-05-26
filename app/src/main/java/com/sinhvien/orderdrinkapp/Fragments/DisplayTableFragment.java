@@ -156,8 +156,11 @@ public class DisplayTableFragment extends Fragment {
     private void filterTables(int tabIndex) {
         filteredList.clear();
         for (BanAnDTO ban : banAnDTOList) {
-            boolean isTakeaway = ban.getTenBan().toLowerCase().contains("mang đi")
-                    || ban.getTenBan().toLowerCase().contains("takeaway");
+            String nameLower = ban.getTenBan().toLowerCase();
+            boolean isTakeaway = nameLower.contains("mang đi")
+                    || nameLower.contains("mang di")
+                    || nameLower.contains("takeaway")
+                    || nameLower.contains("take away");
             if (tabIndex == 0) {
                 if (!isTakeaway) {
                     filteredList.add(ban);

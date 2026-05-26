@@ -20,15 +20,6 @@ public class WelcomeActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Khởi tạo dữ liệu mẫu ngay khi vào app
-        // Đã chuyển sang dùng Cloud, không cần thông báo thực đơn mẫu nữa
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // com.sinhvien.orderdrinkapp.Utils.SampleDataInitializer.init(WelcomeActivity.this); // Disabled for Cloud standardization
-            }
-        }).start();
-
         // Nếu đã đăng nhập trước đó → bỏ qua màn hình chào, vào thẳng HomeActivity
         if (SessionManager.isLoggedIn(this)) {
             goToHome();

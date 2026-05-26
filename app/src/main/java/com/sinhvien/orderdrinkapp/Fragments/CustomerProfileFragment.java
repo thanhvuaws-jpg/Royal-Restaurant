@@ -63,25 +63,18 @@ public class CustomerProfileFragment extends Fragment {
         int makh = SessionManager.getMaNV(getContext());
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
 
-        // Lấy thông tin tài khoản chi tiết từ getStaffById để hiển thị SĐT
-        apiService.getStaffById(makh).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.StaffResponse>() {
+        apiService.getCustomerProfile(makh).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse>() {
             @Override
-            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.StaffResponse> call, Response<com.sinhvien.orderdrinkapp.Api.StaffResponse> response) {
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse> call, Response<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse> response) {
+                if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    txt_profile_phone.setText("SĐT: " + response.body().getSdt());
-                }
-            }
+                    com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse profile = response.body();
+                    
+                    // 1. Phone number
+                    txt_profile_phone.setText("SĐT: " + (profile.getSdt() != null ? profile.getSdt() : ""));
 
-            @Override
-            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.StaffResponse> call, Throwable t) {}
-        });
-
-        // Tải chi tiêu
-        apiService.getCustomerSpending(makh).enqueue(new Callback<BookingResponse>() {
-            @Override
-            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    String totalSpentStr = response.body().getTongTien();
+                    // 2. Spending
+                    String totalSpentStr = profile.getSpending();
                     long totalSpent = 0;
                     try {
                         if (totalSpentStr != null && !totalSpentStr.isEmpty()) {
@@ -94,26 +87,22 @@ public class CustomerProfileFragment extends Fragment {
 
                     // Cập nhật hạng thành viên
                     updateLoyaltyBadge(totalSpent);
-                }
-            }
 
-            @Override
-            public void onFailure(Call<BookingResponse> call, Throwable t) {}
-        });
-
-        // Tải lịch sử
-        apiService.getBookings(makh).enqueue(new Callback<List<BookingResponse>>() {
-            @Override
-            public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
+                    // 3. History bookings
                     bookingList.clear();
-                    bookingList.addAll(response.body());
+                    if (profile.getBookings() != null) {
+                        bookingList.addAll(profile.getBookings());
+                    }
                     adapter.notifyDataSetChanged();
                 }
             }
 
             @Override
-            public void onFailure(Call<List<BookingResponse>> call, Throwable t) {}
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse> call, Throwable t) {
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Lỗi tải thông tin: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            }
         });
     }
 

@@ -41,7 +41,7 @@ public class AdapterRecycleViewStatistic extends RecyclerView.Adapter<AdapterRec
         holder.txt_customstatistic_OrderId.setText("Mã đơn: #"+donDatDTO.getMaDonDat());
         holder.txt_customstatistic_OrderDate.setText(donDatDTO.getNgayDat());
         
-        if(donDatDTO.getTongTien().equals("0"))
+        if("0".equals(donDatDTO.getTongTien()))
         {
             holder.txt_customstatistic_TotalAmount.setVisibility(View.INVISIBLE);
         }else {
@@ -49,7 +49,7 @@ public class AdapterRecycleViewStatistic extends RecyclerView.Adapter<AdapterRec
             holder.txt_customstatistic_TotalAmount.setText(donDatDTO.getTongTien() + " VNĐ");
         }
 
-        if (donDatDTO.getTinhTrang().equals("true"))
+        if ("true".equals(donDatDTO.getTinhTrang()))
         {
             holder.txt_customstatistic_Status.setText("Đã thanh toán");
         }else {

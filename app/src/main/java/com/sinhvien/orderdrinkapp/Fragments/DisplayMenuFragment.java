@@ -66,6 +66,9 @@ public class DisplayMenuFragment extends Fragment {
     private boolean hasMore = true;
     private String currentSearch = ""; // Từ khóa tìm kiếm hiện tại
 
+    private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable searchRunnable;
+
     ActivityResultLauncher<Intent> resultLauncherMenu = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -173,15 +176,24 @@ public class DisplayMenuFragment extends Fragment {
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
+                }
                 timKiemTrenServer(query.trim());
                 return true;
             }
             @Override
             public boolean onQueryTextChange(String newText) {
-                if (newText.trim().isEmpty()) {
-                    // Xóa từ khóa → quay về phân trang bình thường
-                    timKiemTrenServer("");
+                if (searchRunnable != null) {
+                    searchHandler.removeCallbacks(searchRunnable);
                 }
+                searchRunnable = new Runnable() {
+                    @Override
+                    public void run() {
+                        timKiemTrenServer(newText.trim());
+                    }
+                };
+                searchHandler.postDelayed(searchRunnable, 300);
                 return true;
             }
         });
@@ -331,5 +343,13 @@ public class DisplayMenuFragment extends Fragment {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        if (searchRunnable != null) {
+            searchHandler.removeCallbacks(searchRunnable);
+        }
     }
 }

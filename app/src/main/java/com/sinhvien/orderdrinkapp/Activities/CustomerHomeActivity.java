@@ -29,6 +29,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
     FragmentManager fragmentManager;
     TextView txt_menu_tennv;
     private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
+    private io.socket.emitter.Emitter.Listener connectListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,13 +63,14 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().connect();
         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (socket != null) {
-            socket.on(io.socket.client.Socket.EVENT_CONNECT, args -> {
+            connectListener = args -> {
                 runOnUiThread(() -> {
                     Toast.makeText(CustomerHomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT).show();
                     int makh = SessionManager.getMaNV(CustomerHomeActivity.this);
                     socket.emit("join_customer", makh);
                 });
-            });
+            };
+            socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
         }
 
         bookingAlertManager = new com.sinhvien.orderdrinkapp.Utils.BookingAlertManager(this);
@@ -112,6 +114,9 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             transaction.commit();
             getSupportActionBar().setTitle("Lịch sử & chi tiêu");
         } else if (id == R.id.nav_logout) {
+            com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
+            com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment.clearCache();
+            com.sinhvien.orderdrinkapp.Fragments.DisplayStatisticFragment.clearCache();
             SessionManager.clearSession(this);
             Intent intent = new Intent(this, WelcomeActivity.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -127,6 +132,10 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (socket != null && connectListener != null) {
+            socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
+        }
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
     }
 }

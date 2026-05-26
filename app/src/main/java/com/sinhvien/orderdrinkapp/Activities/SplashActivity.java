@@ -35,7 +35,7 @@ public class SplashActivity extends AppCompatActivity {
         txt_splash_AppName.setAnimation(sideAnim);
         txt_splash_PoweredBy.setAnimation(bottomAnim);
 
-        new Handler().postDelayed(new Runnable() {
+        new Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
                 Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);

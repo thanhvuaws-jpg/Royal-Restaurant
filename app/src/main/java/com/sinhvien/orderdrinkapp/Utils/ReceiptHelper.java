@@ -29,10 +29,23 @@ public class ReceiptHelper {
      * Chụp một View thành Bitmap (dùng để xem trước hoặc lưu/chia sẻ).
      */
     public static Bitmap captureView(View view) {
-        view.setDrawingCacheEnabled(true);
-        view.buildDrawingCache();
-        Bitmap bitmap = Bitmap.createBitmap(view.getDrawingCache());
-        view.setDrawingCacheEnabled(false);
+        int width = view.getWidth();
+        int height = view.getHeight();
+        if (width <= 0 || height <= 0) {
+            view.measure(View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED),
+                    View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            view.layout(0, 0, view.getMeasuredWidth(), view.getMeasuredHeight());
+            width = view.getMeasuredWidth();
+            height = view.getMeasuredHeight();
+        }
+        Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+        android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
+        if (view.getBackground() != null) {
+            view.getBackground().draw(canvas);
+        } else {
+            canvas.drawColor(android.graphics.Color.WHITE);
+        }
+        view.draw(canvas);
         return bitmap;
     }
 

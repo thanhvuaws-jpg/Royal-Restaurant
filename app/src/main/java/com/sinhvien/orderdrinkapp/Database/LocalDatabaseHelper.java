@@ -86,13 +86,12 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete("BAN", null, null);
             for (com.sinhvien.orderdrinkapp.Api.TableResponse table : tables) {
                 ContentValues cv = new ContentValues();
                 cv.put("MABAN", table.getMaBan());
                 cv.put("TENBAN", table.getTenBan());
                 cv.put("TINHTRANG", table.getTinhTrang());
-                db.insert("BAN", null, cv);
+                db.insertWithOnConflict("BAN", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -123,13 +122,12 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete("LOAIMON", null, null);
             for (com.sinhvien.orderdrinkapp.Api.LoaiMonResponse cat : categories) {
                 ContentValues cv = new ContentValues();
                 cv.put("MALOAI", cat.getMaLoai());
                 cv.put("TENLOAI", cat.getTenLoai());
                 cv.put("HINHANH", cat.getHinhAnh());
-                db.insert("LOAIMON", null, cv);
+                db.insertWithOnConflict("LOAIMON", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
             }
             db.setTransactionSuccessful();
         } finally {
@@ -232,7 +230,6 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete("NHANVIEN", null, null);
             for (com.sinhvien.orderdrinkapp.Api.StaffResponse staff : staffList) {
                 ContentValues cv = new ContentValues();
                 cv.put("MANV", staff.getMaNV());
@@ -244,7 +241,7 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
                 cv.put("GIOITINH", staff.getGioiTinh());
                 cv.put("NGAYSINH", staff.getNgaySinh());
                 cv.put("MAQUYEN", staff.getMaQuyen());
-                db.insert("NHANVIEN", null, cv);
+                db.insertWithOnConflict("NHANVIEN", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
             }
             db.setTransactionSuccessful();
         } finally {

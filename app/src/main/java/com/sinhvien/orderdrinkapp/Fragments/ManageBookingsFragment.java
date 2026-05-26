@@ -69,16 +69,24 @@ public class ManageBookingsFragment extends Fragment {
         });
 
         rv_manage_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new ManageBookingsAdapter(getContext(), filteredBookings, this::loadAllBookings);
+        adapter = new ManageBookingsAdapter(getContext(), filteredBookings, () -> loadAllBookings(true));
         rv_manage_bookings.setAdapter(adapter);
 
         return view;
     }
 
+    private static List<BookingResponse> cachedBookings = new ArrayList<>();
+    private static long lastLoadTime = 0;
+
+    public static void clearCache() {
+        cachedBookings.clear();
+        lastLoadTime = 0;
+    }
+
     @Override
     public void onResume() {
         super.onResume();
-        loadAllBookings();
+        loadAllBookings(false);
 
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null) {
@@ -97,22 +105,33 @@ public class ManageBookingsFragment extends Fragment {
     private final io.socket.emitter.Emitter.Listener onBookingStatusUpdated = args -> {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
-                loadAllBookings();
+                loadAllBookings(true);
                 Toast.makeText(getContext(), "Cập nhật danh sách đặt bàn theo thời gian thực!", Toast.LENGTH_SHORT).show();
             });
         }
     };
 
-    private void loadAllBookings() {
+    private void loadAllBookings(boolean forceRefresh) {
+        long currentTime = System.currentTimeMillis();
+        if (!forceRefresh && !cachedBookings.isEmpty() && (currentTime - lastLoadTime < 30000)) {
+            allBookings.clear();
+            allBookings.addAll(cachedBookings);
+            filterBookings(tabLayout_bookings.getSelectedTabPosition());
+            return;
+        }
+
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        // makh = 0 để lấy tất cả đơn đặt bàn của mọi khách hàng
         apiService.getBookings(0).enqueue(new Callback<List<BookingResponse>>() {
             @Override
             public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
                 if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    cachedBookings.clear();
+                    cachedBookings.addAll(response.body());
+                    lastLoadTime = System.currentTimeMillis();
+
                     allBookings.clear();
-                    allBookings.addAll(response.body());
+                    allBookings.addAll(cachedBookings);
                     filterBookings(tabLayout_bookings.getSelectedTabPosition());
                 }
             }
