@@ -33,6 +33,7 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.DishPageResponse;
 import com.sinhvien.orderdrinkapp.Api.MonResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayMenuRecycler;
+import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.DTO.MonDTO;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
@@ -113,7 +114,14 @@ public class DisplayMenuFragment extends Fragment {
             adapter = new AdapterDisplayMenuRecycler(getActivity(), monDTOList, maban);
             rv_menu_DishList.setAdapter(adapter);
 
-            // Tải trang đầu tiên
+            // Tải từ SQLite cache trước để hiển thị tức thì
+            LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+            monDTOList.clear();
+            monDTOList.addAll(dbHelper.getDishes(maloai, currentSearch));
+            adapter.notifyDataSetChanged();
+            capNhatTrangThai();
+
+            // Tải trang đầu tiên từ Server để đồng bộ
             taiThemMon();
 
             // Lắng nghe sự kiện cuộn - Infinite Scroll
@@ -138,12 +146,18 @@ public class DisplayMenuFragment extends Fragment {
         }
 
         // Nút thêm món
-        view.findViewById(R.id.fab_add_dish).setOnClickListener(v -> {
-            Intent intent = new Intent(getActivity(), AddMenuActivity.class);
-            intent.putExtra("maloai", maloai);
-            intent.putExtra("tenloai", tenloai);
-            resultLauncherMenu.launch(intent);
-        });
+        View fabAddDish = view.findViewById(R.id.fab_add_dish);
+        if (SessionManager.isAdmin(getActivity())) {
+            fabAddDish.setVisibility(View.VISIBLE);
+            fabAddDish.setOnClickListener(v -> {
+                Intent intent = new Intent(getActivity(), AddMenuActivity.class);
+                intent.putExtra("maloai", maloai);
+                intent.putExtra("tenloai", tenloai);
+                resultLauncherMenu.launch(intent);
+            });
+        } else {
+            fabAddDish.setVisibility(View.GONE);
+        }
 
         // Thanh tìm kiếm → Gửi từ khóa lên Server
         SearchView sv = view.findViewById(R.id.sv_menu_SearchDish);
@@ -184,6 +198,7 @@ public class DisplayMenuFragment extends Fragment {
         isLoading = true;
         pb_menu_LoadMore.setVisibility(View.VISIBLE);
 
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getDishes(maloai, currentPage, PAGE_SIZE, currentSearch).enqueue(new Callback<DishPageResponse>() {
             @Override
@@ -196,19 +211,16 @@ public class DisplayMenuFragment extends Fragment {
                     List<MonResponse> newItems = response.body().getData();
                     hasMore = response.body().isHasMore();
 
-                    if (newItems != null && !newItems.isEmpty()) {
-                        int startPos = monDTOList.size();
-                        for (MonResponse res : newItems) {
-                            MonDTO dto = new MonDTO();
-                            dto.setMaMon(res.getMaMon());
-                            dto.setTenMon(res.getTenMon());
-                            dto.setGiaTien(res.getGiaTien());
-                            dto.setHinhAnhUrl(res.getHinhAnh());
-                            dto.setMaLoai(res.getMaLoai());
-                            dto.setTinhTrang(res.getTinhTrang());
-                            monDTOList.add(dto);
-                        }
-                        adapter.notifyItemRangeInserted(startPos, newItems.size());
+                    if (newItems != null) {
+                        // Lưu dữ liệu vào SQLite
+                        dbHelper.syncDishes(maloai, newItems, currentPage == 1);
+
+                        // Load lại toàn bộ từ SQLite lên List để đồng nhất dữ liệu
+                        List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
+                        monDTOList.clear();
+                        monDTOList.addAll(cachedList);
+                        adapter.notifyDataSetChanged();
+                        
                         currentPage++;
                     }
                     capNhatTrangThai();
@@ -220,7 +232,7 @@ public class DisplayMenuFragment extends Fragment {
                 if (!isAdded() || getActivity() == null) return;
                 pb_menu_LoadMore.setVisibility(View.GONE);
                 isLoading = false;
-                Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                // Offline thì giữ nguyên dữ liệu đã có từ SQLite
             }
         });
     }
@@ -231,8 +243,13 @@ public class DisplayMenuFragment extends Fragment {
         hasMore = true;
         isLoading = false;
         currentSearch = "";
+        
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         monDTOList.clear();
+        monDTOList.addAll(dbHelper.getDishes(maloai, currentSearch));
         adapter.notifyDataSetChanged();
+        capNhatTrangThai();
+
         taiThemMon();
     }
 
@@ -242,8 +259,13 @@ public class DisplayMenuFragment extends Fragment {
         currentPage = 1;
         hasMore = true;
         isLoading = false;
+        
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         monDTOList.clear();
+        monDTOList.addAll(dbHelper.getDishes(maloai, currentSearch));
         adapter.notifyDataSetChanged();
+        capNhatTrangThai();
+
         taiThemMon();
     }
 

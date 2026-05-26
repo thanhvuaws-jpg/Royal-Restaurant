@@ -85,7 +85,12 @@ public class WelcomeActivity extends AppCompatActivity {
     }
 
     private void goToHome() {
-        Intent intent = new Intent(this, HomeActivity.class);
+        Intent intent;
+        if (SessionManager.getMaQuyen(this) == 4) {
+            intent = new Intent(this, CustomerHomeActivity.class);
+        } else {
+            intent = new Intent(this, HomeActivity.class);
+        }
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();

@@ -75,9 +75,9 @@ public class Register2ndActivity extends AppCompatActivity {
                 progressDialog.setCancelable(false);
                 progressDialog.show();
 
-                // Gửi dữ liệu đăng ký lên Cloud
+                // Gửi dữ liệu đăng ký lên Cloud (maquyen = 4 đại diện cho Khách hàng thành viên)
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                Call<StaffResponse> apiStaffResponseCall = apiService.addStaff(hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, 0);
+                Call<StaffResponse> apiStaffResponseCall = apiService.addStaff(hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, 4);
                 apiStaffResponseCall.enqueue(new Callback<StaffResponse>() {
                     @Override
                     public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {

@@ -110,7 +110,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         }
                         editor.apply();
 
-                        Intent intent = new Intent(LoginActivity.this, HomeActivity.class);
+                        Intent intent;
+                        if (res.getMaQuyen() == 4) {
+                            intent = new Intent(LoginActivity.this, CustomerHomeActivity.class);
+                        } else {
+                            intent = new Intent(LoginActivity.this, HomeActivity.class);
+                        }
                         intent.putExtra("tendn", finalUser);
                         startActivity(intent);
                         finish();

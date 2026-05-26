@@ -27,8 +27,11 @@ import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.TableResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayTable;
+import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
 import com.sinhvien.orderdrinkapp.R;
+
+import com.google.android.material.tabs.TabLayout;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +43,9 @@ import retrofit2.Response;
 public class DisplayTableFragment extends Fragment {
 
     RecyclerView rvDisplayTable;
+    TabLayout tabLayoutTable;
     List<BanAnDTO> banAnDTOList = new ArrayList<>();
+    List<BanAnDTO> filteredList = new ArrayList<>();
     AdapterDisplayTable adapterDisplayTable;
     View view;
 
@@ -61,11 +66,28 @@ public class DisplayTableFragment extends Fragment {
         setHasOptionsMenu(true);
         ((HomeActivity) getActivity()).getSupportActionBar().setTitle("Quản lý bàn");
 
+        tabLayoutTable = view.findViewById(R.id.tabLayoutTable);
+        tabLayoutTable.addTab(tabLayoutTable.newTab().setText("Ngồi tại bàn"));
+        tabLayoutTable.addTab(tabLayoutTable.newTab().setText("Mang đi"));
+
+        tabLayoutTable.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                filterTables(tab.getPosition());
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
+
         rvDisplayTable = view.findViewById(R.id.rvDisplayTable);
         // Lưới 2 cột như GridView cũ
         rvDisplayTable.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
-        adapterDisplayTable = new AdapterDisplayTable(getActivity(), banAnDTOList);
+        adapterDisplayTable = new AdapterDisplayTable(getActivity(), filteredList);
         rvDisplayTable.setAdapter(adapterDisplayTable);
 
         view.findViewById(R.id.fab_add_table).setOnClickListener(v ->
@@ -74,10 +96,38 @@ public class DisplayTableFragment extends Fragment {
         return view;
     }
 
+    private io.socket.client.Socket mSocket;
+    private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        HienThiDSBan();
+                    }
+                });
+            }
+        }
+    };
+
     @Override
     public void onResume() {
         super.onResume();
         HienThiDSBan();
+        
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (mSocket != null) {
+            mSocket.on("refresh_orders", onRefreshOrders);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mSocket != null) {
+            mSocket.off("refresh_orders", onRefreshOrders);
+        }
     }
 
     @Override
@@ -97,38 +147,60 @@ public class DisplayTableFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    private void filterTables(int tabIndex) {
+        filteredList.clear();
+        for (BanAnDTO ban : banAnDTOList) {
+            boolean isTakeaway = ban.getTenBan().toLowerCase().contains("mang đi")
+                    || ban.getTenBan().toLowerCase().contains("takeaway");
+            if (tabIndex == 0) {
+                if (!isTakeaway) {
+                    filteredList.add(ban);
+                }
+            } else {
+                if (isTakeaway) {
+                    filteredList.add(ban);
+                }
+            }
+        }
+        adapterDisplayTable.notifyDataSetChanged();
+        capNhatTrangThai();
+    }
+
     private void HienThiDSBan() {
+        // 1. Tải và hiển thị dữ liệu từ SQLite trước
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+        List<BanAnDTO> cachedList = dbHelper.getTables();
+        banAnDTOList.clear();
+        banAnDTOList.addAll(cachedList);
+        filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
+
+        // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getTables().enqueue(new Callback<List<TableResponse>>() {
             @Override
             public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    // Cập nhật dữ liệu mới vào SQLite
+                    dbHelper.syncTables(response.body());
+
+                    // Đọc lại từ SQLite ra giao diện để đồng nhất
                     banAnDTOList.clear();
-                    for (TableResponse res : response.body()) {
-                        BanAnDTO dto = new BanAnDTO();
-                        dto.setMaBan(res.getMaBan());
-                        dto.setTenBan(res.getTenBan());
-                        dto.setTinhTrang(res.getTinhTrang());
-                        banAnDTOList.add(dto);
-                    }
-                    adapterDisplayTable.notifyDataSetChanged();
-                    capNhatTrangThai();
+                    banAnDTOList.addAll(dbHelper.getTables());
+                    filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
                 }
             }
 
             @Override
             public void onFailure(Call<List<TableResponse>> call, Throwable t) {
-                if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                // Giữ nguyên dữ liệu từ SQLite
             }
         });
     }
 
     private void capNhatTrangThai() {
         View layout_empty_state = view.findViewById(R.id.layout_empty_state);
-        if (!banAnDTOList.isEmpty()) {
+        if (!filteredList.isEmpty()) {
             rvDisplayTable.setVisibility(View.VISIBLE);
             if (layout_empty_state != null) layout_empty_state.setVisibility(View.GONE);
         } else {

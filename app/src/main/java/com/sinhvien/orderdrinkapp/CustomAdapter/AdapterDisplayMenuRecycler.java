@@ -127,6 +127,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
 
         // Nút Admin: Sửa / Xóa
         if (isAdmin) {
+            holder.sw_ToggleStatus.setVisibility(View.VISIBLE);
             holder.layout_AdminTools.setVisibility(View.VISIBLE);
             holder.img_Edit.setOnClickListener(v -> {
                 Intent iEdit = new Intent(context, AddMenuActivity.class);
@@ -161,6 +162,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                         .show();
             });
         } else {
+            holder.sw_ToggleStatus.setVisibility(View.GONE);
             holder.layout_AdminTools.setVisibility(View.GONE);
         }
 

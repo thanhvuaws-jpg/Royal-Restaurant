@@ -1,286 +1,399 @@
-# 🍽️ Royal Restaurant POS – Cloud Edition
+<div align="center">
 
-> Hệ thống Quản lý Nhà hàng thời gian thực, kết hợp ứng dụng **Android** và **Web Admin**, vận hành hoàn toàn trên nền tảng **Cloud VPS**.
+<img src="https://img.shields.io/badge/-%F0%9F%8D%BD%EF%B8%8F%20ROYAL%20RESTAURANT%20POS-gold?style=for-the-badge&labelColor=1a0a00&color=c8902a" alt="Royal Restaurant POS" height="45"/>
+
+<br/>
+<br/>
+
+**Hệ thống Quản lý Nhà hàng toàn diện — Android + Web Admin — Cloud VPS**
+
+<br/>
+
+[![Android](https://img.shields.io/badge/Android-API%2021%2B-3DDC84?style=flat-square&logo=android&logoColor=white)](https://developer.android.com)
+[![Java](https://img.shields.io/badge/Java-JDK%2011%2B-ED8B00?style=flat-square&logo=openjdk&logoColor=white)](https://www.java.com)
+[![PHP](https://img.shields.io/badge/PHP-7%2F8-777BB4?style=flat-square&logo=php&logoColor=white)](https://php.net)
+[![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)](https://mysql.com)
+[![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=flat-square&logo=docker&logoColor=white)](https://docker.com)
+[![Cloudflare](https://img.shields.io/badge/Cloudflare-SSL-F38020?style=flat-square&logo=cloudflare&logoColor=white)](https://cloudflare.com)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
+
+<br/>
+
+> *"Từ gọi món đến thanh toán — mọi thứ đồng bộ thời gian thực trên Cloud"*
+
+<br/>
+
+[📱 Android App](#-ứng-dụng-android) · [🖥️ Web Admin](#️-web-portal--admin--thu-ngân) · [☁️ Backend API](#️-backend--infrastructure) · [🚀 Triển khai](#-hướng-dẫn-triển-khai) · [📸 Demo](#-demo)
+
+</div>
 
 ---
 
-## 📌 Giới thiệu Dự án
+## 📌 Giới thiệu
 
-**Royal Restaurant POS** là hệ thống quản lý nhà hàng toàn diện gồm hai thành phần chính:
+**Royal Restaurant POS** là hệ thống quản lý nhà hàng end-to-end gồm hai thành phần hoàn toàn đồng bộ:
 
-| Thành phần | Nền tảng | Vai trò |
-|---|---|---|
-| 📱 **Ứng dụng Android** | Android (Java) | Nhân viên gọi món, quản lý bàn, xem thực đơn |
-| 🖥️ **Web Admin / Thu Ngân** | HTML + JavaScript (jQuery) | Quản lý hệ thống, theo dõi đơn hàng, thống kê doanh thu |
+| | Thành phần | Nền tảng | Vai trò |
+|---|---|---|---|
+| 📱 | **Android App** | Java · Android API 21+ | Nhân viên gọi món, quản lý bàn, xem thực đơn, thanh toán |
+| 🖥️ | **Web Admin / Thu Ngân** | HTML · jQuery · Tailwind CSS | Quản lý hệ thống, thống kê doanh thu, xác nhận thanh toán |
 
-Toàn bộ dữ liệu được lưu trữ và xử lý tập trung trên **Cloud VPS** tại địa chỉ `103.157.204.120`, không sử dụng SQLite hay bất kỳ bộ lưu trữ nội bộ nào trên thiết bị.
+Toàn bộ dữ liệu xử lý tập trung trên **Cloud VPS**, không dùng bất kỳ bộ nhớ cục bộ nào — mọi thiết bị luôn hiển thị trạng thái mới nhất theo thời gian thực.
 
 ---
 
 ## 🏗️ Kiến trúc Hệ thống
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    CLOUD VPS  (103.157.204.120)                 │
-│                                                                  │
-│  ┌───────────────────┐      ┌────────────────────────────────┐  │
-│  │   Web Server      │      │       Database Server          │  │
-│  │   Laravel (PHP)   │      │       MySQL / MariaDB          │  │
-│  │   Port :80/443    │◄────►│       Port :3306               │  │
-│  │                   │      │                                │  │
-│  │  /public/quantri/ │      │  Tables: nhanvien, loaimon,   │  │
-│  │  (Web Admin UI)   │      │  monan, banan, dondat,        │  │
-│  │                   │      │  chitietdondat, thanhtoan     │  │
-│  └───────────────────┘      └────────────────────────────────┘  │
-│                                       ▲                          │
-│  ┌───────────────────┐                │                          │
-│  │   REST API Server │                │                          │
-│  │   PHP Scripts     │────────────────┘                          │
-│  │   Port :8081      │                                           │
-│  └───────────────────┘                                           │
-└─────────────────────────────────────────────────────────────────┘
-          ▲                          ▲
-          │  Retrofit2 HTTP          │  jQuery AJAX
-          │                          │
-  ┌───────┴──────┐          ┌────────┴──────┐
-  │ Android App  │          │  Web Browser  │
-  │  (Java)      │          │  (Admin/Cashier│
-  └──────────────┘          └───────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                       CLOUD VPS (103.157.204.120)                    │
+│                                                                       │
+│   ┌─────────────────────┐         ┌──────────────────────────────┐   │
+│   │   Apache2  :80/443  │         │     Docker — REST API        │   │
+│   │   + Cloudflare SSL  │         │     PHP Scripts  :8081       │   │
+│   │                     │─proxy──▶│                              │   │
+│   │  /public/quantri/   │ /api/   │  api/login.php               │   │
+│   │  Web Admin UI       │         │  api/get_dishes.php  ...     │   │
+│   └─────────────────────┘         └──────────────┬───────────────┘   │
+│                                                   │                   │
+│   ┌─────────────────────┐         ┌──────────────▼───────────────┐   │
+│   │  Docker — Laravel   │         │   Docker — MySQL 8.0         │   │
+│   │  PHP Framework :8000│◀───────▶│   Port :3307 (internal)      │   │
+│   └─────────────────────┘         └──────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────┘
+            ▲                                    ▲
+            │  Retrofit2 / OkHttp (HTTP)         │  jQuery AJAX (HTTPS)
+            │                                    │
+   ┌────────┴──────────┐               ┌─────────┴──────────┐
+   │   📱 Android App  │               │  🌐 Web Browser    │
+   │   Java · API 21+  │               │  Admin / Cashier   │
+   └───────────────────┘               └────────────────────┘
 ```
+
+> **SSL Flow:** Browser → HTTPS (Cloudflare) → Apache → `/api/` proxy → Docker:8081
 
 ---
 
-## 🛠️ Công nghệ Sử dụng
+## 📱 Ứng dụng Android
 
-### 📱 Android Application
-| Công nghệ | Phiên bản | Mục đích |
+### Màn hình & Luồng điều hướng
+
+```
+SplashActivity (3s)
+       │
+WelcomeActivity ──── (đã login?) ──▶ HomeActivity
+       │                                    │
+LoginActivity              ┌───────────────┼────────────────┐
+       │                   ▼               ▼                ▼
+Register ──────▶  DisplayHomeFragment  DisplayTableFragment  DisplayMenuFragment
+(Step 1+2)             (Dashboard)       (Sơ đồ bàn)        (Thực đơn)
+                           │
+                  DisplayStaffFragment   DisplayStatisticFragment
+                   (Quản lý NV)           (Thống kê & Biểu đồ)
+```
+
+### Tính năng chính
+
+- 🔐 **Đăng nhập & Phân quyền** — Tự động ẩn/hiện tính năng theo vai trò: Admin · Nhân viên · Thu ngân
+- 🪑 **Sơ đồ Bàn thời gian thực** — Trạng thái Trống / Đang dùng cập nhật trực tiếp từ Cloud
+- 🍜 **Thực đơn thông minh** — Phân trang, tìm kiếm theo tên, ảnh tải từ Cloud qua Glide
+- 🛒 **Gọi món nhanh** — Chọn bàn → Chọn món → Nhập số lượng → Đồng bộ ngay lên server
+- 💳 **Thanh toán đa phương thức** — Tiền mặt · Chuyển khoản · QR VietQR (BIDV)
+- 📊 **Thống kê doanh thu** — Biểu đồ cột MPAndroidChart, lịch sử đơn chi tiết
+- 📸 **Xuất hóa đơn** — Chụp ảnh hóa đơn, chia sẻ trực tiếp qua ReceiptHelper
+
+### Stack công nghệ
+
+| Thư viện | Phiên bản | Mục đích |
 |---|---|---|
-| **Java** | JDK 11+ | Ngôn ngữ lập trình chính |
-| **Android SDK** | API 24+ (Android 7.0) | Nền tảng ứng dụng di động |
 | **Retrofit 2** | 2.9.0 | HTTP Client giao tiếp REST API |
-| **OkHttp 3** | 4.x | Tầng mạng cơ sở, Timeout 30s |
-| **Gson** | 2.x | Serialization/Deserialization JSON |
-| **Glide** | 4.x | Tải và cache ảnh từ URL |
-| **MPAndroidChart** | 3.x | Vẽ biểu đồ doanh thu (BarChart) |
-| **Material Components** | 1.x | UI Components (TextInputLayout, CardView) |
+| **OkHttp 3** | 4.x | Tầng mạng, Timeout 30s |
+| **Gson** | 2.x | Serialize / Deserialize JSON |
+| **Glide** | 4.12.0 | Tải & cache ảnh từ URL |
+| **MPAndroidChart** | 3.1.0 | BarChart doanh thu |
+| **Material Components** | 1.3.0 | TextInputLayout, CardView, v.v. |
+| **CircleImageView** | 3.1.0 | Ảnh đại diện dạng tròn |
 
-### 🌐 Web Portal (Admin & Cashier)
+---
+
+## 🖥️ Web Portal — Admin & Thu Ngân
+
+Truy cập tại: **[https://vtkt.online/quantri](https://vtkt.online/quantri)**
+
+| File | Vai trò |
+|---|---|
+| `index.html` | Trang đăng nhập (dark/light mode) |
+| `admin.html` | Dashboard quản lý toàn hệ thống |
+| `cashier.html` | Giao diện thu ngân xác nhận thanh toán |
+
+### Tính năng
+
+- 👑 **Dashboard** — Doanh thu, số đơn, nhân viên theo thời gian thực + đồng hồ live
+- 📋 **Quản lý Thực đơn** — CRUD món ăn & danh mục trực tiếp trên trình duyệt
+- 👥 **Quản lý Nhân viên** — Tạo, sửa, xóa tài khoản + phân quyền
+- 💰 **Thu Ngân** — Danh sách đơn chờ thanh toán, xác nhận 1 click
+- 🎵 **Music Player** — Trình phát nhạc nổi tích hợp YouTube Iframe API + MP3
+- 🌗 **Dark / Light Mode** — Chuyển chủ đề mượt mà, lưu localStorage
+
+### Stack công nghệ
+
 | Công nghệ | Mục đích |
 |---|---|
-| **HTML5 + CSS3** | Cấu trúc và tạo kiểu giao diện |
 | **Tailwind CSS** | Utility-first styling, glassmorphism |
 | **jQuery 3.6** | AJAX calls, DOM manipulation |
-| **Chart.js** | Biểu đồ doanh thu trực quan |
-| **SweetAlert2** | Hộp thoại thông báo đẹp mắt |
-| **Font Awesome 6** | Bộ biểu tượng vector |
-| **YouTube Iframe API** | Phát nhạc nền trong hệ thống |
-
-### ☁️ Backend & Infrastructure
-| Công nghệ | Mục đích |
-|---|---|
-| **PHP 7/8** | Xử lý API endpoints (REST) |
-| **Laravel** | Framework chính Web Server |
-| **MySQL / MariaDB** | Cơ sở dữ liệu quan hệ |
-| **Nginx** | Reverse Proxy & Web Server |
-| **Linux VPS** | Máy chủ ảo đám mây |
+| **Chart.js** | Biểu đồ doanh thu |
+| **SweetAlert2** | Hộp thoại thông báo |
+| **Font Awesome 6** | Bộ icon vector |
+| **YouTube Iframe API** | Nhạc nền hệ thống |
 
 ---
 
-## 📂 Cây Thư Mục Dự án
+## ☁️ Backend & Infrastructure
 
-```
-QLnhahang/
-├── app/
-│   └── src/main/
-│       ├── java/com/sinhvien/orderdrinkapp/
-│       │   ├── Activities/               # Màn hình chức năng
-│       │   │   ├── SplashActivity.java       # Màn hình giới thiệu (3s)
-│       │   │   ├── WelcomeActivity.java      # Chào mừng & tự đăng nhập
-│       │   │   ├── LoginActivity.java        # Xác thực người dùng
-│       │   │   ├── HomeActivity.java         # Màn hình chính + phân quyền
-│       │   │   ├── AmountMenuActivity.java   # Gọi món & nhập số lượng
-│       │   │   ├── PaymentActivity.java      # Thanh toán hóa đơn
-│       │   │   ├── CashierConfirmActivity.java # Xác nhận đơn thu ngân
-│       │   │   ├── AddMenuActivity.java      # Quản lý món ăn (CRUD)
-│       │   │   ├── AddCategoryActivity.java  # Quản lý loại món (CRUD)
-│       │   │   ├── AddTableActivity.java     # Quản lý bàn ăn (CRUD)
-│       │   │   ├── AddStaffActivity.java     # Quản lý nhân viên (CRUD)
-│       │   │   ├── DetailStatisticActivity.java # Chi tiết lịch sử đơn
-│       │   │   ├── RegisterActivity.java     # Đăng ký bước 1
-│       │   │   └── Register2ndActivity.java  # Đăng ký bước 2 (quyền hạn)
-│       │   │
-│       │   ├── Fragments/                # Giao diện thành phần (Tab)
-│       │   │   ├── DisplayHomeFragment.java    # Dashboard tổng quan
-│       │   │   ├── DisplayTableFragment.java   # Sơ đồ bàn ăn
-│       │   │   ├── DisplayCategoryFragment.java # Danh mục thực đơn
-│       │   │   ├── DisplayMenuFragment.java    # Danh sách món + tìm kiếm
-│       │   │   ├── DisplayStaffFragment.java   # Quản lý nhân sự
-│       │   │   └── DisplayStatisticFragment.java # Báo cáo & biểu đồ
-│       │   │
-│       │   ├── Api/                      # Tầng kết nối Cloud
-│       │   │   ├── ApiClient.java            # Cấu hình Retrofit (Base URL, Timeout)
-│       │   │   ├── ApiService.java           # Định nghĩa tất cả Endpoints REST
-│       │   │   ├── OrderResponse.java        # Đối tượng phản hồi đơn hàng
-│       │   │   ├── StaffResponse.java        # Đối tượng phản hồi nhân viên
-│       │   │   ├── MonResponse.java          # Đối tượng phản hồi món ăn
-│       │   │   ├── DishPageResponse.java     # Phân trang danh sách món
-│       │   │   ├── LoaiMonResponse.java      # Đối tượng loại món
-│       │   │   ├── TableResponse.java        # Đối tượng bàn ăn
-│       │   │   ├── OrderDetailResponse.java  # Chi tiết đơn đặt
-│       │   │   ├── StaffItemResponse.java    # Chi tiết nhân viên
-│       │   │   └── StatisticResponse.java    # Đối tượng thống kê
-│       │   │
-│       │   ├── CustomAdapter/            # RecyclerView / GridView Adapters
-│       │   │   ├── AdapterDisplayTable.java    # Hiển thị và quản lý bàn
-│       │   │   ├── AdapterDisplayMenu.java     # Hiển thị thực đơn
-│       │   │   ├── AdapterDisplayMenuRecycler.java # Thực đơn dạng danh sách
-│       │   │   ├── AdapterDisplayCategory.java # Hiển thị loại món
-│       │   │   ├── AdapterDisplayStaff.java    # Hiển thị nhân viên
-│       │   │   ├── AdapterDisplayPayment.java  # Hiển thị hóa đơn thanh toán
-│       │   │   └── AdapterDisplayStatistic.java # Hiển thị lịch sử đơn
-│       │   │
-│       │   ├── DTO/                      # Data Transfer Objects
-│       │   │   ├── BanAnDTO.java             # Dữ liệu bàn ăn
-│       │   │   ├── MonDTO.java               # Dữ liệu món ăn
-│       │   │   ├── LoaiMonDTO.java           # Dữ liệu loại món
-│       │   │   ├── NhanVienDTO.java          # Dữ liệu nhân viên
-│       │   │   ├── DonDatDTO.java            # Dữ liệu đơn đặt
-│       │   │   ├── ChiTietDonDatDTO.java     # Chi tiết đơn đặt
-│       │   │   ├── ThanhToanDTO.java         # Dữ liệu thanh toán
-│       │   │   └── QuyenDTO.java             # Dữ liệu quyền hạn
-│       │   │
-│       │   └── Utils/                    # Tiện ích hệ thống
-│       │       ├── SessionManager.java       # Quản lý phiên & quyền (Admin/Staff)
-│       │       └── ReceiptHelper.java        # Chụp ảnh & chia sẻ hóa đơn
-│       │
-│       └── res/
-│           ├── layout/                   # File giao diện XML
-│           ├── drawable/                 # Hình ảnh & vector icons
-│           ├── values/
-│           │   ├── colors.xml            # Bảng màu hệ thống
-│           │   ├── strings.xml           # Chuỗi văn bản đa ngôn ngữ
-│           │   └── themes.xml            # Theme & Style toàn cục
-│           └── font/                     # Font chữ (Muli)
-│
-├── build.gradle                          # Cấu hình build Gradle
-├── settings.gradle                       # Cài đặt module
-└── README.md                             # Tài liệu này
-```
+### REST API Endpoints
+
+Base URL: `https://vtkt.online/api/`
+
+| Nhóm | Endpoint | Method | Chức năng |
+|---|---|---|---|
+| **Auth** | `login.php` | POST | Đăng nhập, trả về token session |
+| | `check_session.php` | POST | Kiểm tra phiên hợp lệ (polling) |
+| **Nhân viên** | `get_staff.php` | GET | Danh sách nhân viên |
+| | `add_staff.php` | POST | Thêm mới |
+| | `update_staff.php` | POST | Sửa / Xóa |
+| | `get_staff_by_id.php` | GET | Chi tiết theo ID |
+| **Thực đơn** | `get_dishes.php` | GET | Danh sách (phân trang + tìm kiếm) |
+| | `update_dish.php` | POST | Thêm / Sửa / Xóa |
+| | `update_dish_status.php` | POST | Bật/Tắt trạng thái |
+| | `get_dish_by_id.php` | GET | Chi tiết theo ID |
+| **Loại món** | `get_categories.php` | GET | Danh sách danh mục |
+| | `update_category.php` | POST | Thêm / Sửa / Xóa |
+| **Bàn ăn** | `get_tables.php` | GET | Danh sách bàn |
+| | `add_table.php` | POST | Thêm bàn |
+| | `update_table_admin.php` | POST | Sửa / Xóa |
+| | `delete_table.php` | POST | Xóa bàn |
+| **Đơn hàng** | `create_order.php` | POST | Tạo đơn mới |
+| | `add_order_detail.php` | POST | Thêm món vào đơn |
+| | `get_order_by_table.php` | GET | Đơn hiện tại của bàn |
+| | `get_order_details.php` | GET | Chi tiết đơn |
+| | `get_pending_orders.php` | GET | Đơn đang chờ thanh toán |
+| | `checkout_order.php` | POST | Thanh toán (nhân viên) |
+| | `confirm_payment.php` | POST | Xác nhận (thu ngân) |
+| | `get_paid_orders.php` | GET | Lịch sử đã thanh toán |
+| | `check_order_status.php` | GET | Kiểm tra trạng thái đơn |
+| **Thống kê** | `get_statistics.php` | GET | Dữ liệu doanh thu |
 
 ---
 
-## 🗄️ Cơ Sở Dữ Liệu (Database)
+## 🗄️ Cơ sở Dữ liệu
 
-Hệ thống sử dụng **MySQL / MariaDB** trên Cloud VPS với thiết kế quan hệ như sau:
+Sử dụng **MySQL 8.0** chạy trong Docker container.
 
-### Danh sách Bảng (Tables)
+### Sơ đồ Quan hệ
+
+```
+quyen ──────< nhanvien ─────────< dondat ──────< chitietdondat >── monan >── loaimon
+                                     │
+                                   banan
+                                     │
+                                  thanhtoan
+```
+
+### Bảng dữ liệu
 
 | Bảng | Mô tả | Trường chính |
 |---|---|---|
-| `nhanvien` | Tài khoản nhân viên & quản lý | `manv`, `hoten`, `tendn`, `matkhau`, `maquyen` |
-| `quyen` | Phân quyền (Admin / Nhân viên) | `maquyen`, `tenquyen` |
+| `quyen` | Phân quyền hệ thống | `maquyen`, `tenquyen` |
+| `nhanvien` | Tài khoản nhân viên | `manv`, `hoten`, `tendn`, `matkhau`, `maquyen` |
 | `loaimon` | Danh mục thực đơn | `maloai`, `tenloai`, `hinhanh` |
-| `monan` | Danh sách món ăn | `mamon`, `tenmon`, `giatien`, `maloai`, `tinhtrang`, `hinhanh` |
-| `banan` | Bàn ăn trong nhà hàng | `maban`, `tenban` |
-| `dondat` | Đơn đặt món theo bàn | `madondat`, `manv`, `maban`, `thoigiantao`, `trangthai` |
-| `chitietdondat` | Chi tiết các món trong đơn | `machitiet`, `madondat`, `mamon`, `soluong`, `dongia` |
+| `monan` | Món ăn | `mamon`, `tenmon`, `giatien`, `maloai`, `tinhtrang`, `hinhanh` |
+| `banan` | Bàn ăn | `maban`, `tenban` |
+| `dondat` | Đơn đặt món | `madondat`, `manv`, `maban`, `thoigiantao`, `trangthai` |
+| `chitietdondat` | Chi tiết đơn | `machitiet`, `madondat`, `mamon`, `soluong`, `dongia` |
 | `thanhtoan` | Lịch sử thanh toán | `mathanhtoan`, `madondat`, `tongtien`, `phuongthuc`, `thoigian` |
 
-### Sơ đồ Quan hệ (ERD tóm tắt)
-```
-quyen ──< nhanvien ──< dondat ──< chitietdondat >── monan >── loaimon
-                          │
-                        banan
-                          │
-                       thanhtoan
-```
-
 ---
 
-## 🌐 REST API Endpoints
+## 🗂️ Cấu trúc Project
 
-Máy chủ API chạy tại: `http://103.157.204.120:8081/api/`
+<details>
+<summary><b>📱 Android App — Royal-Restaurant/</b></summary>
 
-| Endpoint | Phương thức | Chức năng |
-|---|---|---|
-| `login.php` | POST | Xác thực đăng nhập nhân viên |
-| `get_staff.php` | GET | Lấy danh sách nhân viên |
-| `add_staff.php` | POST | Thêm nhân viên mới |
-| `update_staff.php` | POST | Sửa / Xóa nhân viên |
-| `get_categories.php` | GET | Lấy danh mục thực đơn |
-| `update_category.php` | POST | Thêm / Sửa / Xóa loại món |
-| `get_dishes.php` | GET | Lấy danh sách món (hỗ trợ phân trang & tìm kiếm) |
-| `update_dish.php` | POST | Thêm / Sửa / Xóa món ăn |
-| `update_dish_status.php` | POST | Bật/Tắt trạng thái món ăn |
-| `get_tables.php` | GET | Lấy danh sách bàn |
-| `add_table.php` | POST | Thêm bàn mới |
-| `update_table_admin.php` | POST | Sửa / Xóa bàn |
-| `get_order_by_table.php` | GET | Lấy đơn hiện tại của bàn |
-| `create_order.php` | POST | Tạo đơn đặt mới |
-| `add_order_detail.php` | POST | Thêm món vào đơn |
-| `get_order_details.php` | GET | Lấy chi tiết đơn |
-| `checkout_order.php` | POST | Thanh toán đơn hàng |
-| `get_pending_orders.php` | GET | Lấy danh sách đơn chờ thanh toán |
-| `confirm_payment.php` | POST | Xác nhận thanh toán (Thu ngân) |
-| `get_paid_orders.php` | GET | Lịch sử đơn đã thanh toán |
-| `get_statistics.php` | GET | Lấy dữ liệu thống kê doanh thu |
-| `check_session.php` | POST | Kiểm tra phiên đăng nhập hợp lệ |
+```
+app/src/main/java/com/sinhvien/orderdrinkapp/
+├── Activities/
+│   ├── SplashActivity.java          # Màn hình giới thiệu (3s)
+│   ├── WelcomeActivity.java         # Chào mừng & tự đăng nhập
+│   ├── LoginActivity.java           # Xác thực người dùng
+│   ├── HomeActivity.java            # Màn hình chính + điều hướng tab
+│   ├── AmountMenuActivity.java      # Gọi món & nhập số lượng
+│   ├── PaymentActivity.java         # Thanh toán hóa đơn
+│   ├── CashierConfirmActivity.java  # Xác nhận đơn (Thu ngân)
+│   ├── AddMenuActivity.java         # CRUD món ăn
+│   ├── AddCategoryActivity.java     # CRUD danh mục
+│   ├── AddTableActivity.java        # CRUD bàn ăn
+│   ├── AddStaffActivity.java        # CRUD nhân viên
+│   ├── DetailStatisticActivity.java # Chi tiết lịch sử đơn
+│   ├── RegisterActivity.java        # Đăng ký bước 1
+│   └── Register2ndActivity.java     # Đăng ký bước 2 (phân quyền)
+│
+├── Fragments/
+│   ├── DisplayHomeFragment.java     # Dashboard tổng quan
+│   ├── DisplayTableFragment.java    # Sơ đồ bàn ăn
+│   ├── DisplayCategoryFragment.java # Danh mục thực đơn
+│   ├── DisplayMenuFragment.java     # Danh sách món + tìm kiếm
+│   ├── DisplayStaffFragment.java    # Quản lý nhân sự
+│   ├── DisplayCashierFragment.java  # Thu ngân
+│   └── DisplayStatisticFragment.java # Báo cáo & biểu đồ
+│
+├── Api/
+│   ├── ApiClient.java               # Retrofit config (Base URL, Timeout 30s)
+│   ├── ApiService.java              # Interface định nghĩa tất cả endpoints
+│   └── *Response.java               # Models phản hồi từ server
+│
+├── DTO/                             # Data Transfer Objects
+├── CustomAdapter/                   # RecyclerView / GridView Adapters
+└── Utils/
+    ├── SessionManager.java          # Quản lý phiên & quyền (SharedPreferences)
+    └── ReceiptHelper.java           # Chụp ảnh & chia sẻ hóa đơn
+```
+</details>
 
----
+<details>
+<summary><b>🖥️ Web Portal — web-odrinapp/</b></summary>
 
-## ✨ Tính năng Hệ thống
-
-### 📱 Ứng dụng Android
-- 🔐 **Đăng nhập & Phân quyền:** Hệ thống tự động ẩn/hiện tính năng theo vai trò (Admin / Nhân viên)
-- 🪑 **Sơ đồ Bàn thời gian thực:** Hiển thị trạng thái bàn trực tiếp từ Cloud (Trống / Đang dùng)
-- 🍜 **Thực đơn đầy đủ:** Phân loại theo danh mục, tìm kiếm theo tên, hình ảnh từ Cloud
-- 🛒 **Gọi món nhanh:** Nhân viên chọn bàn → Chọn món → Nhập số lượng → Gửi lên Cloud ngay lập tức
-- 💳 **Thanh toán:** Xuất hóa đơn, chọn phương thức thanh toán, chia sẻ hóa đơn qua ảnh
-- 📊 **Thống kê Doanh thu:** Biểu đồ cột trực quan, xem chi tiết từng đơn trong lịch sử
-
-### 🖥️ Web Admin / Thu Ngân
-- 👑 **Dashboard Quản lý:** Tổng quan doanh thu, số đơn, nhân viên theo thời gian thực
-- 📋 **Quản lý Thực đơn:** Thêm, sửa, xóa món ăn và danh mục trực tiếp trên trình duyệt
-- 👥 **Quản lý Nhân viên:** Tạo và quản lý tài khoản cho toàn bộ đội ngũ
-- 💰 **Giao diện Thu Ngân:** Xem danh sách đơn hàng đang chờ, xác nhận thanh toán
-- 🎵 **Trình phát Nhạc nền:** Hộp nhạc nổi tích hợp YouTube & MP3, có danh sách phát
+```
+web-odrinapp/
+├── index.html        # Trang đăng nhập (dark/light mode)
+├── admin.html        # Dashboard quản lý (Admin)
+├── cashier.html      # Giao diện thu ngân
+└── js/
+    ├── config.js     # BASE_URL cấu hình API
+    ├── login.js      # Xử lý đăng nhập & redirect theo quyền
+    ├── admin.js      # Logic toàn bộ trang Admin
+    ├── cashier.js    # Logic trang Thu ngân
+    └── music-player.js # Trình phát nhạc nổi
+```
+</details>
 
 ---
 
 ## 🚀 Hướng dẫn Triển khai
 
 ### Yêu cầu
-- Android Studio (Hedgehog trở lên)
+
+- Android Studio Hedgehog trở lên
 - JDK 11+
-- Android device / Emulator (API 24+)
+- Android device / Emulator API 21+
+- Docker & Docker Compose (cho backend)
 - Kết nối Internet đến VPS
 
-### Clone & Chạy
-```bash
-git clone https://github.com/thanhvuaws-jpg/Royal-Restaurant.git
-cd Royal-Restaurant
-```
-Mở bằng **Android Studio** → **Sync Gradle** → **Run app**.
+### 1. Clone project
 
-### Cấu hình API
-Thay đổi địa chỉ server trong `ApiClient.java`:
+```bash
+# Android App
+git clone https://github.com/thanhvuaws-jpg/Royal-Restaurant.git
+
+# Web Portal
+git clone https://github.com/thanhvuaws-jpg/web-odrinapp.git
+```
+
+### 2. Chạy Backend (Docker)
+
+```bash
+cd /path/to/backend
+docker-compose up -d
+```
+
+Các service sẽ khởi động:
+- `domain_app` — Laravel API tại `:8000`
+- `domain_db` — MySQL 8.0 tại `127.0.0.1:3307`
+- `domain_phpmyadmin` — phpMyAdmin tại `127.0.0.1:8080`
+
+### 3. Cấu hình Web Portal
+
+Sửa `js/config.js`:
+
+```js
+const CONFIG = {
+    BASE_URL: "/api/"   // Nếu deploy cùng domain
+    // hoặc BASE_URL: "https://your-domain.com/api/"
+};
+```
+
+Copy thư mục web vào public folder của Laravel:
+
+```bash
+cp -r web-odrinapp/ /var/www/domain/public/quantri/
+```
+
+### 4. Cấu hình Android App
+
+Sửa `ApiClient.java`:
+
 ```java
 public static final String BASE_URL = "http://YOUR_VPS_IP:8081/";
 ```
 
-### Web Portal
-Truy cập tại: `http://vtkt.online/quantri/`
-- `index.html` — Trang đăng nhập
-- `admin.html` — Giao diện Quản lý (Admin)
-- `cashier.html` — Giao diện Thu ngân
+Mở bằng **Android Studio** → Sync Gradle → Run.
+
+### 5. Apache Proxy (tránh Mixed Content HTTPS)
+
+Thêm vào `/etc/apache2/sites-available/your-domain.conf`:
+
+```apache
+# Phải đặt TRƯỚC ProxyPass /
+ProxyPass /api/ http://localhost:8081/
+ProxyPassReverse /api/ http://localhost:8081/
+
+ProxyPass / http://localhost:8000/
+ProxyPassReverse / http://localhost:8000/
+```
+
+```bash
+systemctl reload apache2
+```
 
 ---
 
-## 👤 Tác giả
+## 🔐 Phân quyền Hệ thống
 
-**Vũ Thanh** — Royal Restaurant POS System  
-🔗 [GitHub](https://github.com/thanhvuaws-jpg)
+| Vai trò | Mã quyền | Quyền truy cập |
+|---|---|---|
+| **Admin** | `1` | Toàn quyền: quản lý thực đơn, nhân viên, bàn, thống kê |
+| **Nhân viên** | `2` | Gọi món, xem bàn, xem thực đơn, thanh toán |
+| **Thu ngân** | `3` | Xem & xác nhận đơn chờ thanh toán |
 
 ---
 
-*© 2026 Royal Restaurant. Excellence in every detail.*
+## 📸 Demo
+
+| Android App | Web Admin |
+|---|---|
+| Sơ đồ bàn thời gian thực | Dashboard doanh thu |
+| Gọi món & Thanh toán | Quản lý thực đơn |
+| Biểu đồ thống kê | Giao diện thu ngân |
+
+🌐 **Web Portal:** [https://vtkt.online/quantri](https://vtkt.online/quantri)
+
+---
+
+## 👥 Tác giả
+
+<div align="center">
+
+**Vũ Thanh** — Full-stack Developer
+
+[![GitHub](https://img.shields.io/badge/GitHub-thanhvuaws--jpg-181717?style=flat-square&logo=github)](https://github.com/thanhvuaws-jpg)
+
+</div>
+
+---
+
+<div align="center">
+
+*© 2026 Royal Restaurant POS — Excellence in every detail.*
+
+⭐ Nếu project hữu ích, hãy để lại một star nhé!
+
+</div>

@@ -47,11 +47,24 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     int maban, madondat;
     String tenban, ngaydat;
 
-    // Polling tools
+    // Polling & Socket tools
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
     private android.app.ProgressDialog waitingDialog;
     private boolean isPolling = false;
+
+    private io.socket.client.Socket mSocket;
+    private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    checkApprovalStatus();
+                }
+            });
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -224,30 +237,50 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
     }
-
     private void startPollingForApproval() {
         waitingDialog = new android.app.ProgressDialog(this);
         waitingDialog.setMessage("Đang chờ Thu ngân xác nhận...");
         waitingDialog.setCancelable(false); // Không cho hủy bằng nút Back
         waitingDialog.show();
 
-        isPolling = true;
-        pollingRunnable = new Runnable() {
-            @Override
-            public void run() {
-                checkApprovalStatus();
-                if (isPolling) {
-                    pollingHandler.postDelayed(this, 3000); // 3 giây kiểm tra 1 lần
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (mSocket != null) {
+            mSocket.on("refresh_orders", onRefreshOrders);
+            // Backup polling chạy mỗi 20s
+            isPolling = true;
+            pollingRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    checkApprovalStatus();
+                    if (isPolling) {
+                        pollingHandler.postDelayed(this, 20000);
+                    }
                 }
-            }
-        };
-        pollingHandler.post(pollingRunnable);
+            };
+            pollingHandler.postDelayed(pollingRunnable, 20000);
+        } else {
+            // Không có socket -> Polling 3s như cũ
+            isPolling = true;
+            pollingRunnable = new Runnable() {
+                @Override
+                public void run() {
+                    checkApprovalStatus();
+                    if (isPolling) {
+                        pollingHandler.postDelayed(this, 3000);
+                    }
+                }
+            };
+            pollingHandler.post(pollingRunnable);
+        }
     }
 
     private void stopPolling() {
         isPolling = false;
         if (pollingRunnable != null) {
             pollingHandler.removeCallbacks(pollingRunnable);
+        }
+        if (mSocket != null) {
+            mSocket.off("refresh_orders", onRefreshOrders);
         }
         if (waitingDialog != null && waitingDialog.isShowing()) {
             waitingDialog.dismiss();

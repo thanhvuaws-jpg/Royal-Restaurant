@@ -39,6 +39,11 @@ public class SessionManager {
         return getMaQuyen(context) == 3;
     }
 
+    /** Kiểm tra người đang đăng nhập có phải Khách hàng không */
+    public static boolean isCustomer(Context context) {
+        return getMaQuyen(context) == 4;
+    }
+
     /** Lấy mã nhân viên đang đăng nhập */
     public static int getMaNV(Context context) {
         return getPrefs(context).getInt(KEY_MANV, 0);

@@ -45,6 +45,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private Handler sessionHandler;
     private Runnable sessionRunnable;
     private static final int SESSION_CHECK_INTERVAL = 10000; // 10s
+    private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,7 +87,25 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
 
+        // Khởi tạo kết nối Socket.io real-time
+        com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().connect();
+        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (socket != null) {
+            socket.on(io.socket.client.Socket.EVENT_CONNECT, args -> {
+                runOnUiThread(() -> {
+                    Toast.makeText(HomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT).show();
+                    // Đăng ký phòng tương ứng quyền để nhận sự kiện phù hợp
+                    if (SessionManager.isCashier(HomeActivity.this)) {
+                        socket.emit("join_cashier");
+                    } else if (SessionManager.isAdmin(HomeActivity.this)) {
+                        socket.emit("join_admin");
+                    }
+                });
+            });
+        }
+
         // Khởi động kiểm tra session sẽ được tự động chạy trong onResume()
+        bookingAlertManager = new com.sinhvien.orderdrinkapp.Utils.BookingAlertManager(this);
 
         fragmentManager = getSupportFragmentManager();
 
@@ -207,6 +226,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             tranDisplayTable.addToBackStack(null);
             tranDisplayTable.commit();
             drawerLayout.closeDrawers();
+        } else if (id == R.id.nav_manage_bookings) {
+            String tag = "ManageBookingsFragment";
+            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
+            if (fragment == null) fragment = new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment();
+            FragmentTransaction tranManageBookings = fragmentManager.beginTransaction();
+            tranManageBookings.replace(R.id.contentView, fragment, tag);
+            tranManageBookings.addToBackStack(null);
+            tranManageBookings.commit();
+            drawerLayout.closeDrawers();
         } else if (id == R.id.nav_category) {
             String tag = "CategoryFragment";
             androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
@@ -241,18 +269,25 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     protected void onResume() {
         super.onResume();
         startSessionCheck();
+        if (bookingAlertManager != null) {
+            bookingAlertManager.startChecking();
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
         stopSessionCheck();
+        if (bookingAlertManager != null) {
+            bookingAlertManager.stopChecking();
+        }
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
         stopSessionCheck();
+        com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
     }
 
     private void startSessionCheck() {

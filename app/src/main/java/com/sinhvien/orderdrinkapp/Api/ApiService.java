@@ -177,4 +177,34 @@ public interface ApiService {
 
     @GET("api/get_staff_by_id.php")
     Call<StaffResponse> getStaffById(@Query("manv") int maNV);
+
+    // Đặt bàn & Đặt món trước
+    @FormUrlEncoded
+    @POST("api/create_booking.php")
+    Call<BookingResponse> createBooking(
+            @Field("makh") int maKH,
+            @Field("maban") int maBan,
+            @Field("thoigianhen") String thoigianhen,
+            @Field("monan") String monanJson
+    );
+
+    @GET("api/get_bookings.php")
+    Call<List<BookingResponse>> getBookings(@Query("makh") int maKH);
+
+    @GET("api/get_customer_spending.php")
+    Call<BookingResponse> getCustomerSpending(@Query("makh") int maKH);
+
+    @FormUrlEncoded
+    @POST("api/update_booking_status.php")
+    Call<BookingResponse> updateBookingStatus(
+            @Field("madatban") int madatban,
+            @Field("tinhtrang") String tinhtrang
+    );
+
+    @FormUrlEncoded
+    @POST("api/confirm_booking.php")
+    Call<BookingResponse> confirmBooking(
+            @Field("madatban") int madatban,
+            @Field("manv") int manv
+    );
 }

@@ -29,6 +29,7 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.Api.StaffResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayStaff;
+import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.DTO.NhanVienDTO;
 import com.sinhvien.orderdrinkapp.R;
 
@@ -178,25 +179,27 @@ public class DisplayStaffFragment extends Fragment {
     }
 
     private void HienThiDSNV() {
+        // 1. Tải và hiển thị dữ liệu từ SQLite trước
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+        List<NhanVienDTO> cachedList = dbHelper.getStaff();
+        nhanVienDTOS.clear();
+        nhanVienDTOS.addAll(cachedList);
+        adapterDisplayStaff.notifyDataSetChanged();
+        capNhatTrangThai();
+
+        // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getStaff().enqueue(new Callback<List<StaffResponse>>() {
             @Override
             public void onResponse(Call<List<StaffResponse>> call, Response<List<StaffResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    // Cập nhật dữ liệu mới vào SQLite
+                    dbHelper.syncStaff(response.body());
+
+                    // Đọc lại từ SQLite ra giao diện để đồng nhất
                     nhanVienDTOS.clear();
-                    for (StaffResponse res : response.body()) {
-                        NhanVienDTO dto = new NhanVienDTO();
-                        dto.setMANV(res.getMaNV());
-                        dto.setHOTENNV(res.getHoTenNV());
-                        dto.setTENDN(res.getTenDN());
-                        dto.setEMAIL(res.getEmail());
-                        dto.setSDT(res.getSdt());
-                        dto.setGIOITINH(res.getGioiTinh());
-                        dto.setNGAYSINH(res.getNgaySinh());
-                        dto.setMAQUYEN(res.getMaQuyen());
-                        nhanVienDTOS.add(dto);
-                    }
+                    nhanVienDTOS.addAll(dbHelper.getStaff());
                     adapterDisplayStaff.notifyDataSetChanged();
                     capNhatTrangThai();
                 }
@@ -204,9 +207,7 @@ public class DisplayStaffFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<StaffResponse>> call, Throwable t) {
-                if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+                // Giữ nguyên dữ liệu từ SQLite
             }
         });
     }

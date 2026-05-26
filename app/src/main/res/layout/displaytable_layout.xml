@@ -7,6 +7,15 @@
     android:orientation="vertical">
 
 
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutTable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@android:color/white"
+        app:tabSelectedTextColor="@color/colorPrimary"
+        app:tabIndicatorColor="@color/colorPrimary"
+        app:tabTextColor="@android:color/darker_gray" />
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

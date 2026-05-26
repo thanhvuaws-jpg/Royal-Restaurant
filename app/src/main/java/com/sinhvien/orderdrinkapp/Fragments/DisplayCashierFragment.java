@@ -57,6 +57,21 @@ public class DisplayCashierFragment extends Fragment {
     private static final int POLLING_INTERVAL = 5000; // 5 seconds
     private boolean isPolling = false;
 
+    private io.socket.client.Socket mSocket;
+    private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        loadPendingOrders();
+                    }
+                });
+            }
+        }
+    };
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -155,26 +170,41 @@ public class DisplayCashierFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        startPolling();
+        loadPendingOrders();
+        
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (mSocket != null) {
+            mSocket.on("refresh_orders", onRefreshOrders);
+            // Backup polling chạy mỗi 30s để dự phòng mất mạng đột ngột
+            startPolling(30000);
+        } else {
+            // Không có socket -> polling 5s như cũ
+            startPolling(5000);
+        }
     }
 
     @Override
     public void onPause() {
         super.onPause();
         stopPolling();
+        if (mSocket != null) {
+            mSocket.off("refresh_orders", onRefreshOrders);
+        }
     }
 
-    private void startPolling() {
-        if (isPolling) return;
+    private void startPolling(final int interval) {
+        if (isPolling) {
+            stopPolling();
+        }
         isPolling = true;
         pollingRunnable = new Runnable() {
             @Override
             public void run() {
                 loadPendingOrders();
-                pollingHandler.postDelayed(this, POLLING_INTERVAL);
+                pollingHandler.postDelayed(this, interval);
             }
         };
-        pollingHandler.post(pollingRunnable);
+        pollingHandler.postDelayed(pollingRunnable, interval);
     }
 
     private void stopPolling() {

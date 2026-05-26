@@ -127,4 +127,26 @@
     <string name="stat_revenue_unit">đ</string>
     <string name="statistic_title">Thống kê doanh thu</string>
     <string name="table_list_title">Quản lý bàn ăn</string>
+    <string name="customer_default_name">Khách hàng</string>
+    <string name="customer_default_phone">SĐT: -</string>
+    <string name="customer_total_spending">TỔNG CHI TIÊU TÍCH LŨY</string>
+    <string name="customer_spending_zero">0đ</string>
+    <string name="customer_rank_bronze">Thành viên Đồng</string>
+    <string name="customer_all_bookings_label">Tất cả lịch hẹn đặt của bạn:</string>
+    <string name="booking_toolbar_title">Đặt bàn &amp; chọn món</string>
+    <string name="booking_select_table_label">1. Chọn Bàn Ăn:</string>
+    <string name="booking_select_datetime_label">2. Chọn Ngày &amp; Giờ Hẹn:</string>
+    <string name="booking_btn_select_date">Chọn Ngày</string>
+    <string name="booking_btn_select_time">Chọn Giờ</string>
+    <string name="booking_no_datetime">Chưa chọn thời gian</string>
+    <string name="booking_select_dishes_label">3. Chọn Món Ăn Đặt Trước (Tùy chọn):</string>
+    <string name="booking_total_default">Tổng: 0đ</string>
+    <string name="booking_btn_confirm">Đặt Bàn</string>
+    <string name="customer_btn_new_booking">ĐẶT BÀN &amp; MÓN TRƯỚC NGAY</string>
+    <string name="customer_active_bookings_title">Lịch hẹn đặt bàn của bạn:</string>
+    <string name="dish_name_placeholder">Tên món</string>
+    <string name="dish_price_placeholder">0đ</string>
+    <string name="qty_zero">0</string>
+    <string name="manage_booking_btn_cancel">Hủy đặt</string>
+    <string name="manage_booking_btn_confirm">Nhận bàn</string>
 </resources>

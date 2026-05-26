@@ -29,6 +29,7 @@ import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.LoaiMonResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayCategory;
+import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.DTO.LoaiMonDTO;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
@@ -135,20 +136,27 @@ public class DisplayCategoryFragment extends Fragment {
     }
 
     private void HienThiDSLoai() {
+        // 1. Tải và hiển thị dữ liệu từ SQLite trước
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+        List<LoaiMonDTO> cachedList = dbHelper.getCategories();
+        loaiMonDTOList.clear();
+        loaiMonDTOList.addAll(cachedList);
+        adapter.notifyDataSetChanged();
+        capNhatTrangThai();
+
+        // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getCategories().enqueue(new Callback<List<LoaiMonResponse>>() {
             @Override
             public void onResponse(Call<List<LoaiMonResponse>> call, Response<List<LoaiMonResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    // Cập nhật dữ liệu mới vào SQLite
+                    dbHelper.syncCategories(response.body());
+
+                    // Đọc lại từ SQLite ra giao diện để đồng nhất
                     loaiMonDTOList.clear();
-                    for (LoaiMonResponse res : response.body()) {
-                        LoaiMonDTO dto = new LoaiMonDTO();
-                        dto.setMaLoai(res.getMaLoai());
-                        dto.setTenLoai(res.getTenLoai());
-                        dto.setHinhAnhPath(res.getHinhAnh());
-                        loaiMonDTOList.add(dto);
-                    }
+                    loaiMonDTOList.addAll(dbHelper.getCategories());
                     adapter.notifyDataSetChanged();
                     capNhatTrangThai();
                 }
@@ -156,8 +164,9 @@ public class DisplayCategoryFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<LoaiMonResponse>> call, Throwable t) {
+                // Khi không có mạng, vẫn giữ nguyên dữ liệu từ SQLite đã hiển thị trước đó
                 if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi kết nối Server: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    // Không Toast báo lỗi phiền toái để đảm bảo trải nghiệm offline mượt mà
                 }
             }
         });

@@ -23,6 +23,7 @@ import com.sinhvien.orderdrinkapp.DTO.LoaiMonDTO;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.LoaiMonResponse;
+import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
@@ -104,6 +105,41 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         return view;
     }
 
+    private io.socket.client.Socket mSocket;
+    private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        HienThiDonTrongNgay();
+                    }
+                });
+            }
+        }
+    };
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        HienThiDSLoai();
+        HienThiDonTrongNgay();
+
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (mSocket != null) {
+            mSocket.on("refresh_orders", onRefreshOrders);
+        }
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mSocket != null) {
+            mSocket.off("refresh_orders", onRefreshOrders);
+        }
+    }
+
     private void HienThiDSLoai() {
         rcv_display_HomeCategoryList.setHasFixedSize(true);
         rcv_display_HomeCategoryList.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
@@ -111,29 +147,31 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         adapterRecycleViewCategory = new AdapterRecycleViewCategory(getActivity(), R.layout.custom_layout_displaycategory, loaiMonDTOList);
         rcv_display_HomeCategoryList.setAdapter(adapterRecycleViewCategory);
 
+        // 1. Tải và hiển thị dữ liệu từ SQLite trước
+        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
+        loaiMonDTOList.addAll(dbHelper.getCategories());
+        adapterRecycleViewCategory.notifyDataSetChanged();
+
+        // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getCategories().enqueue(new retrofit2.Callback<List<LoaiMonResponse>>() {
             @Override
             public void onResponse(retrofit2.Call<List<LoaiMonResponse>> call, retrofit2.Response<List<LoaiMonResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    // Cập nhật dữ liệu mới vào SQLite
+                    dbHelper.syncCategories(response.body());
+
+                    // Đọc lại từ SQLite ra giao diện để đồng nhất
                     loaiMonDTOList.clear();
-                    for (LoaiMonResponse res : response.body()) {
-                        LoaiMonDTO dto = new LoaiMonDTO();
-                        dto.setMaLoai(res.getMaLoai());
-                        dto.setTenLoai(res.getTenLoai());
-                        dto.setHinhAnhPath(res.getHinhAnh()); // Use URL instead of blob
-                        loaiMonDTOList.add(dto);
-                    }
+                    loaiMonDTOList.addAll(dbHelper.getCategories());
                     adapterRecycleViewCategory.notifyDataSetChanged();
                 }
             }
 
             @Override
             public void onFailure(retrofit2.Call<List<LoaiMonResponse>> call, Throwable t) {
-                if (isAdded() && getActivity() != null) {
-                    android.widget.Toast.makeText(getActivity(), "Lỗi tải loại món: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
-                }
+                // Giữ nguyên dữ liệu từ SQLite
             }
         });
     }
