@@ -223,6 +223,10 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                    if (socket != null && socket.connected()) {
+                        socket.emit("refresh_orders");
+                    }
                     startPollingForApproval();
                 } else {
                     Toast.makeText(PaymentActivity.this, "Lỗi gửi yêu cầu", Toast.LENGTH_SHORT).show();
@@ -245,20 +249,20 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         waitingDialog.show();
 
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
-        if (mSocket != null) {
+        if (mSocket != null && mSocket.connected()) {
             mSocket.on("refresh_orders", onRefreshOrders);
-            // Backup polling chạy mỗi 20s
+            // Backup polling chạy mỗi 5s
             isPolling = true;
             pollingRunnable = new Runnable() {
                 @Override
                 public void run() {
                     checkApprovalStatus();
                     if (isPolling) {
-                        pollingHandler.postDelayed(this, 20000);
+                        pollingHandler.postDelayed(this, 5000);
                     }
                 }
             };
-            pollingHandler.postDelayed(pollingRunnable, 20000);
+            pollingHandler.postDelayed(pollingRunnable, 5000);
         } else {
             // Không có socket -> Polling 3s như cũ
             isPolling = true;
