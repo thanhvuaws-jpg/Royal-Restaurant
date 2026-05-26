@@ -203,6 +203,36 @@ public class CustomerBookingActivity extends AppCompatActivity {
         });
         rv_booking_dishes.setLayoutManager(new LinearLayoutManager(this));
         rv_booking_dishes.setAdapter(dishesAdapter);
+
+        // Đồng bộ toàn bộ món ăn từ Server về SQLite
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getDishes(0, 1, 1000, "").enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.DishPageResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call, Response<com.sinhvien.orderdrinkapp.Api.DishPageResponse> response) {
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    List<com.sinhvien.orderdrinkapp.Api.MonResponse> data = response.body().getData();
+                    if (data != null && !data.isEmpty()) {
+                        Map<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> grouped = new HashMap<>();
+                        for (com.sinhvien.orderdrinkapp.Api.MonResponse r : data) {
+                            int catId = r.getMaLoai();
+                            if (!grouped.containsKey(catId)) {
+                                grouped.put(catId, new ArrayList<>());
+                            }
+                            grouped.get(catId).add(r);
+                        }
+                        for (Map.Entry<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> entry : grouped.entrySet()) {
+                            dbHelper.syncDishes(entry.getKey(), entry.getValue(), true);
+                        }
+                        dishList.clear();
+                        dishList.addAll(dbHelper.getAllDishes());
+                        dishesAdapter.notifyDataSetChanged();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call, Throwable t) {}
+        });
     }
 
     private void submitBooking() {
