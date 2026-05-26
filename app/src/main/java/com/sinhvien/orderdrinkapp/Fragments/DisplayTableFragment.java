@@ -207,6 +207,9 @@ public class DisplayTableFragment extends Fragment {
                     banAnDTOList.clear();
                     banAnDTOList.addAll(dbHelper.getTables());
                     filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
+
+                    // Fetch reserved tables status
+                    fetchReservedTables();
                 }
             }
 
@@ -219,6 +222,23 @@ public class DisplayTableFragment extends Fragment {
                     Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
+        });
+    }
+
+    private void fetchReservedTables() {
+        if (!isAdded() || getActivity() == null) return;
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getTableBookingStatus().enqueue(new Callback<List<TableResponse>>() {
+            @Override
+            public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
+                if (!isAdded() || getActivity() == null) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    adapterDisplayTable.setReservedTables(response.body());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<TableResponse>> call, Throwable t) {}
         });
     }
 

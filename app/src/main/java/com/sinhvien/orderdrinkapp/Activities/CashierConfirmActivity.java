@@ -133,6 +133,14 @@ public class CashierConfirmActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Toast.makeText(CashierConfirmActivity.this, "Xác nhận thành công!", Toast.LENGTH_SHORT).show();
+                    
+                    // Phát sự kiện Socket real-time để báo các bên cập nhật
+                    io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                    if (socket != null && socket.connected()) {
+                        socket.emit("booking_status_updated");
+                        socket.emit("refresh_orders");
+                    }
+
                     finish(); // Quay lại trang danh sách chờ
                 } else {
                     Toast.makeText(CashierConfirmActivity.this, "Lỗi xác nhận", Toast.LENGTH_SHORT).show();

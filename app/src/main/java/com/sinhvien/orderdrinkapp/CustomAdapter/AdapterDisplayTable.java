@@ -42,12 +42,18 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
     private final List<BanAnDTO> banAnDTOList;
     private final FragmentManager fragmentManager;
     private final boolean isAdmin;
+    private List<com.sinhvien.orderdrinkapp.Api.TableResponse> reservedTables;
 
     public AdapterDisplayTable(Context context, List<BanAnDTO> banAnDTOList) {
         this.context = context;
         this.banAnDTOList = banAnDTOList;
         this.fragmentManager = ((HomeActivity) context).getSupportFragmentManager();
         this.isAdmin = SessionManager.isAdmin(context);
+    }
+
+    public void setReservedTables(List<com.sinhvien.orderdrinkapp.Api.TableResponse> reservedTables) {
+        this.reservedTables = reservedTables;
+        notifyDataSetChanged();
     }
 
     @NonNull
@@ -64,6 +70,17 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
 
         holder.txt_TableName.setText(ban.getTenBan());
 
+        com.sinhvien.orderdrinkapp.Api.TableResponse reservedInfo = null;
+        if (reservedTables != null) {
+            for (com.sinhvien.orderdrinkapp.Api.TableResponse r : reservedTables) {
+                if (r.getMaBan() == ban.getMaBan()) {
+                    reservedInfo = r;
+                    break;
+                }
+            }
+        }
+        boolean isReserved = reservedInfo != null;
+
         holder.img_TableImage.setImageResource(dangDung
                 ? R.drawable.ic_baseline_event_seat_40
                 : R.drawable.ic_baseline_airline_seat_legroom_normal_40);
@@ -74,6 +91,17 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             holder.txt_Status.setText("Đang dùng");
             badge.setColor(context.getResources().getColor(R.color.status_occupied));
             holder.txt_ActionHint.setText("Nhấn để xem đơn & thanh toán");
+        } else if (isReserved) {
+            holder.txt_Status.setText("Đã đặt");
+            badge.setColor(android.graphics.Color.parseColor("#FFAB40")); // Orange/yellow
+            String timeStr = reservedInfo.getThoigianhen();
+            if (timeStr != null && timeStr.contains(" ")) {
+                String[] parts = timeStr.split(" ");
+                if (parts.length > 1) {
+                    timeStr = parts[1].substring(0, 5); // HH:mm
+                }
+            }
+            holder.txt_ActionHint.setText("Giờ hẹn: " + timeStr);
         } else {
             holder.txt_Status.setText("Trống");
             badge.setColor(context.getResources().getColor(R.color.status_free));
@@ -127,6 +155,22 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         boolean dangDung = "true".equals(ban.getTinhTrang());
         String ngaydat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
+
+        // Kiểm tra xem bàn có đang được đặt trước không
+        boolean isReserved = false;
+        if (reservedTables != null) {
+            for (com.sinhvien.orderdrinkapp.Api.TableResponse r : reservedTables) {
+                if (r.getMaBan() == maban) {
+                    isReserved = true;
+                    break;
+                }
+            }
+        }
+
+        if (isReserved) {
+            Toast.makeText(context, "Bàn đã được đặt trước, chờ khách check-in", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         if (dangDung) {
             ApiService apiService = ApiClient.getClient().create(ApiService.class);

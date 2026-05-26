@@ -208,6 +208,16 @@ public interface ApiService {
             @Field("manv") int manv
     );
 
+    @FormUrlEncoded
+    @POST("api/checkin_booking.php")
+    Call<BookingResponse> checkinBooking(
+            @Field("madatban") int madatban,
+            @Field("manv") int manv
+    );
+
+    @GET("api/get_table_booking_status.php")
+    Call<List<TableResponse>> getTableBookingStatus();
+
     @GET("api/get_customer_profile.php")
     Call<CustomerProfileResponse> getCustomerProfile(@Query("makh") int maKH);
 

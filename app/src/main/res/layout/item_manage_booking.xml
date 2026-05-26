@@ -95,6 +95,15 @@
                 android:textColor="@color/white"
                 android:backgroundTint="@color/status_occupied"/>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_customer_arrived"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Khách đã đến"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/status_occupied"
+                android:layout_marginStart="8dp"/>
+
         </LinearLayout>
 
     </LinearLayout>

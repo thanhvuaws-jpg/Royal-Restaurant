@@ -18,6 +18,9 @@ public class TableResponse {
     @SerializedName("message")
     private String message;
 
+    @SerializedName("THOIGIANHEN")
+    private String thoigianhen;
+
     public int getMaBan() { return maBan; }
     public void setMaBan(int maBan) { this.maBan = maBan; }
     
@@ -29,4 +32,7 @@ public class TableResponse {
 
     public String getStatus() { return status; }
     public String getMessage() { return message; }
+
+    public String getThoigianhen() { return thoigianhen; }
+    public void setThoigianhen(String thoigianhen) { this.thoigianhen = thoigianhen; }
 }

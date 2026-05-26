@@ -69,14 +69,31 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             holder.txt_booking_status.setText("Chờ nhận bàn");
             holder.txt_booking_status.setTextColor(Color.parseColor("#FFAB40")); // Orange
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
+            holder.btn_checkin_booking.setVisibility(View.VISIBLE);
+            holder.btn_cancel_booking.setVisibility(View.VISIBLE);
+            holder.btn_customer_arrived.setVisibility(View.GONE);
+        } else if ("confirmed".equalsIgnoreCase(status)) {
+            holder.txt_booking_status.setText("Đã xác nhận");
+            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); // Blue
+            holder.layout_booking_actions.setVisibility(View.VISIBLE);
+            holder.btn_checkin_booking.setVisibility(View.GONE);
+            holder.btn_cancel_booking.setVisibility(View.VISIBLE);
+            holder.btn_customer_arrived.setVisibility(View.VISIBLE);
         } else if ("checked_in".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã nhận bàn");
             holder.txt_booking_status.setTextColor(Color.parseColor("#43A047")); // Green
+            holder.layout_booking_actions.setVisibility(View.GONE);
+        } else if ("completed".equalsIgnoreCase(status)) {
+            holder.txt_booking_status.setText("Đã hoàn thành");
+            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); // Blue
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else if ("overdue".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Quá giờ hẹn");
             holder.txt_booking_status.setTextColor(Color.parseColor("#E53935")); // Red
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
+            holder.btn_checkin_booking.setVisibility(View.VISIBLE);
+            holder.btn_cancel_booking.setVisibility(View.VISIBLE);
+            holder.btn_customer_arrived.setVisibility(View.GONE);
         } else if ("cancelled".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã hủy");
             holder.txt_booking_status.setTextColor(Color.parseColor("#9E9E9E")); // Grey
@@ -87,8 +104,49 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             holder.layout_booking_actions.setVisibility(View.GONE);
         }
 
-        holder.btn_checkin_booking.setOnClickListener(v -> performCheckIn(booking.getMaDatBan()));
+        holder.btn_checkin_booking.setOnClickListener(v -> performConfirmBooking(booking.getMaDatBan()));
+        holder.btn_customer_arrived.setOnClickListener(v -> performCheckIn(booking.getMaDatBan()));
         holder.btn_cancel_booking.setOnClickListener(v -> promptCancelBooking(booking.getMaDatBan()));
+    }
+
+    private void performConfirmBooking(int madatban) {
+        ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Đang xác nhận đặt bàn...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
+
+        int manv_staff = SessionManager.getMaNV(context);
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.confirmBooking(madatban, manv_staff).enqueue(new Callback<BookingResponse>() {
+            @Override
+            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
+                progressDialog.dismiss();
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Toast.makeText(context, "Đã xác nhận đặt bàn!", Toast.LENGTH_SHORT).show();
+                    
+                    // Phát sự kiện Socket real-time để báo các bên cập nhật
+                    io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                    if (socket != null && socket.connected()) {
+                        socket.emit("booking_status_updated");
+                        socket.emit("refresh_orders");
+                    }
+
+                    if (actionListener != null) {
+                        actionListener.onActionSuccess();
+                    }
+                } else {
+                    String msg = response.body() != null ? response.body().getMessage() : "Lỗi xác nhận đặt bàn";
+                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<BookingResponse> call, Throwable t) {
+                progressDialog.dismiss();
+                Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private void performCheckIn(int madatban) {
@@ -100,7 +158,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         int manv_staff = SessionManager.getMaNV(context);
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.confirmBooking(madatban, manv_staff).enqueue(new Callback<BookingResponse>() {
+        apiService.checkinBooking(madatban, manv_staff).enqueue(new Callback<BookingResponse>() {
             @Override
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 progressDialog.dismiss();
@@ -118,7 +176,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         actionListener.onActionSuccess();
                     }
                 } else {
-                    String msg = response.body() != null ? response.body().getMessage() : "Lỗi xác nhận nhận bàn";
+                    String msg = response.body() != null ? response.body().getMessage() : "Lỗi nhận bàn";
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -182,7 +240,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txt_booking_table, txt_booking_status, txt_booking_customer, txt_booking_time, txt_booking_dishes;
-        MaterialButton btn_checkin_booking, btn_cancel_booking;
+        MaterialButton btn_checkin_booking, btn_cancel_booking, btn_customer_arrived;
         LinearLayout layout_booking_actions;
 
         public ViewHolder(@NonNull View itemView) {
@@ -194,6 +252,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             txt_booking_dishes = itemView.findViewById(R.id.txt_booking_dishes);
             btn_checkin_booking = itemView.findViewById(R.id.btn_checkin_booking);
             btn_cancel_booking = itemView.findViewById(R.id.btn_cancel_booking);
+            btn_customer_arrived = itemView.findViewById(R.id.btn_customer_arrived);
             layout_booking_actions = itemView.findViewById(R.id.layout_booking_actions);
         }
     }

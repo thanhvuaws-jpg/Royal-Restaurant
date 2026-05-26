@@ -43,9 +43,15 @@ public class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAd
         if ("pending".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Chờ nhận bàn");
             holder.txt_booking_status.setTextColor(Color.parseColor("#FFAB40")); // Orange
+        } else if ("confirmed".equalsIgnoreCase(status)) {
+            holder.txt_booking_status.setText("Đã xác nhận");
+            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); // Blue
         } else if ("checked_in".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã nhận bàn");
             holder.txt_booking_status.setTextColor(Color.parseColor("#43A047")); // Green
+        } else if ("completed".equalsIgnoreCase(status)) {
+            holder.txt_booking_status.setText("Đã hoàn thành");
+            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); // Blue
         } else if ("overdue".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Quá giờ hẹn");
             holder.txt_booking_status.setTextColor(Color.parseColor("#E53935")); // Red

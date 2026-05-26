@@ -148,5 +148,5 @@
     <string name="dish_price_placeholder">0đ</string>
     <string name="qty_zero">0</string>
     <string name="manage_booking_btn_cancel">Hủy đặt</string>
-    <string name="manage_booking_btn_confirm">Nhận bàn</string>
+    <string name="manage_booking_btn_confirm">Xác nhận đặt</string>
 </resources>
