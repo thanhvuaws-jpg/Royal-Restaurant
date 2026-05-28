@@ -300,14 +300,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    Toast.makeText(CustomerBookingActivity.this, "Đặt bàn thành công!", Toast.LENGTH_SHORT).show();
-                    
-                    // Báo cho Thu ngân biết có đơn mới qua Socket
+                    // Emit socket để cashier web biết có booking mới
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
-                        socket.emit("refresh_orders");
+                        socket.emit("booking_status_updated");
                     }
-                    
+                    Toast.makeText(CustomerBookingActivity.this, "Đặt bàn thành công!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "Không thể đặt bàn!";
