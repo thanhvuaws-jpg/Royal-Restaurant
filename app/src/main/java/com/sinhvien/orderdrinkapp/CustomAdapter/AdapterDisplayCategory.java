@@ -98,9 +98,12 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                                     if (response.isSuccessful()) {
-                                        loaiMonDTOList.remove(position);
-                                        notifyItemRemoved(position);
-                                        notifyItemRangeChanged(position, loaiMonDTOList.size());
+                                        int currentPos = loaiMonDTOList.indexOf(loaiMonDTO);
+                                        if (currentPos >= 0) {
+                                            loaiMonDTOList.remove(currentPos);
+                                            notifyItemRemoved(currentPos);
+                                            notifyItemRangeChanged(currentPos, loaiMonDTOList.size());
+                                        }
                                         Toast.makeText(context, "Đã xóa loại thực đơn", Toast.LENGTH_SHORT).show();
                                     } else {
                                         Toast.makeText(context, "Lỗi xóa Cloud", Toast.LENGTH_SHORT).show();

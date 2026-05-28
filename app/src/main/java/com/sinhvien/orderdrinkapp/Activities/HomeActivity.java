@@ -140,11 +140,21 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         bottomNav.setOnNavigationItemSelectedListener(item -> {
             int id = item.getItemId();
-            if (id == R.id.nav_home) navigateTo(new DisplayHomeFragment(), "HomeFragment");
-            else if (id == R.id.nav_table) navigateTo(new DisplayTableFragment(), "TableFragment");
-            else if (id == R.id.nav_category) navigateTo(new DisplayCategoryFragment(), "CategoryFragment");
-            else if (id == R.id.nav_statistic) navigateTo(new DisplayStatisticFragment(), "StatisticFragment");
-            else if (id == R.id.nav_more) showMoreBottomSheet();
+            if (id == R.id.nav_home) {
+                Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
+                navigateTo(f != null ? f : new DisplayHomeFragment(), "HomeFragment");
+            } else if (id == R.id.nav_table) {
+                Fragment f = fragmentManager.findFragmentByTag("TableFragment");
+                navigateTo(f != null ? f : new DisplayTableFragment(), "TableFragment");
+            } else if (id == R.id.nav_category) {
+                Fragment f = fragmentManager.findFragmentByTag("CategoryFragment");
+                navigateTo(f != null ? f : new DisplayCategoryFragment(), "CategoryFragment");
+            } else if (id == R.id.nav_statistic) {
+                Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
+                navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
+            } else if (id == R.id.nav_more) {
+                showMoreBottomSheet();
+            }
             return true;
         });
 
@@ -368,23 +378,30 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.nav_home) {
-            navigateTo(new DisplayHomeFragment(), "HomeFragment");
+            Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
+            navigateTo(f != null ? f : new DisplayHomeFragment(), "HomeFragment");
             bottomNav.setSelectedItemId(R.id.nav_home);
         } else if (id == R.id.nav_statistic) {
-            navigateTo(new DisplayStatisticFragment(), "StatisticFragment");
+            Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
+            navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
             bottomNav.setSelectedItemId(R.id.nav_statistic);
         } else if (id == R.id.nav_cashier) {
-            navigateTo(new DisplayCashierFragment(), "CashierFragment");
+            Fragment f = fragmentManager.findFragmentByTag("CashierFragment");
+            navigateTo(f != null ? f : new DisplayCashierFragment(), "CashierFragment");
         } else if (id == R.id.nav_table) {
-            navigateTo(new DisplayTableFragment(), "TableFragment");
+            Fragment f = fragmentManager.findFragmentByTag("TableFragment");
+            navigateTo(f != null ? f : new DisplayTableFragment(), "TableFragment");
             bottomNav.setSelectedItemId(R.id.nav_table);
         } else if (id == R.id.nav_manage_bookings) {
-            navigateTo(new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
+            Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
+            navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
         } else if (id == R.id.nav_category) {
-            navigateTo(new DisplayCategoryFragment(), "CategoryFragment");
+            Fragment f = fragmentManager.findFragmentByTag("CategoryFragment");
+            navigateTo(f != null ? f : new DisplayCategoryFragment(), "CategoryFragment");
             bottomNav.setSelectedItemId(R.id.nav_category);
         } else if (id == R.id.nav_staff) {
-            navigateTo(new DisplayStaffFragment(), "StaffFragment");
+            Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
+            navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
         } else if (id == R.id.nav_logout) {
             logout();
             return true;

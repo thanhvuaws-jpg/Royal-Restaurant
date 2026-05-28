@@ -194,7 +194,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
         LocalDatabaseHelper.getExecutor().execute(() -> {
             List<MonDTO> cachedList = dbHelper.getAllDishes();
             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                dishList = cachedList;
+                dishList.clear();
+                dishList.addAll(cachedList);
+                if (dishesAdapter != null) dishesAdapter.notifyDataSetChanged();
                 dishesAdapter = new PreorderDishesAdapter(CustomerBookingActivity.this, dishList, quantities -> {
                     totalPreorderPrice = 0;
                     for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {

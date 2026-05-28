@@ -121,35 +121,39 @@ public class DisplayCashierFragment extends Fragment {
         if (getActivity() == null) return;
         
         List<DonDatDTO> activeList = (currentTab == 0) ? donDatDTOList : paidOrdersList;
-        adapter = new AdapterDisplayStatistic(getActivity(), activeList);
-        rv_cashier_OrderList.setAdapter(adapter);
-
-        adapter.setOnItemClickListener(position -> {
-            if (position < 0 || position >= activeList.size()) return;
-            DonDatDTO don = activeList.get(position);
-            if (currentTab == 0) {
-                Intent intent = new Intent(getActivity(), CashierConfirmActivity.class);
-                intent.putExtra("madon", don.getMaDonDat());
-                intent.putExtra("manv", don.getMaNV());
-                intent.putExtra("maban", don.getMaBan());
-                intent.putExtra("ngaydat", don.getNgayDat());
-                intent.putExtra("tongtien", don.getTongTien());
-                intent.putExtra("tennv", don.getTenNV());
-                intent.putExtra("tenban", don.getTenBan());
-                intent.putExtra("phuongthuc", don.getPhuongThucTT());
-                startActivity(intent);
-            } else {
-                Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
-                intent.putExtra("madon", don.getMaDonDat());
-                intent.putExtra("manv", don.getMaNV());
-                intent.putExtra("maban", don.getMaBan());
-                intent.putExtra("ngaydat", don.getNgayDat());
-                intent.putExtra("tongtien", don.getTongTien());
-                intent.putExtra("tennv", don.getTenNV());
-                intent.putExtra("tenban", don.getTenBan());
-                startActivity(intent);
-            }
-        });
+        if (adapter == null) {
+            adapter = new AdapterDisplayStatistic(getActivity(), activeList);
+            rv_cashier_OrderList.setAdapter(adapter);
+            adapter.setOnItemClickListener(position -> {
+                List<DonDatDTO> currentList = (currentTab == 0) ? donDatDTOList : paidOrdersList;
+                if (position < 0 || position >= currentList.size()) return;
+                DonDatDTO don = currentList.get(position);
+                if (currentTab == 0) {
+                    Intent intent = new Intent(getActivity(), CashierConfirmActivity.class);
+                    intent.putExtra("madon", don.getMaDonDat());
+                    intent.putExtra("manv", don.getMaNV());
+                    intent.putExtra("maban", don.getMaBan());
+                    intent.putExtra("ngaydat", don.getNgayDat());
+                    intent.putExtra("tongtien", don.getTongTien());
+                    intent.putExtra("tennv", don.getTenNV());
+                    intent.putExtra("tenban", don.getTenBan());
+                    intent.putExtra("phuongthuc", don.getPhuongThucTT());
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
+                    intent.putExtra("madon", don.getMaDonDat());
+                    intent.putExtra("manv", don.getMaNV());
+                    intent.putExtra("maban", don.getMaBan());
+                    intent.putExtra("ngaydat", don.getNgayDat());
+                    intent.putExtra("tongtien", don.getTongTien());
+                    intent.putExtra("tennv", don.getTenNV());
+                    intent.putExtra("tenban", don.getTenBan());
+                    startActivity(intent);
+                }
+            });
+        } else {
+            adapter.updateData(activeList);
+        }
 
         if (activeList.isEmpty()) {
             rv_cashier_OrderList.setVisibility(View.GONE);

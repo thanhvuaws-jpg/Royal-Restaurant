@@ -73,7 +73,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
 
         // Badge trạng thái
         GradientDrawable badgeBg = (GradientDrawable)
-                context.getResources().getDrawable(R.drawable.round_corner_textview).mutate();
+                androidx.core.content.ContextCompat.getDrawable(context, R.drawable.round_corner_textview).mutate();
         if (coMon) {
             holder.txt_DishStatus.setText(context.getString(R.string.status_available));
             badgeBg.setColor(context.getResources().getColor(R.color.status_available));
@@ -112,7 +112,8 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                     if (response.isSuccessful()) {
                         monDTO.setTinhTrang(trangThaiMoi);
-                        notifyItemChanged(position);
+                        int currentPos = monDTOList.indexOf(monDTO);
+                        if (currentPos >= 0) notifyItemChanged(currentPos);
                         
                         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                         if (socket != null && socket.connected()) {
@@ -152,9 +153,12 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                                     if (response.isSuccessful()) {
-                                        monDTOList.remove(position);
-                                        notifyItemRemoved(position);
-                                        notifyItemRangeChanged(position, monDTOList.size());
+                                        int currentPos = monDTOList.indexOf(monDTO);
+                                        if (currentPos >= 0) {
+                                            monDTOList.remove(currentPos);
+                                            notifyItemRemoved(currentPos);
+                                            notifyItemRangeChanged(currentPos, monDTOList.size());
+                                        }
                                         Toast.makeText(context, "Đã xóa món", Toast.LENGTH_SHORT).show();
                                     }
                                 }

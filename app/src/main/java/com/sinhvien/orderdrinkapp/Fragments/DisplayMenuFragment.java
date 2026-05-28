@@ -265,9 +265,10 @@ public class DisplayMenuFragment extends Fragment {
                     hasMore = response.body().isHasMore();
 
                     if (newItems != null) {
+                        currentPage++;
                         // Lưu dữ liệu vào SQLite dưới nền
                         LocalDatabaseHelper.getExecutor().execute(() -> {
-                            dbHelper.syncDishes(maloai, newItems, currentPage == 1);
+                            dbHelper.syncDishes(maloai, newItems, currentPage == 2);
                             // Load lại toàn bộ từ SQLite lên List để đồng nhất dữ liệu
                             List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
                             
@@ -275,7 +276,6 @@ public class DisplayMenuFragment extends Fragment {
                                 monDTOList.clear();
                                 monDTOList.addAll(cachedList);
                                 adapter.notifyDataSetChanged();
-                                currentPage++;
                                 capNhatTrangThai();
                             });
                         });
@@ -306,12 +306,16 @@ public class DisplayMenuFragment extends Fragment {
         currentSearch = "";
         
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        monDTOList.clear();
-        monDTOList.addAll(dbHelper.getDishes(maloai, currentSearch));
-        adapter.notifyDataSetChanged();
-        capNhatTrangThai();
-
-        taiThemMon();
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                monDTOList.clear();
+                monDTOList.addAll(cachedList);
+                adapter.notifyDataSetChanged();
+                capNhatTrangThai();
+                taiThemMon();
+            });
+        });
     }
 
     // Tìm kiếm trên Server (trả về toàn bộ kết quả khớp)

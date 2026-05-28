@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -233,23 +232,27 @@ public class DisplayStatisticFragment extends Fragment {
                         getString(R.string.currency_vnd));
 
         // === RecyclerView ===
-        adapterDisplayStatistic = new AdapterDisplayStatistic(
-                getActivity(), filtered);
-        rv_statistic_OrderList.setAdapter(adapterDisplayStatistic);
-        
-        adapterDisplayStatistic.setOnItemClickListener(position -> {
-            if (position >= filtered.size()) return;
-            DonDatDTO don = filtered.get(position);
-            Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
-            intent.putExtra("madon", don.getMaDonDat());
-            intent.putExtra("manv", don.getMaNV());
-            intent.putExtra("maban", don.getMaBan());
-            intent.putExtra("ngaydat", don.getNgayDat());
-            intent.putExtra("tongtien", don.getTongTien());
-            intent.putExtra("tennv", don.getTenNV());
-            intent.putExtra("tenban", don.getTenBan());
-            startActivity(intent);
-        });
+        if (adapterDisplayStatistic == null) {
+            adapterDisplayStatistic = new AdapterDisplayStatistic(getActivity(), filtered);
+            rv_statistic_OrderList.setAdapter(adapterDisplayStatistic);
+            
+            adapterDisplayStatistic.setOnItemClickListener(position -> {
+                List<DonDatDTO> currentFiltered = layDanhSachDaLoc();
+                if (position >= currentFiltered.size()) return;
+                DonDatDTO don = currentFiltered.get(position);
+                Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
+                intent.putExtra("madon", don.getMaDonDat());
+                intent.putExtra("manv", don.getMaNV());
+                intent.putExtra("maban", don.getMaBan());
+                intent.putExtra("ngaydat", don.getNgayDat());
+                intent.putExtra("tongtien", don.getTongTien());
+                intent.putExtra("tennv", don.getTenNV());
+                intent.putExtra("tenban", don.getTenBan());
+                startActivity(intent);
+            });
+        } else {
+            adapterDisplayStatistic.updateData(filtered);
+        }
 
         // === Bar chart ===
         setupBarChart(filtered);
@@ -260,7 +263,7 @@ public class DisplayStatisticFragment extends Fragment {
             chart_statistic_Revenue.clear();
             chart_statistic_Revenue.setNoDataText(getString(R.string.stat_no_data));
             chart_statistic_Revenue.setNoDataTextColor(
-                    getResources().getColor(R.color.grey));
+                    androidx.core.content.ContextCompat.getColor(requireContext(), R.color.grey));
             chart_statistic_Revenue.invalidate();
             return;
         }
@@ -272,7 +275,6 @@ public class DisplayStatisticFragment extends Fragment {
 
         // Tạo danh sách ngày (từ xa đến gần)
         Calendar cal = Calendar.getInstance();
-        List<String> ngayList = new ArrayList<>();
         if (currentFilter == FILTER_ALL) {
             // Lấy 10 ngày có đơn gần nhất
             for (DonDatDTO don : filtered) {
@@ -324,7 +326,7 @@ public class DisplayStatisticFragment extends Fragment {
         }
 
         // Dataset
-        int primaryColor = getResources().getColor(R.color.colorPrimary);
+        int primaryColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.colorPrimary);
         BarDataSet dataSet = new BarDataSet(entries, getString(R.string.stat_chart_title));
         dataSet.setColor(primaryColor);
         dataSet.setValueTextColor(Color.DKGRAY);

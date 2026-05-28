@@ -165,12 +165,16 @@ public class DisplayStaffFragment extends Fragment {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (!isAdded() || getActivity() == null) return;
                             if (response.isSuccessful()) {
-                                if (position < nhanVienDTOS.size()) {
-                                    NhanVienDTO removed = nhanVienDTOS.get(position);
-                                    allStaffList.remove(removed);
-                                    nhanVienDTOS.remove(position);
-                                    adapterDisplayStaff.notifyItemRemoved(position);
-                                    adapterDisplayStaff.notifyItemRangeChanged(position, nhanVienDTOS.size());
+                                NhanVienDTO toRemove = null;
+                                for (NhanVienDTO nv : nhanVienDTOS) {
+                                    if (nv.getMANV() == manv) { toRemove = nv; break; }
+                                }
+                                if (toRemove != null) {
+                                    int currentPos = nhanVienDTOS.indexOf(toRemove);
+                                    allStaffList.remove(toRemove);
+                                    nhanVienDTOS.remove(toRemove);
+                                    adapterDisplayStaff.notifyItemRemoved(currentPos);
+                                    adapterDisplayStaff.notifyItemRangeChanged(currentPos, nhanVienDTOS.size());
                                 }
                                 Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
                                 capNhatTrangThai();

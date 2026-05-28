@@ -15,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
@@ -40,14 +41,12 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
 
     private final Context context;
     private final List<BanAnDTO> banAnDTOList;
-    private final FragmentManager fragmentManager;
     private final boolean isAdmin;
     private List<com.sinhvien.orderdrinkapp.Api.TableResponse> reservedTables;
 
     public AdapterDisplayTable(Context context, List<BanAnDTO> banAnDTOList) {
         this.context = context;
         this.banAnDTOList = banAnDTOList;
-        this.fragmentManager = ((HomeActivity) context).getSupportFragmentManager();
         this.isAdmin = SessionManager.isAdmin(context);
     }
 
@@ -85,11 +84,11 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                 ? R.drawable.ic_baseline_event_seat_40
                 : R.drawable.ic_baseline_airline_seat_legroom_normal_40);
 
-        GradientDrawable badge = (GradientDrawable) context.getResources()
-                .getDrawable(R.drawable.round_corner_textview).mutate();
+        GradientDrawable badge = (GradientDrawable) ContextCompat
+                .getDrawable(context, R.drawable.round_corner_textview).mutate();
         if (dangDung) {
             holder.txt_Status.setText("Đang dùng");
-            badge.setColor(context.getResources().getColor(R.color.status_occupied));
+            badge.setColor(ContextCompat.getColor(context, R.color.status_occupied));
             holder.txt_ActionHint.setText("Nhấn để xem đơn & thanh toán");
         } else if (isReserved) {
             holder.txt_Status.setText("Đã đặt");
@@ -104,7 +103,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             holder.txt_ActionHint.setText("Giờ hẹn: " + timeStr);
         } else {
             holder.txt_Status.setText("Trống");
-            badge.setColor(context.getResources().getColor(R.color.status_free));
+            badge.setColor(ContextCompat.getColor(context, R.color.status_available));
             holder.txt_ActionHint.setText("Nhấn để đặt món");
         }
         holder.txt_Status.setBackground(badge);

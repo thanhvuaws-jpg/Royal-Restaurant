@@ -32,6 +32,12 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
         this.donDatDTOS = donDatDTOS;
     }
 
+    public void updateData(List<DonDatDTO> newList) {
+        this.donDatDTOS.clear();
+        this.donDatDTOS.addAll(newList);
+        notifyDataSetChanged();
+    }
+
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {

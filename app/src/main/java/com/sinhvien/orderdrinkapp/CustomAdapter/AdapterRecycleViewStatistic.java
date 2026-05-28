@@ -11,7 +11,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.sinhvien.orderdrinkapp.DTO.DonDatDTO;
 import com.sinhvien.orderdrinkapp.R;
-import com.sinhvien.orderdrinkapp.R;
 
 import java.util.List;
 
