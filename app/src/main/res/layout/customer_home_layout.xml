@@ -23,7 +23,7 @@
                 android:id="@+id/btn_toggle_nav"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_baseline_menu_24"
+                android:src="@drawable/ic_baseline_swap_vert_24"
                 android:layout_gravity="end"
                 android:padding="12dp"/>
         </androidx.appcompat.widget.Toolbar>
