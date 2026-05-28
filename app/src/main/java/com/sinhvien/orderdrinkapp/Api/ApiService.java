@@ -230,7 +230,4 @@ public interface ApiService {
 
     @GET("api/get_paid_orders.php")
     Call<List<OrderResponse>> getPaidOrders(@Query("date") String date);
-
-    @GET("api/booking_alert.php")
-    Call<BookingResponse> getBookingAlert();
 }

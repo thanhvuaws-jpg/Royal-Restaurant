@@ -301,6 +301,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Toast.makeText(CustomerBookingActivity.this, "Đặt bàn thành công!", Toast.LENGTH_SHORT).show();
+                    
+                    // Báo cho Thu ngân biết có đơn mới qua Socket
+                    io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                    if (socket != null && socket.connected()) {
+                        socket.emit("refresh_orders");
+                    }
+                    
                     finish();
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "Không thể đặt bàn!";

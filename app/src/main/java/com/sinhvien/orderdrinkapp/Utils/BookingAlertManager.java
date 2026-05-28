@@ -65,7 +65,6 @@ public class BookingAlertManager {
         @Override
         public void call(Object... args) {
             checkOverdueBookings();
-            checkBookingAlerts();
         }
     };
 
@@ -98,7 +97,6 @@ public class BookingAlertManager {
                 io.socket.client.Socket currentSocket = SocketManager.getInstance().getSocket();
                 if (currentSocket == null || !currentSocket.connected()) {
                     checkOverdueBookings();
-                    checkBookingAlerts();
                 }
                 
                 handler.postDelayed(this, CHECK_INTERVAL);
@@ -163,26 +161,6 @@ public class BookingAlertManager {
 
             @Override
             public void onFailure(Call<List<BookingResponse>> call, Throwable t) {}
-        });
-    }
-
-    private void checkBookingAlerts() {
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getBookingAlert().enqueue(new Callback<BookingResponse>() {
-            @Override
-            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    if ("success".equals(response.body().getStatus())) {
-                        String tenBan = response.body().getTenBan();
-                        if (tenBan != null && !tenBan.isEmpty()) {
-                            showPrepareTableNotification(tenBan);
-                        }
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<BookingResponse> call, Throwable t) {}
         });
     }
 
