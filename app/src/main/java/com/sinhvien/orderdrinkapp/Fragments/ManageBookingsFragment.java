@@ -152,7 +152,10 @@ public class ManageBookingsFragment extends Fragment {
             if (tabPosition == 0) { // Chờ duyệt
                 if ("pending".equalsIgnoreCase(status)) filteredBookings.add(b);
             } else if (tabPosition == 1) { // Đã nhận
-                if ("checked_in".equalsIgnoreCase(status)) filteredBookings.add(b);
+                if ("checked_in".equalsIgnoreCase(status)
+                    || "confirmed".equalsIgnoreCase(status)) {
+                    filteredBookings.add(b);
+                }
             } else if (tabPosition == 2) { // Quá giờ
                 if ("overdue".equalsIgnoreCase(status)) filteredBookings.add(b);
             } else if (tabPosition == 3) { // Đã hủy

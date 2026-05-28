@@ -151,6 +151,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
 
     private void navigateTo(Fragment newFragment, String tag) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.fragment_fade_in, R.anim.fragment_fade_out);
         if (currentFragment != null) {
             transaction.hide(currentFragment);
         }

@@ -200,10 +200,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             bundle.putInt("maban", maban);
             fragment.setArguments(bundle);
 
-            FragmentTransaction tx = fragmentManager.beginTransaction();
-            tx.replace(R.id.contentView, fragment);
-            tx.addToBackStack("hienthibanan");
-            tx.commit();
+            ((HomeActivity) context).navigateToSubFragment(fragment, "hienthibanan");
         }
     }
 

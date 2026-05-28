@@ -175,50 +175,37 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             bottomNav.setSelectedItemId(R.id.nav_home);
         }
 
-        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                if (fragmentManager.getBackStackEntryCount() > 0) {
-                    drawerToggle.setDrawerIndicatorEnabled(false);
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                    toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            onBackPressed();
-                        }
-                    });
-                } else {
-                    getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                    if (useBottomNav) {
-                        drawerToggle.setDrawerIndicatorEnabled(false);
-                        toolbar.setNavigationIcon(null);
-                    } else {
-                        drawerToggle.setDrawerIndicatorEnabled(true);
-                        drawerToggle.syncState();
-                        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
-                            }
-                        });
-                    }
+        fragmentManager.addOnBackStackChangedListener(() -> {
+            // Find the visible fragment to update currentFragment
+            for (Fragment f : fragmentManager.getFragments()) {
+                if (f != null && f.isVisible()) {
+                    currentFragment = f;
+                    break;
                 }
+            }
 
-                // Cập nhật lại màu tô của NavigationView khi bấm Back
-                androidx.fragment.app.Fragment currentFragment = fragmentManager.findFragmentById(R.id.contentView);
-                if (currentFragment instanceof DisplayHomeFragment) {
-                    navigationView.setCheckedItem(R.id.nav_home);
-                } else if (currentFragment instanceof DisplayStatisticFragment) {
-                    navigationView.setCheckedItem(R.id.nav_statistic);
-                } else if (currentFragment instanceof DisplayTableFragment) {
-                    navigationView.setCheckedItem(R.id.nav_table);
-                } else if (currentFragment instanceof DisplayCategoryFragment) {
-                    navigationView.setCheckedItem(R.id.nav_category);
-                } else if (currentFragment instanceof DisplayStaffFragment) {
-                    navigationView.setCheckedItem(R.id.nav_staff);
-                } else if (currentFragment instanceof DisplayCashierFragment) {
-                    navigationView.setCheckedItem(R.id.nav_cashier);
+            if (fragmentManager.getBackStackEntryCount() > 0) {
+                drawerToggle.setDrawerIndicatorEnabled(false);
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24);
+                toolbar.setNavigationOnClickListener(v -> onBackPressed());
+            } else {
+                // Backstack trống → sync lại currentFragment và UI
+                getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+                if (useBottomNav) {
+                    drawerToggle.setDrawerIndicatorEnabled(false);
+                    toolbar.setNavigationIcon(null);
+                } else {
+                    drawerToggle.setDrawerIndicatorEnabled(true);
+                    drawerToggle.syncState();
+                    toolbar.setNavigationOnClickListener(v ->
+                        drawerLayout.openDrawer(androidx.core.view.GravityCompat.START));
                 }
+                // Sync BottomNav với currentFragment
+                syncNavSelection();
+            }
+            if (currentFragment != null) {
+                updateToolbarTitle(currentFragment);
             }
         });
 
@@ -255,6 +242,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     private void navigateTo(Fragment newFragment, String tag) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.setCustomAnimations(R.anim.fragment_fade_in, R.anim.fragment_fade_out);
         if (currentFragment != null) {
             transaction.hide(currentFragment);
         }
@@ -267,6 +255,56 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             currentFragment = existing;
         }
         transaction.commit();
+        updateToolbarTitle(currentFragment);
+    }
+
+    public void navigateToSubFragment(Fragment fragment, String tag) {
+        FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
+        tx.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left,
+                               R.anim.slide_in_left, R.anim.slide_out_right);
+        if (currentFragment != null) {
+            tx.hide(currentFragment);
+        }
+        tx.add(R.id.contentView, fragment, tag);
+        tx.addToBackStack(tag);
+        tx.commit();
+        currentFragment = fragment;
+        updateToolbarTitle(currentFragment);
+    }
+
+    private void updateToolbarTitle(Fragment fragment) {
+        if (getSupportActionBar() == null) return;
+        if (fragment instanceof DisplayHomeFragment) {
+            getSupportActionBar().setTitle(R.string.app_name);
+        } else if (fragment instanceof DisplayTableFragment) {
+            getSupportActionBar().setTitle(R.string.table_list_title);
+        } else if (fragment instanceof DisplayCategoryFragment || fragment instanceof com.sinhvien.orderdrinkapp.Fragments.DisplayMenuFragment) {
+            getSupportActionBar().setTitle(R.string.nav_menu);
+        } else if (fragment instanceof DisplayStatisticFragment) {
+            getSupportActionBar().setTitle(R.string.statistic_title);
+        } else if (fragment instanceof DisplayCashierFragment) {
+            getSupportActionBar().setTitle("Bảng Điều Khiển Thu Ngân");
+        } else if (fragment instanceof com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment) {
+            getSupportActionBar().setTitle("Quản lý đặt bàn");
+        } else if (fragment instanceof DisplayStaffFragment) {
+            getSupportActionBar().setTitle("Quản lý nhân viên");
+        }
+    }
+
+    private void syncNavSelection() {
+        if (currentFragment instanceof DisplayHomeFragment) {
+            bottomNav.setSelectedItemId(R.id.nav_home);
+            navigationView.setCheckedItem(R.id.nav_home);
+        } else if (currentFragment instanceof DisplayTableFragment) {
+            bottomNav.setSelectedItemId(R.id.nav_table);
+            navigationView.setCheckedItem(R.id.nav_table);
+        } else if (currentFragment instanceof DisplayCategoryFragment) {
+            bottomNav.setSelectedItemId(R.id.nav_category);
+            navigationView.setCheckedItem(R.id.nav_category);
+        } else if (currentFragment instanceof DisplayStatisticFragment) {
+            bottomNav.setSelectedItemId(R.id.nav_statistic);
+            navigationView.setCheckedItem(R.id.nav_statistic);
+        }
     }
 
     public void selectBottomNavItem(int menuId) {

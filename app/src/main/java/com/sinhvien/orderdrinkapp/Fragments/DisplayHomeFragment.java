@@ -284,8 +284,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             } else if (id == R.id.layout_display_HomeViewTable) {
                 homeActivity.selectBottomNavItem(R.id.nav_table);
             } else if (id == R.id.layout_display_HomeViewMenu) {
-                Intent iAddCategory = new Intent(getActivity(), AddCategoryActivity.class);
-                startActivity(iAddCategory);
+                homeActivity.selectBottomNavItem(R.id.nav_category);
             } else if (id == R.id.layout_display_HomeViewStaff) {
                 homeActivity.selectBottomNavItem(R.id.nav_staff);
             } else if (id == R.id.txt_display_HomeViewAllCategory) {

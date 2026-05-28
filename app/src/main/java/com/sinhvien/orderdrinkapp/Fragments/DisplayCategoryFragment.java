@@ -116,9 +116,7 @@ public class DisplayCategoryFragment extends Fragment {
             bundle.putInt("maban", maban);
             displayMenuFragment.setArguments(bundle);
 
-            FragmentTransaction transaction = fragmentManager.beginTransaction();
-            transaction.replace(R.id.contentView, displayMenuFragment).addToBackStack("hienthiloai");
-            transaction.commit();
+            ((HomeActivity) getActivity()).navigateToSubFragment(displayMenuFragment, "hienthiloai");
         });
 
         // FAB thêm loại
