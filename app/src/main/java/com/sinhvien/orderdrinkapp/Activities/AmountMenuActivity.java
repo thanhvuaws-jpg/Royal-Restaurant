@@ -67,9 +67,7 @@ public class AmountMenuActivity extends AppCompatActivity {
 
                 int sluong = Integer.parseInt(txtl_amount_Quantity.getEditText().getText().toString());
                 
-                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AmountMenuActivity.this);
-                progressDialog.setMessage("Đang xử lý...");
-                progressDialog.setCancelable(false);
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AmountMenuActivity.this, "Đang thêm món...");
                 progressDialog.show();
 
                 // Gửi món ăn lên Cloud

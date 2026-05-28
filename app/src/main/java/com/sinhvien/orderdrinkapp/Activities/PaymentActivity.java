@@ -50,7 +50,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     // Polling & Socket tools
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
-    private android.app.ProgressDialog waitingDialog;
+    private androidx.appcompat.app.AlertDialog waitingDialog;
     private boolean isPolling = false;
 
     private io.socket.client.Socket mSocket;
@@ -215,9 +215,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     private void thucHienThanhToan(String phuongthuc) {
-        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
-        progressDialog.setMessage("Đang gửi yêu cầu thanh toán...");
-        progressDialog.setCancelable(false);
+        androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang gửi yêu cầu thanh toán...");
         progressDialog.show();
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -247,9 +245,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         });
     }
     private void startPollingForApproval() {
-        waitingDialog = new android.app.ProgressDialog(this);
-        waitingDialog.setMessage("Đang chờ Thu ngân xác nhận...");
-        waitingDialog.setCancelable(false); // Không cho hủy bằng nút Back
+        waitingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang chờ Thu ngân xác nhận...");
         waitingDialog.show();
 
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();

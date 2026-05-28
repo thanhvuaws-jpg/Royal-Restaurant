@@ -12,11 +12,16 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.fragment.app.Fragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationView;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
@@ -41,6 +46,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     Toolbar toolbar;
     FragmentManager fragmentManager;
     TextView txt_menu_tennv;
+    ActionBarDrawerToggle drawerToggle;
+
+    private BottomNavigationView bottomNav;
+    private ImageView btnToggleNav;
+    private boolean useBottomNav;
+    private BottomSheetDialog moreBottomSheet;
+    private Fragment currentFragment;
 
     private Handler sessionHandler;
     private Runnable sessionRunnable;
@@ -62,7 +74,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar
+        bottomNav = findViewById(R.id.bottom_nav);
+        btnToggleNav = findViewById(R.id.btn_toggle_nav);
+
+        drawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar
                 ,R.string.open,R.string.close){
             @Override
             public void onDrawerOpened(View drawerView) {
@@ -113,17 +128,37 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         fragmentManager = getSupportFragmentManager();
 
+        // Setup Bottom Nav and Toggle
+        useBottomNav = SessionManager.isUseBottomNav(this);
+        applyNavMode(useBottomNav);
+
+        btnToggleNav.setOnClickListener(v -> {
+            useBottomNav = !useBottomNav;
+            SessionManager.setUseBottomNav(this, useBottomNav);
+            applyNavMode(useBottomNav);
+        });
+
+        bottomNav.setOnNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_home) navigateTo(new DisplayHomeFragment(), "HomeFragment");
+            else if (id == R.id.nav_table) navigateTo(new DisplayTableFragment(), "TableFragment");
+            else if (id == R.id.nav_category) navigateTo(new DisplayCategoryFragment(), "CategoryFragment");
+            else if (id == R.id.nav_statistic) navigateTo(new DisplayStatisticFragment(), "StatisticFragment");
+            else if (id == R.id.nav_more) showMoreBottomSheet();
+            return true;
+        });
+
         // Phân quyền menu
         if (SessionManager.isCashier(this)) {
-            // Thu ngân chỉ thấy Trang chủ, Thu ngân, Thống kê, Đăng xuất
+            // Thu ngân
             navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_table).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_category).setVisible(false);
             
-            // Thu ngân mặc định mở trang Thu ngân
-            FragmentTransaction tranDisplayCashier = fragmentManager.beginTransaction();
-            tranDisplayCashier.replace(R.id.contentView, new DisplayCashierFragment());
-            tranDisplayCashier.commit();
+            bottomNav.getMenu().findItem(R.id.nav_table).setVisible(false);
+            bottomNav.getMenu().findItem(R.id.nav_more).setVisible(false);
+            
+            navigateTo(new DisplayCashierFragment(), "CashierFragment");
             navigationView.setCheckedItem(R.id.nav_cashier);
         } else {
             // Admin hoặc Nhân viên
@@ -132,18 +167,19 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 // Nhân viên
                 navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
                 navigationView.getMenu().findItem(R.id.nav_statistic).setVisible(false);
+                
+                bottomNav.getMenu().findItem(R.id.nav_statistic).setVisible(false);
             }
-            // Admin và Nhân viên mặc định mở Trang chủ
-            FragmentTransaction tranDisplayHome = fragmentManager.beginTransaction();
-            tranDisplayHome.replace(R.id.contentView, new DisplayHomeFragment());
-            tranDisplayHome.commit();
+            navigateTo(new DisplayHomeFragment(), "HomeFragment");
             navigationView.setCheckedItem(R.id.nav_home);
+            bottomNav.setSelectedItemId(R.id.nav_home);
         }
 
         fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
                 if (fragmentManager.getBackStackEntryCount() > 0) {
+                    drawerToggle.setDrawerIndicatorEnabled(false);
                     getSupportActionBar().setDisplayHomeAsUpEnabled(true);
                     toolbar.setNavigationOnClickListener(new View.OnClickListener() {
                         @Override
@@ -153,13 +189,19 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     });
                 } else {
                     getSupportActionBar().setDisplayHomeAsUpEnabled(false);
-                    drawerToggle.syncState();
-                    toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
-                        }
-                    });
+                    if (useBottomNav) {
+                        drawerToggle.setDrawerIndicatorEnabled(false);
+                        toolbar.setNavigationIcon(null);
+                    } else {
+                        drawerToggle.setDrawerIndicatorEnabled(true);
+                        drawerToggle.syncState();
+                        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                drawerLayout.openDrawer(androidx.core.view.GravityCompat.START);
+                            }
+                        });
+                    }
                 }
 
                 // Cập nhật lại màu tô của NavigationView khi bấm Back
@@ -192,83 +234,124 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         return super.onSupportNavigateUp();
     }
 
+    private void applyNavMode(boolean useBottom) {
+        if (useBottom) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            bottomNav.setVisibility(View.VISIBLE);
+            if (fragmentManager.getBackStackEntryCount() == 0) {
+                drawerToggle.setDrawerIndicatorEnabled(false);
+                toolbar.setNavigationIcon(null);
+            }
+        } else {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            bottomNav.setVisibility(View.GONE);
+            if (fragmentManager.getBackStackEntryCount() == 0) {
+                drawerToggle.setDrawerIndicatorEnabled(true);
+                drawerToggle.syncState();
+                toolbar.setNavigationOnClickListener(v -> drawerLayout.openDrawer(androidx.core.view.GravityCompat.START));
+            }
+        }
+    }
+
+    private void navigateTo(Fragment newFragment, String tag) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        if (currentFragment != null) {
+            transaction.hide(currentFragment);
+        }
+        Fragment existing = fragmentManager.findFragmentByTag(tag);
+        if (existing == null) {
+            transaction.add(R.id.contentView, newFragment, tag);
+            currentFragment = newFragment;
+        } else {
+            transaction.show(existing);
+            currentFragment = existing;
+        }
+        transaction.commit();
+    }
+
+    public void selectBottomNavItem(int menuId) {
+        if (useBottomNav && bottomNav != null) {
+            bottomNav.setSelectedItemId(menuId);
+        } else {
+            MenuItem item = navigationView.getMenu().findItem(menuId);
+            if (item != null) {
+                onNavigationItemSelected(item);
+                navigationView.setCheckedItem(menuId);
+            }
+        }
+    }
+
+    private void showMoreBottomSheet() {
+        if (moreBottomSheet == null) {
+            moreBottomSheet = new BottomSheetDialog(this);
+            View view = LayoutInflater.from(this).inflate(R.layout.bottom_sheet_more, null);
+            
+            View itemManageBookings = view.findViewById(R.id.item_manage_bookings);
+            View itemStaff = view.findViewById(R.id.item_staff);
+            View itemLogout = view.findViewById(R.id.item_logout);
+
+            if (SessionManager.isCashier(this)) {
+                itemManageBookings.setVisibility(View.GONE);
+                itemStaff.setVisibility(View.GONE);
+            } else if (!SessionManager.isAdmin(this)) {
+                itemStaff.setVisibility(View.GONE);
+            }
+
+            itemManageBookings.setOnClickListener(v -> {
+                navigateTo(new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
+                moreBottomSheet.dismiss();
+            });
+            itemStaff.setOnClickListener(v -> {
+                navigateTo(new DisplayStaffFragment(), "StaffFragment");
+                moreBottomSheet.dismiss();
+            });
+            itemLogout.setOnClickListener(v -> {
+                moreBottomSheet.dismiss();
+                logout();
+            });
+            moreBottomSheet.setContentView(view);
+        }
+        moreBottomSheet.show();
+    }
+
+    private void logout() {
+        stopSessionCheck();
+        com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
+        com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment.clearCache();
+        com.sinhvien.orderdrinkapp.Fragments.DisplayStatisticFragment.clearCache();
+        SessionManager.clearSession(this);
+        
+        Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
+        startActivity(intent);
+        finish();
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.nav_home) {
-            String tag = "HomeFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new DisplayHomeFragment();
-            FragmentTransaction tranDisplayHome = fragmentManager.beginTransaction();
-            tranDisplayHome.replace(R.id.contentView,fragment, tag);
-            tranDisplayHome.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new DisplayHomeFragment(), "HomeFragment");
+            bottomNav.setSelectedItemId(R.id.nav_home);
         } else if (id == R.id.nav_statistic) {
-            String tag = "StatisticFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new DisplayStatisticFragment();
-            FragmentTransaction tranDisplayStatistic = fragmentManager.beginTransaction();
-            tranDisplayStatistic.replace(R.id.contentView,fragment, tag);
-            tranDisplayStatistic.addToBackStack(null);
-            tranDisplayStatistic.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new DisplayStatisticFragment(), "StatisticFragment");
+            bottomNav.setSelectedItemId(R.id.nav_statistic);
         } else if (id == R.id.nav_cashier) {
-            String tag = "CashierFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new DisplayCashierFragment();
-            FragmentTransaction tranDisplayCashier = fragmentManager.beginTransaction();
-            tranDisplayCashier.replace(R.id.contentView,fragment, tag);
-            tranDisplayCashier.addToBackStack(null);
-            tranDisplayCashier.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new DisplayCashierFragment(), "CashierFragment");
         } else if (id == R.id.nav_table) {
-            String tag = "TableFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new DisplayTableFragment();
-            FragmentTransaction tranDisplayTable = fragmentManager.beginTransaction();
-            tranDisplayTable.replace(R.id.contentView,fragment, tag);
-            tranDisplayTable.addToBackStack(null);
-            tranDisplayTable.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new DisplayTableFragment(), "TableFragment");
+            bottomNav.setSelectedItemId(R.id.nav_table);
         } else if (id == R.id.nav_manage_bookings) {
-            String tag = "ManageBookingsFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment();
-            FragmentTransaction tranManageBookings = fragmentManager.beginTransaction();
-            tranManageBookings.replace(R.id.contentView, fragment, tag);
-            tranManageBookings.addToBackStack(null);
-            tranManageBookings.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
         } else if (id == R.id.nav_category) {
-            String tag = "CategoryFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new DisplayCategoryFragment();
-            FragmentTransaction tranDisplayCategory = fragmentManager.beginTransaction();
-            tranDisplayCategory.replace(R.id.contentView,fragment, tag);
-            tranDisplayCategory.addToBackStack(null);
-            tranDisplayCategory.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new DisplayCategoryFragment(), "CategoryFragment");
+            bottomNav.setSelectedItemId(R.id.nav_category);
         } else if (id == R.id.nav_staff) {
-            String tag = "StaffFragment";
-            androidx.fragment.app.Fragment fragment = fragmentManager.findFragmentByTag(tag);
-            if (fragment == null) fragment = new DisplayStaffFragment();
-            FragmentTransaction tranDisplayStaff = fragmentManager.beginTransaction();
-            tranDisplayStaff.replace(R.id.contentView,fragment, tag);
-            tranDisplayStaff.addToBackStack(null);
-            tranDisplayStaff.commit();
-            drawerLayout.closeDrawers();
+            navigateTo(new DisplayStaffFragment(), "StaffFragment");
         } else if (id == R.id.nav_logout) {
-            // XÓA PHIÊN ĐĂNG NHẬP
-            stopSessionCheck();
-            com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
-            com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment.clearCache();
-            com.sinhvien.orderdrinkapp.Fragments.DisplayStatisticFragment.clearCache();
-            SessionManager.clearSession(this);
-            
-            Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
-            startActivity(intent);
-            finish();
+            logout();
+            return true;
         }
+        drawerLayout.closeDrawers();
         return true;
     }
 

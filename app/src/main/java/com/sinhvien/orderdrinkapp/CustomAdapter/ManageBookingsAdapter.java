@@ -1,7 +1,7 @@
 package com.sinhvien.orderdrinkapp.CustomAdapter;
 
 import android.app.AlertDialog;
-import android.app.ProgressDialog;
+
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -110,9 +110,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
     }
 
     private void performConfirmBooking(int madatban) {
-        ProgressDialog progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Đang xác nhận đặt bàn...");
-        progressDialog.setCancelable(false);
+        androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(context, "Đang xác nhận đặt bàn...");
         progressDialog.show();
 
         int manv_staff = SessionManager.getMaNV(context);
@@ -150,9 +148,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
     }
 
     private void performCheckIn(int madatban) {
-        ProgressDialog progressDialog = new ProgressDialog(context);
-        progressDialog.setMessage("Đang xử lý nhận bàn...");
-        progressDialog.setCancelable(false);
+        androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(context, "Đang xử lý nhận bàn...");
         progressDialog.show();
 
         int manv_staff = SessionManager.getMaNV(context);
@@ -194,9 +190,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                 .setTitle("Xác nhận hủy đặt")
                 .setMessage("Bạn có chắc chắn muốn hủy lịch hẹn đặt bàn này?")
                 .setPositiveButton("Hủy lịch", (dialog, which) -> {
-                    ProgressDialog progressDialog = new ProgressDialog(context);
-                    progressDialog.setMessage("Đang hủy lịch đặt...");
-                    progressDialog.setCancelable(false);
+                    androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(context, "Đang hủy lịch đặt...");
                     progressDialog.show();
 
                     ApiService apiService = ApiClient.getClient().create(ApiService.class);

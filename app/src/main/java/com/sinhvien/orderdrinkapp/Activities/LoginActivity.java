@@ -79,9 +79,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 return;
             }
 
-            android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
-            progressDialog.setMessage("Đang đăng nhập...");
-            progressDialog.setCancelable(false);
+            androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang đăng nhập...");
             progressDialog.show();
 
             final String finalUser = user;

@@ -120,9 +120,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
     }
 
     private void confirmPayment(String method) {
-        android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(this);
-        progressDialog.setMessage("Đang xác nhận...");
-        progressDialog.setCancelable(false);
+        androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang xử lý xác nhận...");
         progressDialog.show();
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);

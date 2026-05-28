@@ -70,9 +70,7 @@ public class Register2ndActivity extends AppCompatActivity {
                 String ngaySinh = DT_signup2nd_DOB.getYear() + "-" + (DT_signup2nd_DOB.getMonth() + 1)
                         + "-" + DT_signup2nd_DOB.getDayOfMonth();
 
-                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(Register2ndActivity.this);
-                progressDialog.setMessage("Đang xử lý...");
-                progressDialog.setCancelable(false);
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(Register2ndActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
                 // Gửi dữ liệu đăng ký lên Cloud (maquyen = 4 đại diện cho Khách hàng thành viên)

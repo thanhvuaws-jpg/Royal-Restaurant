@@ -133,10 +133,15 @@ public class DisplayMenuFragment extends Fragment {
 
             // Tải từ SQLite cache trước để hiển thị tức thì
             LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-            monDTOList.clear();
-            monDTOList.addAll(dbHelper.getDishes(maloai, currentSearch));
-            adapter.notifyDataSetChanged();
-            capNhatTrangThai();
+            LocalDatabaseHelper.getExecutor().execute(() -> {
+                List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    monDTOList.clear();
+                    monDTOList.addAll(cachedList);
+                    adapter.notifyDataSetChanged();
+                    capNhatTrangThai();
+                });
+            });
 
             SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
             swipeRefreshLayout.setOnRefreshListener(() -> {
@@ -260,18 +265,23 @@ public class DisplayMenuFragment extends Fragment {
                     hasMore = response.body().isHasMore();
 
                     if (newItems != null) {
-                        // Lưu dữ liệu vào SQLite
-                        dbHelper.syncDishes(maloai, newItems, currentPage == 1);
-
-                        // Load lại toàn bộ từ SQLite lên List để đồng nhất dữ liệu
-                        List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
-                        monDTOList.clear();
-                        monDTOList.addAll(cachedList);
-                        adapter.notifyDataSetChanged();
-                        
-                        currentPage++;
+                        // Lưu dữ liệu vào SQLite dưới nền
+                        LocalDatabaseHelper.getExecutor().execute(() -> {
+                            dbHelper.syncDishes(maloai, newItems, currentPage == 1);
+                            // Load lại toàn bộ từ SQLite lên List để đồng nhất dữ liệu
+                            List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
+                            
+                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                                monDTOList.clear();
+                                monDTOList.addAll(cachedList);
+                                adapter.notifyDataSetChanged();
+                                currentPage++;
+                                capNhatTrangThai();
+                            });
+                        });
+                    } else {
+                        capNhatTrangThai();
                     }
-                    capNhatTrangThai();
                 }
             }
 
@@ -312,12 +322,16 @@ public class DisplayMenuFragment extends Fragment {
         isLoading = false;
         
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        monDTOList.clear();
-        monDTOList.addAll(dbHelper.getDishes(maloai, currentSearch));
-        adapter.notifyDataSetChanged();
-        capNhatTrangThai();
-
-        taiThemMon();
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                monDTOList.clear();
+                monDTOList.addAll(cachedList);
+                adapter.notifyDataSetChanged();
+                capNhatTrangThai();
+                taiThemMon();
+            });
+        });
     }
 
     // Cập nhật trạng thái hiển thị danh sách hoặc empty state
@@ -368,48 +382,51 @@ public class DisplayMenuFragment extends Fragment {
                     List<MonResponse> newItems = response.body().getData();
                     if (newItems != null) {
                         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-                        dbHelper.syncDishes(maloai, newItems, true);
-
-                        List<MonDTO> updatedList = dbHelper.getDishes(maloai, currentSearch);
-                        
-                        // 1. Remove items not in updatedList
-                        for (int i = monDTOList.size() - 1; i >= 0; i--) {
-                            MonDTO oldItem = monDTOList.get(i);
-                            boolean found = false;
-                            for (MonDTO newItem : updatedList) {
-                                if (oldItem.getMaMon() == newItem.getMaMon()) {
-                                    found = true;
-                                    break;
+                        LocalDatabaseHelper.getExecutor().execute(() -> {
+                            dbHelper.syncDishes(maloai, newItems, false);
+                            List<MonDTO> updatedList = dbHelper.getDishes(maloai, currentSearch);
+                            
+                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                                // 1. Remove items not in updatedList
+                                for (int i = monDTOList.size() - 1; i >= 0; i--) {
+                                    MonDTO oldItem = monDTOList.get(i);
+                                    boolean found = false;
+                                    for (MonDTO newItem : updatedList) {
+                                        if (oldItem.getMaMon() == newItem.getMaMon()) {
+                                            found = true;
+                                            break;
+                                        }
+                                    }
+                                    if (!found) {
+                                        monDTOList.remove(i);
+                                        adapter.notifyItemRemoved(i);
+                                    }
                                 }
-                            }
-                            if (!found) {
-                                monDTOList.remove(i);
-                                adapter.notifyItemRemoved(i);
-                            }
-                        }
 
-                        // 2. Update existing items and add new items
-                        for (int i = 0; i < updatedList.size(); i++) {
-                            MonDTO newItem = updatedList.get(i);
-                            boolean found = false;
-                            for (int j = 0; j < monDTOList.size(); j++) {
-                                MonDTO oldItem = monDTOList.get(j);
-                                if (oldItem.getMaMon() == newItem.getMaMon()) {
-                                    found = true;
-                                    oldItem.setTenMon(newItem.getTenMon());
-                                    oldItem.setGiaTien(newItem.getGiaTien());
-                                    oldItem.setTinhTrang(newItem.getTinhTrang());
-                                    oldItem.setHinhAnhUrl(newItem.getHinhAnhUrl());
-                                    adapter.notifyItemChanged(j);
-                                    break;
+                                // 2. Update existing items and add new items
+                                for (int i = 0; i < updatedList.size(); i++) {
+                                    MonDTO newItem = updatedList.get(i);
+                                    boolean found = false;
+                                    for (int j = 0; j < monDTOList.size(); j++) {
+                                        MonDTO oldItem = monDTOList.get(j);
+                                        if (oldItem.getMaMon() == newItem.getMaMon()) {
+                                            found = true;
+                                            oldItem.setTenMon(newItem.getTenMon());
+                                            oldItem.setGiaTien(newItem.getGiaTien());
+                                            oldItem.setTinhTrang(newItem.getTinhTrang());
+                                            oldItem.setHinhAnhUrl(newItem.getHinhAnhUrl());
+                                            adapter.notifyItemChanged(j);
+                                            break;
+                                        }
+                                    }
+                                    if (!found) {
+                                        monDTOList.add(newItem);
+                                        adapter.notifyItemInserted(monDTOList.size() - 1);
+                                    }
                                 }
-                            }
-                            if (!found) {
-                                monDTOList.add(newItem);
-                                adapter.notifyItemInserted(monDTOList.size() - 1);
-                            }
-                        }
-                        capNhatTrangThai();
+                                capNhatTrangThai();
+                            });
+                        });
                     }
                 }
             }

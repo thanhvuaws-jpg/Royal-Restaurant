@@ -14,12 +14,20 @@ import com.sinhvien.orderdrinkapp.DTO.NhanVienDTO;
 import java.util.ArrayList;
 import java.util.List;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 public class LocalDatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "ql_nhahang_local.db";
     private static final int DATABASE_VERSION = 1;
 
     private static LocalDatabaseHelper instance;
+    private static final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
+
+    public static ExecutorService getExecutor() {
+        return dbExecutor;
+    }
 
     public static synchronized LocalDatabaseHelper getInstance(Context context) {
         if (instance == null) {

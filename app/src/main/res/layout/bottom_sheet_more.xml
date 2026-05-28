@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@android:color/white">
+
+    <TextView
+        android:id="@+id/item_manage_bookings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Đặt lịch trước"
+        android:drawablePadding="16dp"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:drawableLeft="@drawable/ic_baseline_calendar_today_24"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <TextView
+        android:id="@+id/item_staff"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nhân viên"
+        android:drawablePadding="16dp"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:drawableLeft="@drawable/ic_baseline_person_24"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#E0E0E0"
+        android:layout_marginVertical="8dp"/>
+
+    <TextView
+        android:id="@+id/item_logout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Đăng xuất"
+        android:drawablePadding="16dp"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="#D32F2F"
+        android:drawableLeft="@drawable/ic_baseline_exit_to_app_24"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"/>
+
+</LinearLayout>

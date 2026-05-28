@@ -12,8 +12,12 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.fragment.app.Fragment;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import com.google.android.material.navigation.NavigationView;
 import com.sinhvien.orderdrinkapp.R;
@@ -28,6 +32,12 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
     Toolbar toolbar;
     FragmentManager fragmentManager;
     TextView txt_menu_tennv;
+    ActionBarDrawerToggle drawerToggle;
+
+    private BottomNavigationView bottomNav;
+    private ImageView btnToggleNav;
+    private boolean useBottomNav;
+    private Fragment currentFragment;
     private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
     private io.socket.emitter.Emitter.Listener connectListener;
 
@@ -45,7 +55,10 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         }
 
-        ActionBarDrawerToggle drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
+        bottomNav = findViewById(R.id.customer_bottom_nav);
+        btnToggleNav = findViewById(R.id.btn_toggle_nav);
+
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 R.string.open, R.string.close);
         drawerLayout.addDrawerListener(drawerToggle);
         drawerToggle.syncState();
@@ -77,11 +90,35 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
 
         fragmentManager = getSupportFragmentManager();
 
+        // Setup Adaptive Navigation
+        useBottomNav = SessionManager.isUseBottomNav(this);
+        applyNavMode(useBottomNav);
+
+        btnToggleNav.setOnClickListener(v -> {
+            useBottomNav = !useBottomNav;
+            SessionManager.setUseBottomNav(this, useBottomNav);
+            applyNavMode(useBottomNav);
+        });
+
+        bottomNav.setOnNavigationItemSelectedListener(item -> {
+            int id = item.getItemId();
+            if (id == R.id.nav_customer_booking) {
+                navigateTo(new CustomerBookingFragment(), "CustomerBookingFragment");
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
+            } else if (id == R.id.nav_customer_history) {
+                navigateTo(new CustomerProfileFragment(), "CustomerProfileFragment");
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+            } else if (id == R.id.nav_logout) {
+                logout();
+            }
+            return true;
+        });
+
         // Mặc định mở fragment đặt bàn
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.customer_contentView, new CustomerBookingFragment());
-        transaction.commit();
+        navigateTo(new CustomerBookingFragment(), "CustomerBookingFragment");
         navigationView.setCheckedItem(R.id.nav_customer_booking);
+        bottomNav.setSelectedItemId(R.id.nav_customer_booking);
+        if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
     }
 
     @Override
@@ -100,29 +137,61 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         }
     }
 
+    private void applyNavMode(boolean useBottom) {
+        if (useBottom) {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+            bottomNav.setVisibility(View.VISIBLE);
+            toolbar.setNavigationIcon(null);
+        } else {
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+            bottomNav.setVisibility(View.GONE);
+            drawerToggle.syncState();
+        }
+    }
+
+    private void navigateTo(Fragment newFragment, String tag) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        if (currentFragment != null) {
+            transaction.hide(currentFragment);
+        }
+        Fragment existing = fragmentManager.findFragmentByTag(tag);
+        if (existing == null) {
+            transaction.add(R.id.customer_contentView, newFragment, tag);
+            currentFragment = newFragment;
+        } else {
+            transaction.show(existing);
+            currentFragment = existing;
+        }
+        transaction.commit();
+    }
+
+    private void logout() {
+        com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
+        com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment.clearCache();
+        com.sinhvien.orderdrinkapp.Fragments.DisplayStatisticFragment.clearCache();
+        SessionManager.clearSession(this);
+        Intent intent = new Intent(this, WelcomeActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+        finish();
+        Toast.makeText(this, "Đã đăng xuất!", Toast.LENGTH_SHORT).show();
+    }
+
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
 
         if (id == R.id.nav_customer_booking) {
-            transaction.replace(R.id.customer_contentView, new CustomerBookingFragment());
-            transaction.commit();
-            getSupportActionBar().setTitle("Đặt bàn & món");
+            navigateTo(new CustomerBookingFragment(), "CustomerBookingFragment");
+            bottomNav.setSelectedItemId(R.id.nav_customer_booking);
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
         } else if (id == R.id.nav_customer_history) {
-            transaction.replace(R.id.customer_contentView, new CustomerProfileFragment());
-            transaction.commit();
-            getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+            navigateTo(new CustomerProfileFragment(), "CustomerProfileFragment");
+            bottomNav.setSelectedItemId(R.id.nav_customer_history);
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
         } else if (id == R.id.nav_logout) {
-            com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
-            com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment.clearCache();
-            com.sinhvien.orderdrinkapp.Fragments.DisplayStatisticFragment.clearCache();
-            SessionManager.clearSession(this);
-            Intent intent = new Intent(this, WelcomeActivity.class);
-            intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-            startActivity(intent);
-            finish();
-            Toast.makeText(this, "Đã đăng xuất!", Toast.LENGTH_SHORT).show();
+            logout();
+            return true;
         }
 
         drawerLayout.closeDrawers();

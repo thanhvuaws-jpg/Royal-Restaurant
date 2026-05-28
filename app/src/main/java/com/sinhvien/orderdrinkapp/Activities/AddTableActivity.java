@@ -51,9 +51,7 @@ public class AddTableActivity extends AppCompatActivity {
                 String sTenBanAn = TXTL_addtable_TableName.getEditText().getText().toString();
                 String action = (maban != 0) ? "edit" : "add";
 
-                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddTableActivity.this);
-                progressDialog.setMessage("Đang xử lý...");
-                progressDialog.setCancelable(false);
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddTableActivity.this, "Đang thêm bàn...");
                 progressDialog.show();
 
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);

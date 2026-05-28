@@ -230,9 +230,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 String actionMon = (mamon != 0) ? "edit" : "add";
                 String imageBase64Mon = imageToBase64(img_add_DishImage);
 
-                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddMenuActivity.this);
-                progressDialog.setMessage("Đang xử lý...");
-                progressDialog.setCancelable(false);
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddMenuActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
                 ApiService apiServiceMon = ApiClient.getClient().create(ApiService.class);

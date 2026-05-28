@@ -73,6 +73,16 @@ public class SessionManager {
         getPrefs(context).edit().clear().apply();
     }
 
+    public static void setUseBottomNav(Context context, boolean value) {
+        context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            .edit().putBoolean("use_bottom_nav", value).apply();
+    }
+
+    public static boolean isUseBottomNav(Context context) {
+        return context.getSharedPreferences("app_prefs", Context.MODE_PRIVATE)
+            .getBoolean("use_bottom_nav", false); // mặc định Drawer
+    }
+
     private static SharedPreferences getPrefs(Context context) {
         return context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE);
     }

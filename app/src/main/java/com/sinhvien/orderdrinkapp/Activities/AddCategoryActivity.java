@@ -141,9 +141,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 String action = (maloai != 0) ? "edit" : "add";
                 String imageBase64 = imageToBase64(IMG_addcategory_AddImage);
 
-                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddCategoryActivity.this);
-                progressDialog.setMessage("Đang xử lý...");
-                progressDialog.setCancelable(false);
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddCategoryActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);

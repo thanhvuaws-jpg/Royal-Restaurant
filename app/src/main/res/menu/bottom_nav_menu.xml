@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/nav_home" android:title="Trang chủ" android:icon="@drawable/ic_baseline_home_24"/>
+    <item android:id="@+id/nav_table" android:title="Bàn ăn" android:icon="@drawable/ic_baseline_airline_seat_legroom_normal_24"/>
+    <item android:id="@+id/nav_category" android:title="Thực đơn" android:icon="@drawable/ic_baseline_restaurant_menu_24"/>
+    <item android:id="@+id/nav_statistic" android:title="Thống kê" android:icon="@drawable/ic_baseline_bar_chart_24"/>
+    <item android:id="@+id/nav_more" android:title="Thêm" android:icon="@drawable/ic_baseline_menu_24"/>
+</menu>

@@ -155,9 +155,7 @@ public class DisplayStaffFragment extends Fragment {
                 .setTitle("Xóa nhân viên")
                 .setMessage("Bạn có chắc chắn muốn xóa nhân viên này không?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
-                    android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(getActivity());
-                    progressDialog.setMessage("Đang xóa...");
-                    progressDialog.setCancelable(false);
+                    androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang xóa...");
                     progressDialog.show();
 
                     ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -219,10 +217,14 @@ public class DisplayStaffFragment extends Fragment {
         }
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        List<NhanVienDTO> cachedList = dbHelper.getStaff();
-        allStaffList.clear();
-        allStaffList.addAll(cachedList);
-        applyFilter();
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<NhanVienDTO> cachedList = dbHelper.getStaff();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                allStaffList.clear();
+                allStaffList.addAll(cachedList);
+                applyFilter();
+            });
+        });
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -234,13 +236,16 @@ public class DisplayStaffFragment extends Fragment {
                 }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    // Cập nhật dữ liệu mới vào SQLite
-                    dbHelper.syncStaff(response.body());
-
-                    // Đọc lại từ SQLite ra giao diện để đồng nhất
-                    allStaffList.clear();
-                    allStaffList.addAll(dbHelper.getStaff());
-                    applyFilter();
+                    // Cập nhật dữ liệu mới vào SQLite dưới nền
+                    LocalDatabaseHelper.getExecutor().execute(() -> {
+                        dbHelper.syncStaff(response.body());
+                        List<NhanVienDTO> updatedList = dbHelper.getStaff();
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            allStaffList.clear();
+                            allStaffList.addAll(updatedList);
+                            applyFilter();
+                        });
+                    });
                 }
             }
 

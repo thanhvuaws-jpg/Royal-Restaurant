@@ -164,11 +164,15 @@ public class DisplayCategoryFragment extends Fragment {
         }
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        List<LoaiMonDTO> cachedList = dbHelper.getCategories();
-        loaiMonDTOList.clear();
-        loaiMonDTOList.addAll(cachedList);
-        adapter.notifyDataSetChanged();
-        capNhatTrangThai();
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<LoaiMonDTO> cachedList = dbHelper.getCategories();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                loaiMonDTOList.clear();
+                loaiMonDTOList.addAll(cachedList);
+                adapter.notifyDataSetChanged();
+                capNhatTrangThai();
+            });
+        });
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -180,14 +184,17 @@ public class DisplayCategoryFragment extends Fragment {
                 }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    // Cập nhật dữ liệu mới vào SQLite
-                    dbHelper.syncCategories(response.body());
-
-                    // Đọc lại từ SQLite ra giao diện để đồng nhất
-                    loaiMonDTOList.clear();
-                    loaiMonDTOList.addAll(dbHelper.getCategories());
-                    adapter.notifyDataSetChanged();
-                    capNhatTrangThai();
+                    // Cập nhật dữ liệu mới vào SQLite dưới nền
+                    LocalDatabaseHelper.getExecutor().execute(() -> {
+                        dbHelper.syncCategories(response.body());
+                        List<LoaiMonDTO> updatedList = dbHelper.getCategories();
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            loaiMonDTOList.clear();
+                            loaiMonDTOList.addAll(updatedList);
+                            adapter.notifyDataSetChanged();
+                            capNhatTrangThai();
+                        });
+                    });
                 }
             }
 
@@ -226,10 +233,12 @@ public class DisplayCategoryFragment extends Fragment {
             public void onResponse(Call<List<LoaiMonResponse>> call, Response<List<LoaiMonResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    dbHelper.syncCategories(response.body());
-                    List<LoaiMonDTO> updatedList = dbHelper.getCategories();
+                    LocalDatabaseHelper.getExecutor().execute(() -> {
+                        dbHelper.syncCategories(response.body());
+                        List<LoaiMonDTO> updatedList = dbHelper.getCategories();
 
-                    // Remove items not in updatedList
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            // Remove items not in updatedList
                     for (int i = loaiMonDTOList.size() - 1; i >= 0; i--) {
                         LoaiMonDTO oldItem = loaiMonDTOList.get(i);
                         boolean found = false;
@@ -261,10 +270,12 @@ public class DisplayCategoryFragment extends Fragment {
                         }
                         if (!found) {
                             loaiMonDTOList.add(newItem);
-                            adapter.notifyItemInserted(loaiMonDTOList.size() - 1);
+                                adapter.notifyItemInserted(loaiMonDTOList.size() - 1);
+                            }
                         }
-                    }
-                    capNhatTrangThai();
+                        capNhatTrangThai();
+                        });
+                    });
                 }
             }
 

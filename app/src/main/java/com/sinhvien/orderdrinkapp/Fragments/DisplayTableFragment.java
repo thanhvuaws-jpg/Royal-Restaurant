@@ -185,10 +185,14 @@ public class DisplayTableFragment extends Fragment {
         }
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        List<BanAnDTO> cachedList = dbHelper.getTables();
-        banAnDTOList.clear();
-        banAnDTOList.addAll(cachedList);
-        filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<BanAnDTO> cachedList = dbHelper.getTables();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                banAnDTOList.clear();
+                banAnDTOList.addAll(cachedList);
+                filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
+            });
+        });
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -200,16 +204,18 @@ public class DisplayTableFragment extends Fragment {
                 }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    // Cập nhật dữ liệu mới vào SQLite
-                    dbHelper.syncTables(response.body());
-
-                    // Đọc lại từ SQLite ra giao diện để đồng nhất
-                    banAnDTOList.clear();
-                    banAnDTOList.addAll(dbHelper.getTables());
-                    filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
-
-                    // Fetch reserved tables status
-                    fetchReservedTables();
+                    // Cập nhật dữ liệu mới vào SQLite dưới nền
+                    LocalDatabaseHelper.getExecutor().execute(() -> {
+                        dbHelper.syncTables(response.body());
+                        List<BanAnDTO> updatedList = dbHelper.getTables();
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            banAnDTOList.clear();
+                            banAnDTOList.addAll(updatedList);
+                            filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
+                            // Fetch reserved tables status
+                            fetchReservedTables();
+                        });
+                    });
                 }
             }
 

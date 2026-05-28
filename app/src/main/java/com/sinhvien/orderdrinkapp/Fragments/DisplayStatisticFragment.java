@@ -116,7 +116,7 @@ public class DisplayStatisticFragment extends Fragment {
         return view;
     }
 
-    private static List<DonDatDTO> cachedStatisticOrders = new ArrayList<>();
+    private static List<DonDatDTO> cachedStatisticOrders = java.util.Collections.synchronizedList(new ArrayList<>());
     private static long lastLoadTime = 0;
 
     public static void clearCache() {

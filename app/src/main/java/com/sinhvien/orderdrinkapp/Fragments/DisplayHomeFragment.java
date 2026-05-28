@@ -43,7 +43,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     AdapterRecycleViewCategory adapterRecycleViewCategory;
     AdapterRecycleViewStatistic adapterRecycleViewStatistic;
 
-    private static List<DonDatDTO> cachedDonDatDTOS = new ArrayList<>();
+    private static List<DonDatDTO> cachedDonDatDTOS = java.util.Collections.synchronizedList(new ArrayList<>());
     private static long lastLoadTime = 0;
 
     public static void clearCache() {
@@ -163,9 +163,14 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        loaiMonDTOList.clear();
-        loaiMonDTOList.addAll(dbHelper.getCategories());
-        adapterRecycleViewCategory.notifyDataSetChanged();
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<LoaiMonDTO> cachedList = dbHelper.getCategories();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                loaiMonDTOList.clear();
+                loaiMonDTOList.addAll(cachedList);
+                adapterRecycleViewCategory.notifyDataSetChanged();
+            });
+        });
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -174,13 +179,17 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             public void onResponse(retrofit2.Call<List<LoaiMonResponse>> call, retrofit2.Response<List<LoaiMonResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
-                    // Cập nhật dữ liệu mới vào SQLite
-                    dbHelper.syncCategories(response.body());
-
-                    // Đọc lại từ SQLite ra giao diện để đồng nhất
-                    loaiMonDTOList.clear();
-                    loaiMonDTOList.addAll(dbHelper.getCategories());
-                    adapterRecycleViewCategory.notifyDataSetChanged();
+                    // Cập nhật dữ liệu mới vào SQLite dưới nền
+                    LocalDatabaseHelper.getExecutor().execute(() -> {
+                        dbHelper.syncCategories(response.body());
+                        List<LoaiMonDTO> updatedList = dbHelper.getCategories();
+                        
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            loaiMonDTOList.clear();
+                            loaiMonDTOList.addAll(updatedList);
+                            adapterRecycleViewCategory.notifyDataSetChanged();
+                        });
+                    });
                 }
             }
 
@@ -267,40 +276,21 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        NavigationView navigationView = (NavigationView) getActivity().findViewById(R.id.navigation_view_trangchu);
-
-        if (id == R.id.layout_display_HomeStatistic || id == R.id.txt_display_HomeViewAllStatistic) {
-            FragmentTransaction tranDisplayStatistic = getActivity().getSupportFragmentManager().beginTransaction();
-            tranDisplayStatistic.replace(R.id.contentView, new DisplayStatisticFragment());
-            tranDisplayStatistic.addToBackStack(null);
-            tranDisplayStatistic.commit();
-            if (navigationView != null) navigationView.setCheckedItem(R.id.nav_statistic);
-
-        } else if (id == R.id.layout_display_HomeViewTable) {
-            FragmentTransaction tranDisplayTable = getActivity().getSupportFragmentManager().beginTransaction();
-            tranDisplayTable.replace(R.id.contentView, new DisplayTableFragment());
-            tranDisplayTable.addToBackStack(null);
-            tranDisplayTable.commit();
-            if (navigationView != null) navigationView.setCheckedItem(R.id.nav_table);
-
-        } else if (id == R.id.layout_display_HomeViewMenu) {
-            Intent iAddCategory = new Intent(getActivity(), AddCategoryActivity.class);
-            startActivity(iAddCategory);
-            if (navigationView != null) navigationView.setCheckedItem(R.id.nav_category);
-
-        } else if (id == R.id.layout_display_HomeViewStaff) {
-            FragmentTransaction tranDisplayStaff = getActivity().getSupportFragmentManager().beginTransaction();
-            tranDisplayStaff.replace(R.id.contentView, new DisplayStaffFragment());
-            tranDisplayStaff.addToBackStack(null);
-            tranDisplayStaff.commit();
-            if (navigationView != null) navigationView.setCheckedItem(R.id.nav_staff);
-
-        } else if (id == R.id.txt_display_HomeViewAllCategory) {
-            FragmentTransaction tranDisplayCategory = getActivity().getSupportFragmentManager().beginTransaction();
-            tranDisplayCategory.replace(R.id.contentView, new DisplayCategoryFragment());
-            tranDisplayCategory.addToBackStack(null);
-            tranDisplayCategory.commit();
-            if (navigationView != null) navigationView.setCheckedItem(R.id.nav_category);
+        if (getActivity() instanceof HomeActivity) {
+            HomeActivity homeActivity = (HomeActivity) getActivity();
+            
+            if (id == R.id.layout_display_HomeStatistic || id == R.id.txt_display_HomeViewAllStatistic) {
+                homeActivity.selectBottomNavItem(R.id.nav_statistic);
+            } else if (id == R.id.layout_display_HomeViewTable) {
+                homeActivity.selectBottomNavItem(R.id.nav_table);
+            } else if (id == R.id.layout_display_HomeViewMenu) {
+                Intent iAddCategory = new Intent(getActivity(), AddCategoryActivity.class);
+                startActivity(iAddCategory);
+            } else if (id == R.id.layout_display_HomeViewStaff) {
+                homeActivity.selectBottomNavItem(R.id.nav_staff);
+            } else if (id == R.id.txt_display_HomeViewAllCategory) {
+                homeActivity.selectBottomNavItem(R.id.nav_category);
+            }
         }
     }
 }

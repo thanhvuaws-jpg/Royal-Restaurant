@@ -1,7 +1,7 @@
 package com.sinhvien.orderdrinkapp.Activities;
 
 import android.app.DatePickerDialog;
-import android.app.ProgressDialog;
+
 import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.view.MenuItem;
@@ -98,8 +98,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
     private void loadTables() {
         // 1. Tải từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(this);
-        List<BanAnDTO> cachedList = dbHelper.getTables();
-        updateSpinnerWithTables(cachedList);
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<BanAnDTO> cachedList = dbHelper.getTables();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                updateSpinnerWithTables(cachedList);
+            });
+        });
 
         // 2. Đồng bộ từ network
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -107,9 +111,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    dbHelper.syncTables(response.body());
-                    List<BanAnDTO> updatedList = dbHelper.getTables();
-                    updateSpinnerWithTables(updatedList);
+                    LocalDatabaseHelper.getExecutor().execute(() -> {
+                        dbHelper.syncTables(response.body());
+                        List<BanAnDTO> updatedList = dbHelper.getTables();
+                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                            updateSpinnerWithTables(updatedList);
+                        });
+                    });
                 }
             }
 
@@ -183,26 +191,31 @@ public class CustomerBookingActivity extends AppCompatActivity {
     }
 
     private void loadDishes() {
-        dishList = dbHelper.getAllDishes();
-        dishesAdapter = new PreorderDishesAdapter(this, dishList, quantities -> {
-            totalPreorderPrice = 0;
-            for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
-                int mamon = entry.getKey();
-                int qty = entry.getValue();
-                for (MonDTO dish : dishList) {
-                    if (dish.getMaMon() == mamon) {
-                        try {
-                            totalPreorderPrice += qty * Long.parseLong(dish.getGiaTien());
-                        } catch (NumberFormatException ignored) {}
-                        break;
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<MonDTO> cachedList = dbHelper.getAllDishes();
+            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                dishList = cachedList;
+                dishesAdapter = new PreorderDishesAdapter(CustomerBookingActivity.this, dishList, quantities -> {
+                    totalPreorderPrice = 0;
+                    for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
+                        int mamon = entry.getKey();
+                        int qty = entry.getValue();
+                        for (MonDTO dish : dishList) {
+                            if (dish.getMaMon() == mamon) {
+                                try {
+                                    totalPreorderPrice += qty * Long.parseLong(dish.getGiaTien());
+                                } catch (NumberFormatException ignored) {}
+                                break;
+                            }
+                        }
                     }
-                }
-            }
-            DecimalFormat formatter = new DecimalFormat("#,###");
-            txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
+                    DecimalFormat formatter = new DecimalFormat("#,###");
+                    txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
+                });
+                rv_booking_dishes.setLayoutManager(new LinearLayoutManager(CustomerBookingActivity.this));
+                rv_booking_dishes.setAdapter(dishesAdapter);
+            });
         });
-        rv_booking_dishes.setLayoutManager(new LinearLayoutManager(this));
-        rv_booking_dishes.setAdapter(dishesAdapter);
 
         // Đồng bộ toàn bộ món ăn từ Server về SQLite
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -220,12 +233,17 @@ public class CustomerBookingActivity extends AppCompatActivity {
                             }
                             grouped.get(catId).add(r);
                         }
-                        for (Map.Entry<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> entry : grouped.entrySet()) {
-                            dbHelper.syncDishes(entry.getKey(), entry.getValue(), true);
-                        }
-                        dishList.clear();
-                        dishList.addAll(dbHelper.getAllDishes());
-                        dishesAdapter.notifyDataSetChanged();
+                        LocalDatabaseHelper.getExecutor().execute(() -> {
+                            for (Map.Entry<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> entry : grouped.entrySet()) {
+                                dbHelper.syncDishes(entry.getKey(), entry.getValue(), true);
+                            }
+                            List<MonDTO> updatedList = dbHelper.getAllDishes();
+                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                                dishList.clear();
+                                dishList.addAll(updatedList);
+                                if (dishesAdapter != null) dishesAdapter.notifyDataSetChanged();
+                            });
+                        });
                     }
                 }
             }
@@ -271,9 +289,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
         String jsonPreorder = new Gson().toJson(preorderList);
 
-        ProgressDialog progressDialog = new ProgressDialog(this);
-        progressDialog.setMessage("Đang xử lý đặt bàn...");
-        progressDialog.setCancelable(false);
+        androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang xử lý đặt bàn...");
         progressDialog.show();
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);

@@ -3,6 +3,7 @@ package com.sinhvien.orderdrinkapp.Utils;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.content.Context;
+import java.lang.ref.WeakReference;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
@@ -32,17 +33,20 @@ public class BookingAlertManager {
     private static final String CHANNEL_NAME = "Nhắc nhở đặt bàn";
     private static final int CHECK_INTERVAL = 60000; // Quét mỗi 1 phút
 
-    private Context context;
+    private WeakReference<Context> contextRef;
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable runnable;
     private boolean isRunning = false;
 
     public BookingAlertManager(Context context) {
-        this.context = context.getApplicationContext();
+        this.contextRef = new WeakReference<>(context.getApplicationContext());
         createNotificationChannel();
     }
 
     private void createNotificationChannel() {
+        Context context = contextRef.get();
+        if (context == null) return;
+        
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             NotificationChannel channel = new NotificationChannel(
                     CHANNEL_ID,
@@ -101,6 +105,9 @@ public class BookingAlertManager {
     }
 
     private void checkOverdueBookings() {
+        Context context = contextRef.get();
+        if (context == null) return;
+        
         int makh = SessionManager.isCustomer(context) ? SessionManager.getMaNV(context) : 0;
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getBookings(makh).enqueue(new Callback<List<BookingResponse>>() {
@@ -155,6 +162,9 @@ public class BookingAlertManager {
     }
 
     private void showOverdueNotification(BookingResponse booking) {
+        Context context = contextRef.get();
+        if (context == null) return;
+        
         String title = "Cảnh báo quá giờ đặt bàn!";
         String content = "Lịch hẹn " + (booking.getTenBan() != null ? booking.getTenBan() : "Bàn #" + booking.getMaBan()) + " lúc " + booking.getThoigianhen() + " đã quá 15 phút mà khách chưa đến.";
 

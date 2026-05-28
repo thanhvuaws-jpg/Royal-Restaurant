@@ -75,7 +75,7 @@ public class ManageBookingsFragment extends Fragment {
         return view;
     }
 
-    private static List<BookingResponse> cachedBookings = new ArrayList<>();
+    private static List<BookingResponse> cachedBookings = java.util.Collections.synchronizedList(new ArrayList<>());
     private static long lastLoadTime = 0;
 
     public static void clearCache() {

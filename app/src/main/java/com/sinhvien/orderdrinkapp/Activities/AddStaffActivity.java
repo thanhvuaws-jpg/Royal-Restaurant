@@ -163,9 +163,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                 // Cloud logic cho cả Thêm và Sửa
                 String actionStaff = (manv != 0) ? "edit" : "add";
 
-                android.app.ProgressDialog progressDialog = new android.app.ProgressDialog(AddStaffActivity.this);
-                progressDialog.setMessage("Đang xử lý...");
-                progressDialog.setCancelable(false);
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddStaffActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
                 ApiService apiServiceStaff = ApiClient.getClient().create(ApiService.class);
