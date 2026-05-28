@@ -68,6 +68,17 @@ public class BookingAlertManager {
         }
     };
 
+    private io.socket.emitter.Emitter.Listener onNotifyPrepareTable = new io.socket.emitter.Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (args.length > 0 && args[0] != null) {
+                String tenBan = args[0].toString();
+                // Phải chạy trên background thread hoặc không liên quan UI
+                showPrepareTableNotification(tenBan);
+            }
+        }
+    };
+
     public void startChecking() {
         if (isRunning) return;
         isRunning = true;
@@ -75,6 +86,7 @@ public class BookingAlertManager {
         io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
         if (socket != null) {
             socket.on("booking_status_updated", onBookingStatusUpdated);
+            socket.on("notify_prepare_table", onNotifyPrepareTable);
         }
 
         runnable = new Runnable() {
@@ -101,6 +113,7 @@ public class BookingAlertManager {
         io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
         if (socket != null) {
             socket.off("booking_status_updated", onBookingStatusUpdated);
+            socket.off("notify_prepare_table", onNotifyPrepareTable);
         }
     }
 
@@ -181,6 +194,30 @@ public class BookingAlertManager {
             notificationManager.notify(booking.getMaDatBan(), builder.build());
         } catch (SecurityException ignored) {
             // Android 13+ requires post notifications permission, fail gracefully
+        }
+    }
+
+    private void showPrepareTableNotification(String tenBan) {
+        Context context = contextRef.get();
+        if (context == null) return;
+        
+        String title = "Chuẩn bị bàn đặt trước!";
+        String content = "Thu ngân nhắc chuẩn bị " + tenBan + " cho khách đặt trước. Vui lòng kiểm tra!";
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentTitle(title)
+                .setContentText(content)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL);
+
+        NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
+        try {
+            int notificationId = (tenBan != null) ? tenBan.hashCode() : (int) System.currentTimeMillis();
+            notificationManager.notify(notificationId, builder.build());
+        } catch (SecurityException ignored) {
+            // Android 13+ permission fallback
         }
     }
 }
