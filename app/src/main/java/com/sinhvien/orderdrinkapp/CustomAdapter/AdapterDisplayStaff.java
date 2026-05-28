@@ -56,6 +56,8 @@ public class AdapterDisplayStaff extends RecyclerView.Adapter<AdapterDisplayStaf
             holder.txt_Role.setText("QUẢN LÝ");
         } else if (nv.getMAQUYEN() == 3) {
             holder.txt_Role.setText("THU NGÂN");
+        } else if (nv.getMAQUYEN() == 4) {
+            holder.txt_Role.setText("KHÁCH HÀNG");
         } else {
             holder.txt_Role.setText("NHÂN VIÊN");
         }

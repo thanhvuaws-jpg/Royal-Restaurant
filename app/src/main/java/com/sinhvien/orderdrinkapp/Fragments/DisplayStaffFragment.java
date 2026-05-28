@@ -22,6 +22,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
+import com.google.android.material.tabs.TabLayout;
 
 import com.sinhvien.orderdrinkapp.Activities.AddStaffActivity;
 import com.sinhvien.orderdrinkapp.Activities.HomeActivity;
@@ -44,7 +45,9 @@ import retrofit2.Response;
 public class DisplayStaffFragment extends Fragment {
 
     RecyclerView rvStaff;
+    TabLayout tabLayoutStaff;
     List<NhanVienDTO> nhanVienDTOS = new ArrayList<>();
+    List<NhanVienDTO> allStaffList = new ArrayList<>();
     AdapterDisplayStaff adapterDisplayStaff;
     View view;
 
@@ -78,6 +81,24 @@ public class DisplayStaffFragment extends Fragment {
 
         rvStaff = view.findViewById(R.id.rvStaff);
         rvStaff.setLayoutManager(new LinearLayoutManager(getActivity()));
+
+        tabLayoutStaff = view.findViewById(R.id.tabLayoutStaff);
+        if (tabLayoutStaff.getTabCount() == 0) {
+            tabLayoutStaff.addTab(tabLayoutStaff.newTab().setText("Nhân viên"));
+            tabLayoutStaff.addTab(tabLayoutStaff.newTab().setText("Khách hàng"));
+        }
+        tabLayoutStaff.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
+            @Override
+            public void onTabSelected(TabLayout.Tab tab) {
+                applyFilter();
+            }
+
+            @Override
+            public void onTabUnselected(TabLayout.Tab tab) {}
+
+            @Override
+            public void onTabReselected(TabLayout.Tab tab) {}
+        });
 
         adapterDisplayStaff = new AdapterDisplayStaff(getActivity(), nhanVienDTOS);
         rvStaff.setAdapter(adapterDisplayStaff);
@@ -146,9 +167,13 @@ public class DisplayStaffFragment extends Fragment {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (!isAdded() || getActivity() == null) return;
                             if (response.isSuccessful()) {
-                                nhanVienDTOS.remove(position);
-                                adapterDisplayStaff.notifyItemRemoved(position);
-                                adapterDisplayStaff.notifyItemRangeChanged(position, nhanVienDTOS.size());
+                                if (position < nhanVienDTOS.size()) {
+                                    NhanVienDTO removed = nhanVienDTOS.get(position);
+                                    allStaffList.remove(removed);
+                                    nhanVienDTOS.remove(position);
+                                    adapterDisplayStaff.notifyItemRemoved(position);
+                                    adapterDisplayStaff.notifyItemRangeChanged(position, nhanVienDTOS.size());
+                                }
                                 Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
                                 capNhatTrangThai();
                             }
@@ -195,10 +220,9 @@ public class DisplayStaffFragment extends Fragment {
         // 1. Tải và hiển thị dữ liệu từ SQLite trước
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
         List<NhanVienDTO> cachedList = dbHelper.getStaff();
-        nhanVienDTOS.clear();
-        nhanVienDTOS.addAll(cachedList);
-        adapterDisplayStaff.notifyDataSetChanged();
-        capNhatTrangThai();
+        allStaffList.clear();
+        allStaffList.addAll(cachedList);
+        applyFilter();
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -214,10 +238,9 @@ public class DisplayStaffFragment extends Fragment {
                     dbHelper.syncStaff(response.body());
 
                     // Đọc lại từ SQLite ra giao diện để đồng nhất
-                    nhanVienDTOS.clear();
-                    nhanVienDTOS.addAll(dbHelper.getStaff());
-                    adapterDisplayStaff.notifyDataSetChanged();
-                    capNhatTrangThai();
+                    allStaffList.clear();
+                    allStaffList.addAll(dbHelper.getStaff());
+                    applyFilter();
                 }
             }
 
@@ -233,8 +256,37 @@ public class DisplayStaffFragment extends Fragment {
         });
     }
 
+    private void applyFilter() {
+        nhanVienDTOS.clear();
+        if (tabLayoutStaff == null) {
+            // Trường hợp chưa init tabLayoutStaff
+            capNhatTrangThai();
+            return;
+        }
+        int selectedTab = tabLayoutStaff.getSelectedTabPosition();
+        for (NhanVienDTO nv : allStaffList) {
+            if (selectedTab == 0) {
+                // Nhân viên (Quyền 1, 2, 3)
+                if (nv.getMAQUYEN() != 4) {
+                    nhanVienDTOS.add(nv);
+                }
+            } else {
+                // Khách hàng (Quyền 4)
+                if (nv.getMAQUYEN() == 4) {
+                    nhanVienDTOS.add(nv);
+                }
+            }
+        }
+        adapterDisplayStaff.notifyDataSetChanged();
+        capNhatTrangThai();
+    }
+
     private void capNhatTrangThai() {
         View layout_empty_state = view.findViewById(R.id.layout_empty_state);
+        int selectedTab = tabLayoutStaff != null ? tabLayoutStaff.getSelectedTabPosition() : 0;
+        String title = selectedTab == 0 ? "Chưa có nhân viên" : "Chưa có khách hàng";
+        String desc = selectedTab == 0 ? "Hãy nhấn nút + để thêm nhân viên mới." : "Danh sách khách hàng hiện đang trống.";
+
         if (nhanVienDTOS != null && nhanVienDTOS.size() > 0) {
             rvStaff.setVisibility(View.VISIBLE);
             if (layout_empty_state != null) layout_empty_state.setVisibility(View.GONE);
@@ -242,8 +294,8 @@ public class DisplayStaffFragment extends Fragment {
             rvStaff.setVisibility(View.GONE);
             if (layout_empty_state != null) {
                 layout_empty_state.setVisibility(View.VISIBLE);
-                ((TextView) view.findViewById(R.id.txt_empty_StateTitle)).setText("Chưa có nhân viên");
-                ((TextView) view.findViewById(R.id.txt_empty_StateDesc)).setText("Hãy nhấn nút + để thêm nhân viên mới.");
+                ((TextView) view.findViewById(R.id.txt_empty_StateTitle)).setText(title);
+                ((TextView) view.findViewById(R.id.txt_empty_StateDesc)).setText(desc);
             }
         }
     }
