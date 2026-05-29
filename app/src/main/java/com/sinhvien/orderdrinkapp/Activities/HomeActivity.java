@@ -35,6 +35,11 @@ import com.sinhvien.orderdrinkapp.Fragments.DisplayTableFragment;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 
+// [FIX BUG 3] Imports
+import android.content.SharedPreferences;
+import java.util.List;
+import com.sinhvien.orderdrinkapp.Api.BookingResponse;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -119,6 +124,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 });
             };
             socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
+
+            // [FIX BUG 1] Socket đã connected sẵn → join room ngay
+            if (socket.connected()) {
+                if (SessionManager.isCashier(HomeActivity.this)) {
+                    socket.emit("join_cashier");
+                } else if (SessionManager.isAdmin(HomeActivity.this)) {
+                    socket.emit("join_admin");
+                }
+            }
         }
 
         // Khởi động kiểm tra session sẽ được tự động chạy trong onResume()
@@ -417,6 +431,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (bookingAlertManager != null) {
             bookingAlertManager.startChecking();
         }
+        checkMissedBookingNotifications(); // [FIX BUG 3]
     }
 
     @Override
@@ -432,6 +447,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     protected void onDestroy() {
         super.onDestroy();
         stopSessionCheck();
+        
+        // [FIX] Hủy listener notify_prepare_table hoàn toàn khi thoát app
+        if (bookingAlertManager != null) {
+            bookingAlertManager.destroy();
+        }
+
         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (socket != null && connectListener != null) {
             socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
@@ -497,5 +518,54 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             sessionHandler = null;
             sessionRunnable = null;
         }
+    }
+
+    // [FIX BUG 3] Hàm backup kiểm tra thông báo đặt bàn bị nhỡ
+    private void checkMissedBookingNotifications() {
+        if (!SessionManager.isAdmin(this) && SessionManager.getMaQuyen(this) != 2) {
+            return; // Chỉ chạy cho Admin và Nhân Viên
+        }
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getBookings(0).enqueue(new Callback<List<BookingResponse>>() {
+            @Override
+            public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    try {
+                        List<BookingResponse> bookings = response.body();
+                        SharedPreferences prefs = getSharedPreferences("nv_booking_cache", MODE_PRIVATE);
+                        SharedPreferences.Editor editor = prefs.edit();
+
+                        for (BookingResponse booking : bookings) {
+                            String key = "booking_" + booking.getMaDatBan();
+                            String oldStatus = prefs.getString(key, "");
+                            String newStatus = booking.getTinhtrang() != null ? booking.getTinhtrang() : "";
+
+                            if (!oldStatus.isEmpty() && !oldStatus.equalsIgnoreCase(newStatus)) {
+                                String tenban = booking.getTenBan() != null ? booking.getTenBan() : "";
+                                String thoigianhen = booking.getThoigianhen() != null ? booking.getThoigianhen() : "";
+
+                                if (newStatus.equalsIgnoreCase("confirmed") && oldStatus.equalsIgnoreCase("pending")) {
+                                    String msg = "📋 Bàn " + tenban + " lúc " + thoigianhen + " đã được xác nhận, cần chuẩn bị!";
+                                    runOnUiThread(() -> Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_LONG).show());
+                                } else if (newStatus.equalsIgnoreCase("checkin") || newStatus.equalsIgnoreCase("checked_in")) {
+                                    String msg = "🪑 Bàn " + tenban + " khách đã check-in!";
+                                    runOnUiThread(() -> Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_LONG).show());
+                                }
+                            }
+                            editor.putString(key, newStatus);
+                        }
+                        editor.apply();
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
+                // Ignore failure
+            }
+        });
     }
 }

@@ -86,6 +86,7 @@ public class BookingAlertManager {
         io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
         if (socket != null) {
             socket.on("booking_status_updated", onBookingStatusUpdated);
+            socket.off("notify_prepare_table", onNotifyPrepareTable); // [FIX]
             socket.on("notify_prepare_table", onNotifyPrepareTable);
         }
 
@@ -113,6 +114,15 @@ public class BookingAlertManager {
         io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
         if (socket != null) {
             socket.off("booking_status_updated", onBookingStatusUpdated);
+            // [FIX] Xóa socket.off("notify_prepare_table") ở đây để nó vẫn nhận thông báo khi onPause
+        }
+    }
+
+    // [FIX] Thêm hàm destroy() mới
+    public void destroy() {
+        stopChecking();
+        io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
+        if (socket != null) {
             socket.off("notify_prepare_table", onNotifyPrepareTable);
         }
     }
