@@ -39,7 +39,7 @@ public class BookingAlertManager {
     private boolean isRunning = false;
 
     public BookingAlertManager(Context context) {
-        this.contextRef = new WeakReference<>(context.getApplicationContext());
+        this.contextRef = new WeakReference<>(context); // [FIX] Bỏ getApplicationContext() để AlertDialog có thể dùng được Context này
         createNotificationChannel();
     }
 
@@ -213,6 +213,26 @@ public class BookingAlertManager {
         
         String title = "Chuẩn bị bàn đặt trước!";
         String content = "Thu ngân nhắc chuẩn bị " + tenBan + " cho khách đặt trước. Vui lòng kiểm tra!";
+
+        // [FIX] Hiện AlertDialog trên main thread
+        try {
+            new Handler(Looper.getMainLooper()).post(() -> {
+                Context currentContext = contextRef.get();
+                if (currentContext != null) {
+                    try {
+                        new androidx.appcompat.app.AlertDialog.Builder(currentContext)
+                                .setTitle("🔔 Nhắc nhở từ Thu ngân")
+                                .setMessage("Thu ngân nhắc chuẩn bị " + tenBan + " cho khách đặt trước!")
+                                .setPositiveButton("OK", null)
+                                .show();
+                    } catch (Exception e) {
+                        e.printStackTrace(); // Bắt lỗi bad token nếu context không phải là Activity
+                    }
+                }
+            });
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.mipmap.ic_launcher)
