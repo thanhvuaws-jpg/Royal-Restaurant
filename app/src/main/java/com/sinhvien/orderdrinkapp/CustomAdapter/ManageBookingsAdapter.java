@@ -105,7 +105,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         }
 
         holder.btn_checkin_booking.setOnClickListener(v -> performConfirmBooking(booking.getMaDatBan()));
-        holder.btn_customer_arrived.setOnClickListener(v -> performCheckIn(booking.getMaDatBan()));
+        holder.btn_customer_arrived.setOnClickListener(v -> performCheckIn(booking));
         holder.btn_cancel_booking.setOnClickListener(v -> promptCancelBooking(booking.getMaDatBan()));
     }
 
@@ -147,7 +147,8 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         });
     }
 
-    private void performCheckIn(int madatban) {
+    private void performCheckIn(BookingResponse booking) {
+        int madatban = booking.getMaDatBan();
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(context, "Đang xử lý nhận bàn...");
         progressDialog.show();
 
@@ -166,6 +167,18 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                     if (socket != null && socket.connected()) {
                         socket.emit("booking_status_updated");
                         socket.emit("refresh_orders");
+                    }
+
+                    // [NEW]
+                    try {
+                        if (socket != null && socket.connected()) {
+                            org.json.JSONObject data = new org.json.JSONObject();
+                            data.put("makh", booking.getMaKH());
+                            data.put("tenban", booking.getTenBan());
+                            socket.emit("notify_prepare_table", data);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
 
                     if (actionListener != null) {

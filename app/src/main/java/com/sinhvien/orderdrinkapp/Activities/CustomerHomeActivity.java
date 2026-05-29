@@ -84,6 +84,19 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                 });
             };
             socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
+
+            // [NEW]
+            socket.on("booking_update", args -> {
+                try {
+                    org.json.JSONObject data = (org.json.JSONObject) args[0];
+                    String body = data.getString("body");
+                    runOnUiThread(() ->
+                        Toast.makeText(CustomerHomeActivity.this, body, Toast.LENGTH_LONG).show()
+                    );
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            });
         }
 
         bookingAlertManager = new com.sinhvien.orderdrinkapp.Utils.BookingAlertManager(this);
@@ -205,6 +218,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (socket != null && connectListener != null) {
             socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
+            socket.off("booking_update"); // [NEW]
         }
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
     }
