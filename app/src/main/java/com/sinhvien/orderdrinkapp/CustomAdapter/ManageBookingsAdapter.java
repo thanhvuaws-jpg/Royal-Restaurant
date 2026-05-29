@@ -169,14 +169,10 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         socket.emit("refresh_orders");
                     }
 
-                    // [NEW]
+                    // [NEW] Cập nhật local cache để không bị báo Toast trùng
                     try {
-                        if (socket != null && socket.connected()) {
-                            org.json.JSONObject data = new org.json.JSONObject();
-                            data.put("makh", booking.getMaKH());
-                            data.put("tenban", booking.getTenBan());
-                            socket.emit("notify_prepare_table", data);
-                        }
+                        android.content.SharedPreferences prefs = context.getSharedPreferences("nv_booking_cache", android.content.Context.MODE_PRIVATE);
+                        prefs.edit().putString("booking_" + booking.getMaDatBan(), "checked_in").apply();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
