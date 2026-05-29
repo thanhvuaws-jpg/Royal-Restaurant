@@ -25,6 +25,18 @@ import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerBookingFragment;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerProfileFragment;
 
+// [NEW] Imports
+import android.content.SharedPreferences;
+import android.app.AlertDialog;
+import java.util.List;
+import java.util.ArrayList;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Api.ApiClient;
+import com.sinhvien.orderdrinkapp.Api.ApiService;
+import com.sinhvien.orderdrinkapp.Api.BookingResponse;
+
 public class CustomerHomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
     DrawerLayout drawerLayout;
@@ -140,6 +152,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         if (bookingAlertManager != null) {
             bookingAlertManager.startChecking();
         }
+        checkBookingChangesOnResume(); // [NEW]
     }
 
     @Override
@@ -221,5 +234,65 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             socket.off("booking_update"); // [NEW]
         }
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
+    }
+
+    // [NEW] Method to check booking changes
+    private void checkBookingChangesOnResume() {
+        int makh = SessionManager.getMaNV(this);
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getBookings(makh).enqueue(new Callback<List<BookingResponse>>() {
+            @Override
+            public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<BookingResponse> bookings = response.body();
+                    SharedPreferences prefs = getSharedPreferences("booking_status_cache", MODE_PRIVATE);
+                    SharedPreferences.Editor editor = prefs.edit();
+                    
+                    List<String> messages = new ArrayList<>();
+                    
+                    for (BookingResponse booking : bookings) {
+                        String key = "booking_" + booking.getMaDatBan();
+                        String oldStatus = prefs.getString(key, "");
+                        String newStatus = booking.getTinhtrang() != null ? booking.getTinhtrang() : "";
+                        
+                        if (!oldStatus.isEmpty() && !oldStatus.equalsIgnoreCase(newStatus)) {
+                            String tenban = booking.getTenBan() != null ? booking.getTenBan() : "";
+                            String thoigianhen = booking.getThoigianhen() != null ? booking.getThoigianhen() : "";
+                            
+                            if (newStatus.equalsIgnoreCase("confirmed")) {
+                                messages.add("✅ Bàn " + tenban + " lúc " + thoigianhen + " đã được xác nhận!");
+                            } else if (newStatus.equalsIgnoreCase("cancelled")) {
+                                messages.add("❌ Đặt bàn " + tenban + " đã bị hủy.");
+                            } else if (newStatus.equalsIgnoreCase("checked_in") || newStatus.equalsIgnoreCase("checkin")) {
+                                messages.add("🪑 Bàn " + tenban + " đã sẵn sàng, mời bạn vào!");
+                            }
+                        }
+                        
+                        editor.putString(key, newStatus);
+                    }
+                    
+                    editor.apply();
+                    
+                    if (!messages.isEmpty()) {
+                        StringBuilder sb = new StringBuilder();
+                        for (int i = 0; i < messages.size(); i++) {
+                            sb.append(messages.get(i));
+                            if (i < messages.size() - 1) sb.append("\n\n");
+                        }
+                        
+                        new AlertDialog.Builder(CustomerHomeActivity.this)
+                            .setTitle("🔔 Thông báo đặt bàn")
+                            .setMessage(sb.toString())
+                            .setPositiveButton("OK", null)
+                            .show();
+                    }
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
+                // Ignore failure
+            }
+        });
     }
 }
