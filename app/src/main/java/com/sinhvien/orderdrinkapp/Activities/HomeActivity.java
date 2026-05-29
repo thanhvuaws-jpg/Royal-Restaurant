@@ -118,7 +118,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     // Đăng ký phòng tương ứng quyền để nhận sự kiện phù hợp
                     if (SessionManager.isCashier(HomeActivity.this)) {
                         socket.emit("join_cashier");
-                    } else if (SessionManager.isAdmin(HomeActivity.this)) {
+                    } else {
+                        // [FIX] Admin (1) và NV (2) đều join admin_room
                         socket.emit("join_admin");
                     }
                 });
@@ -129,7 +130,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             if (socket.connected()) {
                 if (SessionManager.isCashier(HomeActivity.this)) {
                     socket.emit("join_cashier");
-                } else if (SessionManager.isAdmin(HomeActivity.this)) {
+                } else {
+                    // [FIX] Admin (1) và NV (2) đều join admin_room
                     socket.emit("join_admin");
                 }
             }
