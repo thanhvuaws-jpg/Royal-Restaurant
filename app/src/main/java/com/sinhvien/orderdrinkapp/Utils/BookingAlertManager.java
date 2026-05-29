@@ -72,7 +72,20 @@ public class BookingAlertManager {
         @Override
         public void call(Object... args) {
             if (args.length > 0 && args[0] != null) {
-                String tenBan = args[0].toString();
+                String tenBan = "";
+                try {
+                    if (args[0] instanceof org.json.JSONObject) {
+                        tenBan = ((org.json.JSONObject) args[0]).getString("tenban");
+                    } else if (args[0] instanceof String) {
+                        org.json.JSONObject data = new org.json.JSONObject((String) args[0]);
+                        tenBan = data.getString("tenban");
+                    } else {
+                        tenBan = args[0].toString();
+                    }
+                } catch (Exception e) {
+                    tenBan = args[0].toString();
+                }
+                
                 // Phải chạy trên background thread hoặc không liên quan UI
                 showPrepareTableNotification(tenBan);
             }

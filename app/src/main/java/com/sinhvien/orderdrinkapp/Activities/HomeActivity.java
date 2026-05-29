@@ -113,15 +113,16 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (socket != null) {
             connectListener = args -> {
+                // Đăng ký phòng tương ứng quyền để nhận sự kiện phù hợp (Chạy ngay lập tức, không đợi UI thread)
+                if (SessionManager.isCashier(HomeActivity.this)) {
+                    socket.emit("join_cashier");
+                } else {
+                    // [FIX] Admin (1) và NV (2) đều join admin_room
+                    socket.emit("join_admin");
+                }
+                
                 runOnUiThread(() -> {
                     Toast.makeText(HomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT).show();
-                    // Đăng ký phòng tương ứng quyền để nhận sự kiện phù hợp
-                    if (SessionManager.isCashier(HomeActivity.this)) {
-                        socket.emit("join_cashier");
-                    } else {
-                        // [FIX] Admin (1) và NV (2) đều join admin_room
-                        socket.emit("join_admin");
-                    }
                 });
             };
             socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
