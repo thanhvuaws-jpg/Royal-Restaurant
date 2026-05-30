@@ -90,7 +90,6 @@ public class DisplayStatisticFragment extends Fragment {
 
 
         tatCaDonDat = new ArrayList<>(); // Khởi tạo trống để tránh crash khi chưa có dữ liệu
-        HienThiDSThongKe();
 
         // Chip filter listener
         chipGroup_statistic_Filter.setOnCheckedChangeListener((group, checkedId) -> {
@@ -103,12 +102,15 @@ public class DisplayStatisticFragment extends Fragment {
             } else if (checkedId == R.id.chip_filter_All) {
                 currentFilter = FILTER_ALL;
             }
-            capNhatDashboard();
+            // [FIX] Gọi API thay vì lọc client
+            HienThiDSThongKe(true);
         });
 
-        // Mặc định chọn "7 ngày"
+        // Mặc định chọn "7 ngày" - setChecked sẽ tự động trigger OnCheckedChangeListener nếu trạng thái thay đổi
         ((Chip) view.findViewById(R.id.chip_filter_7Days)).setChecked(true);
-        capNhatDashboard();
+        
+        // [FIX] Gọi rõ ràng lệnh tải dữ liệu lần đầu (phòng trường hợp chip đã được check sẵn trong XML nên listener không tự kích hoạt)
+        HienThiDSThongKe(false);
 
         // Click vào đơn → xem chi tiết (sẽ được gán trong capNhatDashboard)
 
@@ -117,10 +119,12 @@ public class DisplayStatisticFragment extends Fragment {
 
     private static List<DonDatDTO> cachedStatisticOrders = java.util.Collections.synchronizedList(new ArrayList<>());
     private static long lastLoadTime = 0;
+    private static int lastFilter = -999; // [FIX] Lưu filter trước đó
 
     public static void clearCache() {
         cachedStatisticOrders.clear();
         lastLoadTime = 0;
+        lastFilter = -999;
     }
 
     private void HienThiDSThongKe(){
@@ -129,16 +133,47 @@ public class DisplayStatisticFragment extends Fragment {
 
     private void HienThiDSThongKe(boolean forceRefresh) {
         long currentTime = System.currentTimeMillis();
-        if (!forceRefresh && !cachedStatisticOrders.isEmpty() && (currentTime - lastLoadTime < 30000)) {
+        if (!forceRefresh && !cachedStatisticOrders.isEmpty() && (currentTime - lastLoadTime < 30000) && lastFilter == currentFilter) {
             tatCaDonDat = new ArrayList<>(cachedStatisticOrders);
             capNhatDashboard();
             return;
         }
 
+        androidx.appcompat.app.AlertDialog progressDialog = null;
+        if (cachedStatisticOrders.isEmpty()) {
+            progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
+            progressDialog.show();
+        }
+        final androidx.appcompat.app.AlertDialog finalProgressDialog = progressDialog;
+
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getPaidOrders().enqueue(new Callback<List<OrderResponse>>() {
+        Call<List<OrderResponse>> call;
+
+        // [FIX] Tính toán from_date và to_date
+        String fromDate = null;
+        String toDate = null;
+        if (currentFilter != FILTER_ALL) {
+            SimpleDateFormat apiFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Calendar cal = Calendar.getInstance();
+            toDate = apiFormat.format(cal.getTime());
+            
+            if (currentFilter == FILTER_TODAY) {
+                fromDate = toDate;
+            } else {
+                cal.add(Calendar.DAY_OF_YEAR, -(currentFilter - 1));
+                fromDate = apiFormat.format(cal.getTime());
+            }
+            call = apiService.getPaidOrders(fromDate, toDate);
+        } else {
+            call = apiService.getPaidOrders();
+        }
+
+        call.enqueue(new Callback<List<OrderResponse>>() {
             @Override
             public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
+                if (finalProgressDialog != null && finalProgressDialog.isShowing()) {
+                    finalProgressDialog.dismiss();
+                }
                 if (!isAdded() || getActivity() == null) return;
 
                 if (response.isSuccessful() && response.body() != null) {
@@ -164,6 +199,7 @@ public class DisplayStatisticFragment extends Fragment {
                         cachedStatisticOrders.add(dto);
                     }
                     lastLoadTime = System.currentTimeMillis();
+                    lastFilter = currentFilter;
                     tatCaDonDat = new ArrayList<>(cachedStatisticOrders);
                     capNhatDashboard();
                 }
@@ -171,43 +207,21 @@ public class DisplayStatisticFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
+                if (finalProgressDialog != null && finalProgressDialog.isShowing()) {
+                    finalProgressDialog.dismiss();
+                }
                 if (isAdded() && getActivity() != null) {
                     Toast.makeText(getActivity(), "Lỗi thống kê Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
     }
-    private List<DonDatDTO> layDanhSachDaLoc() {
-        if (currentFilter == FILTER_ALL) return tatCaDonDat;
 
-        List<DonDatDTO> result = new ArrayList<>();
-        Calendar cal = Calendar.getInstance();
-
-        if (currentFilter == FILTER_TODAY) {
-            String today = DB_FORMAT.format(cal.getTime());
-            for (DonDatDTO don : tatCaDonDat) {
-                if (today.equals(don.getNgayDat())) result.add(don);
-            }
-        } else {
-            // FILTER_7DAYS hoặc FILTER_30DAYS
-            cal.add(Calendar.DAY_OF_YEAR, -currentFilter);
-            Date cutoff = cal.getTime();
-            for (DonDatDTO don : tatCaDonDat) {
-                try {
-                    String sNgay = don.getNgayDat();
-                    if(sNgay != null){
-                        Date ngay = DB_FORMAT.parse(sNgay);
-                        if (ngay != null && !ngay.before(cutoff)) result.add(don);
-                    }
-                } catch (ParseException ignored) {}
-            }
-        }
-        return result;
-    }
+    // [FIX] Xóa hàm layDanhSachDaLoc() vì server đã lọc sẵn
 
     /** Cập nhật toàn bộ dashboard: cards + chart + list */
     private void capNhatDashboard() {
-        List<DonDatDTO> filtered = layDanhSachDaLoc();
+        List<DonDatDTO> filtered = tatCaDonDat; // Đã lọc từ server
 
         // === Summary cards ===
         long tongDoanhThu = 0;
@@ -237,7 +251,7 @@ public class DisplayStatisticFragment extends Fragment {
             rv_statistic_OrderList.setAdapter(adapterDisplayStatistic);
             
             adapterDisplayStatistic.setOnItemClickListener(position -> {
-                List<DonDatDTO> currentFiltered = layDanhSachDaLoc();
+                List<DonDatDTO> currentFiltered = tatCaDonDat;
                 if (position >= currentFiltered.size()) return;
                 DonDatDTO don = currentFiltered.get(position);
                 Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);
