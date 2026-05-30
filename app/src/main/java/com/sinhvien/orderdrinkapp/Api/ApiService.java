@@ -230,4 +230,11 @@ public interface ApiService {
 
     @GET("api/get_paid_orders.php")
     Call<List<OrderResponse>> getPaidOrders(@Query("date") String date);
+
+    // [FIX] Thêm method hỗ trợ lọc theo khoảng thời gian
+    @GET("api/get_paid_orders.php")
+    Call<List<OrderResponse>> getPaidOrders(
+            @Query("from_date") String fromDate,
+            @Query("to_date") String toDate
+    );
 }
