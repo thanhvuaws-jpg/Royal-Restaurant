@@ -51,8 +51,8 @@ import retrofit2.Response;
 
 public class DisplayMenuFragment extends Fragment {
 
-    // Hằng số phân trang
-    private static final int PAGE_SIZE = 10;
+    // Hằng số phân trang (Tăng lên 1000 để load toàn bộ món trong 1 lần, kết hợp với SQLite cache)
+    private static final int PAGE_SIZE = 1000;
 
     int maloai, maban;
     String tenloai;
