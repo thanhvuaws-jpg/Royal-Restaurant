@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -27,6 +28,7 @@ import com.sinhvien.orderdrinkapp.Api.OrderDetailResponse;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.ReceiptHelper;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +38,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class PaymentActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final String TAG = "PaymentActivity";
 
     ImageView img_payment_BackBtn;
     TextView txt_payment_TableName, txt_payment_OrderDate, txt_payment_TotalAmount;
@@ -138,6 +142,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_payment_Pay) {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
             hienThiDialogChonPhuongThuc();
         } else if (id == R.id.img_payment_BackBtn) {
             finish();
@@ -225,6 +230,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Log.d(TAG, "Gửi yêu cầu thanh toán thành công: madon=" + madondat + ", phuongthuc=" + phuongthuc);
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
                         socket.emit("refresh_orders");
@@ -238,6 +244,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
+                Log.e(TAG, "Lỗi gửi yêu cầu thanh toán: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
                     Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }

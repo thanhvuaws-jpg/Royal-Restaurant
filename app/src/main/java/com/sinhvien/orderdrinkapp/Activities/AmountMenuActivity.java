@@ -4,6 +4,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -15,12 +16,15 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class AmountMenuActivity extends AppCompatActivity {
+
+    private static final String TAG = "AmountMenuActivity";
 
     TextInputLayout txtl_amount_Quantity, txtl_amount_Note;
     Button btn_amount_Confirm;
@@ -56,6 +60,7 @@ public class AmountMenuActivity extends AppCompatActivity {
         btn_amount_Confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
                 if (!validateAmount()) {
                     return;
                 }
@@ -78,6 +83,7 @@ public class AmountMenuActivity extends AppCompatActivity {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                            Log.d(TAG, "Thêm món thành công: mamon=" + mamon + ", soluong=" + sluong + ", madon=" + madondatCloud);
                             Toast.makeText(AmountMenuActivity.this, "Đã gọi món lên Cloud!", Toast.LENGTH_SHORT).show();
                             finish();
                         } else {
@@ -88,6 +94,7 @@ public class AmountMenuActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
+                        Log.e(TAG, "Lỗi thêm món vào đơn: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

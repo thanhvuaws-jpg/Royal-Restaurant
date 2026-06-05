@@ -44,8 +44,11 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.util.Log;
 
 public class DisplayCategoryFragment extends Fragment {
+
+    private static final String TAG = "DisplayCategoryFragment";
 
     RecyclerView rv_category_CategoryList;
     List<LoaiMonDTO> loaiMonDTOList = new ArrayList<>();
@@ -182,6 +185,7 @@ public class DisplayCategoryFragment extends Fragment {
                 }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Đồng bộ loại món thành công: count=" + response.body().size());
                     // Cập nhật dữ liệu mới vào SQLite dưới nền
                     LocalDatabaseHelper.getExecutor().execute(() -> {
                         dbHelper.syncCategories(response.body());
@@ -201,6 +205,7 @@ public class DisplayCategoryFragment extends Fragment {
                 if (swipeRefresh != null) {
                     swipeRefresh.setRefreshing(false);
                 }
+                Log.e(TAG, "Lỗi đồng bộ loại món: " + t.getMessage());
                 // Khi không có mạng, vẫn giữ nguyên dữ liệu từ SQLite đã hiển thị trước đó
                 if (isAdded() && getActivity() != null) {
                     Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();

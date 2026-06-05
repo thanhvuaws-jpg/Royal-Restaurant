@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -19,6 +20,7 @@ import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayPayment;
 import com.sinhvien.orderdrinkapp.DTO.ThanhToanDTO;
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class CashierConfirmActivity extends AppCompatActivity {
+
+    private static final String TAG = "CashierConfirmActivity";
 
     ImageView img_cashier_BackBtn;
     TextView txt_cashier_TableName, txt_cashier_StaffName, txt_cashier_OrderDate, txt_cashier_TotalAmount, txt_cashier_ProposedMethod;
@@ -85,8 +89,14 @@ public class CashierConfirmActivity extends AppCompatActivity {
 
         img_cashier_BackBtn.setOnClickListener(v -> finish());
 
-        btn_cashier_Cash.setOnClickListener(v -> confirmPayment("Tiền mặt"));
-        btn_cashier_Bank.setOnClickListener(v -> confirmPayment("Chuyển khoản"));
+        btn_cashier_Cash.setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            confirmPayment("Tiền mặt");
+        });
+        btn_cashier_Bank.setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            confirmPayment("Chuyển khoản");
+        });
     }
 
     private void loadOrderDetails() {
@@ -130,6 +140,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Log.d(TAG, "Xác nhận thanh toán thành công: madon=" + madon + ", method=" + method);
                     Toast.makeText(CashierConfirmActivity.this, "Xác nhận thành công!", Toast.LENGTH_SHORT).show();
                     
                     // Phát sự kiện Socket real-time để báo các bên cập nhật
@@ -148,6 +159,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
+                Log.e(TAG, "Lỗi xác nhận thanh toán: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
                     Toast.makeText(CashierConfirmActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }

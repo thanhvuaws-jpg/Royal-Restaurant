@@ -32,8 +32,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import android.util.Log;
 
 public class DisplayHomeFragment extends Fragment implements View.OnClickListener {
+
+    private static final String TAG = "DisplayHomeFragment";
 
     RecyclerView rcv_display_HomeCategoryList, rcv_display_HomeOrderToday;
     MaterialCardView layout_display_HomeStatistic, layout_display_HomeViewTable, layout_display_HomeViewMenu, layout_display_HomeViewStaff;
@@ -179,6 +182,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             public void onResponse(retrofit2.Call<List<LoaiMonResponse>> call, retrofit2.Response<List<LoaiMonResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Đồng bộ loại món thành công ở trang chủ: count=" + response.body().size());
                     // Cập nhật dữ liệu mới vào SQLite dưới nền
                     LocalDatabaseHelper.getExecutor().execute(() -> {
                         dbHelper.syncCategories(response.body());
@@ -195,6 +199,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
 
             @Override
             public void onFailure(retrofit2.Call<List<LoaiMonResponse>> call, Throwable t) {
+                Log.e(TAG, "Lỗi đồng bộ loại món ở trang chủ: " + t.getMessage());
                 // Giữ nguyên dữ liệu từ SQLite
             }
         });
@@ -233,6 +238,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             public void onResponse(retrofit2.Call<List<OrderResponse>> call, retrofit2.Response<List<OrderResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Tải đơn hàng trong ngày thành công ở trang chủ: count=" + response.body().size());
                     donDatDTOS.clear();
                     SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
                     for (OrderResponse res : response.body()) {
@@ -266,6 +272,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
 
             @Override
             public void onFailure(retrofit2.Call<List<OrderResponse>> call, Throwable t) {
+                Log.e(TAG, "Lỗi tải đơn hàng trong ngày ở trang chủ: " + t.getMessage());
                 if (isAdded() && getActivity() != null) {
                     android.widget.Toast.makeText(getActivity(), "Lỗi tải đơn hàng: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
                 }

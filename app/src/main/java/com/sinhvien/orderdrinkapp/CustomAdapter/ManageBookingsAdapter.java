@@ -20,14 +20,18 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.BookingResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.util.Log;
 
 public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAdapter.ViewHolder> {
+
+    private static final String TAG = "ManageBookingsAdapter";
 
     private final Context context;
     private final List<BookingResponse> bookingList;
@@ -104,9 +108,18 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             holder.layout_booking_actions.setVisibility(View.GONE);
         }
 
-        holder.btn_checkin_booking.setOnClickListener(v -> performConfirmBooking(booking.getMaDatBan()));
-        holder.btn_customer_arrived.setOnClickListener(v -> performCheckIn(booking));
-        holder.btn_cancel_booking.setOnClickListener(v -> promptCancelBooking(booking.getMaDatBan()));
+        holder.btn_checkin_booking.setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            performConfirmBooking(booking.getMaDatBan());
+        });
+        holder.btn_customer_arrived.setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            performCheckIn(booking);
+        });
+        holder.btn_cancel_booking.setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            promptCancelBooking(booking.getMaDatBan());
+        });
     }
 
     private void performConfirmBooking(int madatban) {
@@ -121,6 +134,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Log.d(TAG, "Xác nhận đặt bàn thành công: madatban=" + madatban);
                     Toast.makeText(context, "Đã xác nhận đặt bàn!", Toast.LENGTH_SHORT).show();
                     
                     // Phát sự kiện Socket real-time để báo các bên cập nhật
@@ -135,6 +149,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                     }
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "Lỗi xác nhận đặt bàn";
+                    Log.w(TAG, "Xác nhận đặt bàn thất bại: " + msg);
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -142,6 +157,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             @Override
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 progressDialog.dismiss();
+                Log.e(TAG, "Lỗi kết nối API xác nhận đặt bàn: " + t.getMessage());
                 Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -160,6 +176,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Log.d(TAG, "Nhận bàn thành công: madatban=" + madatban);
                     Toast.makeText(context, "Nhận bàn thành công! Hóa đơn đã được tạo.", Toast.LENGTH_SHORT).show();
                     
                     // Phát sự kiện Socket real-time để báo các bên cập nhật
@@ -182,6 +199,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                     }
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "Lỗi nhận bàn";
+                    Log.w(TAG, "Nhận bàn thất bại: " + msg);
                     Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -189,6 +207,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             @Override
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 progressDialog.dismiss();
+                Log.e(TAG, "Lỗi kết nối API nhận bàn: " + t.getMessage());
                 Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });
@@ -208,6 +227,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                             progressDialog.dismiss();
                             if (response.isSuccessful()) {
+                                Log.d(TAG, "Hủy lịch đặt bàn thành công: madatban=" + madatban);
                                 Toast.makeText(context, "Đã hủy lịch hẹn đặt bàn!", Toast.LENGTH_SHORT).show();
                                 
                                 // Phát sự kiện Socket real-time
@@ -221,6 +241,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                                     actionListener.onActionSuccess();
                                 }
                             } else {
+                                Log.w(TAG, "Không thể hủy lịch đặt bàn: madatban=" + madatban);
                                 Toast.makeText(context, "Không thể hủy lịch đặt!", Toast.LENGTH_SHORT).show();
                             }
                         }
@@ -228,6 +249,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         @Override
                         public void onFailure(Call<BookingResponse> call, Throwable t) {
                             progressDialog.dismiss();
+                            Log.e(TAG, "Lỗi kết nối API hủy lịch đặt bàn: " + t.getMessage());
                             Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });

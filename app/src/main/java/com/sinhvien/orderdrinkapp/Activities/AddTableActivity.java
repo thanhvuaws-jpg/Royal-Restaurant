@@ -15,13 +15,17 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.Api.TableResponse;
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.widget.Toast;
+import android.util.Log;
 
 public class AddTableActivity extends AppCompatActivity {
+
+    private static final String TAG = "AddTableActivity";
 
     TextInputLayout TXTL_addtable_TableName;
     Button BTN_addtable_CreateTable;
@@ -45,6 +49,7 @@ public class AddTableActivity extends AppCompatActivity {
         BTN_addtable_CreateTable.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
                 if(!validateName()){
                     return;
                 }
@@ -61,14 +66,16 @@ public class AddTableActivity extends AppCompatActivity {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful()) {
+                            Log.d(TAG, "Quản lý bàn thành công: action=" + action + ", maban=" + maban + ", tenban=" + sTenBanAn);
                             setResult(RESULT_OK);
                             finish();
                         }
                     }
-
+ 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
+                        Log.e(TAG, "Lỗi kết nối API quản lý bàn: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddTableActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

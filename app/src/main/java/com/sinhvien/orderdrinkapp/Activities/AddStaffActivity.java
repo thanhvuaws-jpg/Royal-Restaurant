@@ -20,15 +20,19 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.Api.StaffResponse;
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.util.Log;
 
 import java.util.Calendar;
 import java.util.regex.Pattern;
 
 public class AddStaffActivity extends AppCompatActivity implements View.OnClickListener{
+
+    private static final String TAG = "AddStaffActivity";
 
     private static final Pattern PASSWORD_PATTERN =
             Pattern.compile("^" +
@@ -85,6 +89,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null) {
                         StaffResponse res = response.body();
+                        Log.d(TAG, "Tải thông tin nhân viên thành công: manv=" + manv + ", hoten=" + res.getHoTenNV());
                         txtl_add_StaffFullName.getEditText().setText(res.getHoTenNV());
                         txtl_add_StaffUserName.getEditText().setText(res.getTenDN());
                         txtl_add_StaffEmail.getEditText().setText(res.getEmail());
@@ -108,7 +113,9 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                     }
                 }
                 @Override
-                public void onFailure(Call<StaffResponse> call, Throwable t) {}
+                public void onFailure(Call<StaffResponse> call, Throwable t) {
+                    Log.e(TAG, "Lỗi tải thông tin nhân viên: " + t.getMessage());
+                }
             });
         }
         //endregion
@@ -123,6 +130,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
         String chucnang;
         switch (id){
             case R.id.btn_add_StaffCreate:
+                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
                 if( !validateAge() | !validateEmail() | !validateFullName() | !validateGender() | !validatePassWord() |
                 !validatePermission() | !validatePhone() | !validateUserName()){
                     return;
@@ -173,6 +181,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful()) {
+                            Log.d(TAG, "Quản lý nhân viên thành công: action=" + actionStaff + ", manv=" + manv + ", hoten=" + hoTen);
                             Intent intent = new Intent();
                             intent.putExtra("ketquaktra", (long)1);
                             intent.putExtra("chucnang", (manv != 0) ? "sua" : "themnv");
@@ -180,10 +189,11 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                             finish();
                         }
                     }
-
+ 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
+                        Log.e(TAG, "Lỗi kết nối API quản lý nhân viên: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddStaffActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

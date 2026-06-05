@@ -4,6 +4,7 @@ import android.app.DatePickerDialog;
 
 import android.app.TimePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -29,6 +30,7 @@ import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
 import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -42,6 +44,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 public class CustomerBookingActivity extends AppCompatActivity {
+
+    private static final String TAG = "CustomerBookingActivity";
 
     Spinner spinner_tables;
     Button btn_select_date, btn_select_time, btn_confirm_booking;
@@ -92,7 +96,10 @@ public class CustomerBookingActivity extends AppCompatActivity {
         setupDateTimePickers();
         loadDishes();
 
-        btn_confirm_booking.setOnClickListener(v -> submitBooking());
+        btn_confirm_booking.setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            submitBooking();
+        });
     }
 
     private void loadTables() {
@@ -300,6 +307,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Log.d(TAG, "Đặt bàn thành công: maban=" + maban + ", datetime=" + datetime);
                     // Emit socket để cashier web biết có booking mới
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
@@ -309,6 +317,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
                     finish();
                 } else {
                     String msg = response.body() != null ? response.body().getMessage() : "Không thể đặt bàn!";
+                    Log.w(TAG, "Đặt bàn thất bại: " + msg);
                     Toast.makeText(CustomerBookingActivity.this, msg, Toast.LENGTH_SHORT).show();
                 }
             }
@@ -316,6 +325,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 progressDialog.dismiss();
+                Log.e(TAG, "Lỗi kết nối đặt bàn: " + t.getMessage());
                 Toast.makeText(CustomerBookingActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
             }
         });

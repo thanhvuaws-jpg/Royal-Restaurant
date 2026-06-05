@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -18,12 +19,15 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.StaffResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final String TAG = "LoginActivity";
 
     TextInputLayout txtl_login_UserName, txtl_login_Password;
     Button btn_login_SignIn, btn_login_SignUp;
@@ -69,6 +73,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_login_SignIn) {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
             String user = "";
             String pass = "";
             if(txtl_login_UserName.getEditText() != null) user = txtl_login_UserName.getEditText().getText().toString();
@@ -91,6 +96,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                        Log.d(TAG, "Đăng nhập thành công: user=" + finalUser + ", role=" + response.body().getMaQuyen());
                         StaffResponse res = response.body();
                         SessionManager.saveSession(LoginActivity.this, res.getMaQuyen(), res.getMaNV(), res.getHoTenNV(), res.getToken());
 
@@ -119,6 +125,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         finish();
                     } else {
                         String msg = response.body() != null ? response.body().getMessage() : "Sai tên đăng nhập hoặc mật khẩu!";
+                        Log.w(TAG, "Đăng nhập thất bại: " + msg);
                         Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
                     }
                 }
@@ -126,6 +133,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                 @Override
                 public void onFailure(Call<StaffResponse> call, Throwable t) {
                     if (progressDialog.isShowing()) progressDialog.dismiss();
+                    Log.e(TAG, "Lỗi kết nối API login: " + t.getMessage());
                     if (!isFinishing() && !isDestroyed()) {
                         Toast.makeText(LoginActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }

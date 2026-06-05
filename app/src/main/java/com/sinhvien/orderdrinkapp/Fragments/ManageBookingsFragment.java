@@ -26,8 +26,11 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.util.Log;
 
 public class ManageBookingsFragment extends Fragment {
+
+    private static final String TAG = "ManageBookingsFragment";
 
     TabLayout tabLayout_bookings;
     RecyclerView rv_manage_bookings;
@@ -35,6 +38,7 @@ public class ManageBookingsFragment extends Fragment {
     List<BookingResponse> allBookings = new ArrayList<>();
     List<BookingResponse> filteredBookings = new ArrayList<>();
     ManageBookingsAdapter adapter;
+    private androidx.appcompat.app.AlertDialog loadingDialog;
 
     private io.socket.client.Socket mSocket;
 
@@ -120,12 +124,20 @@ public class ManageBookingsFragment extends Fragment {
             return;
         }
 
+        // Chỉ hiện loading lần đầu tiên khi cache rỗng
+        if (cachedBookings.isEmpty()) {
+            loadingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getContext(), "Đang tải lịch đặt bàn...");
+            if (loadingDialog != null) loadingDialog.show();
+        }
+
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getBookings(0).enqueue(new Callback<List<BookingResponse>>() {
             @Override
             public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
+                if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
                 if (!isAdded() || getContext() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Tải danh sách đặt bàn thành công: count=" + response.body().size());
                     cachedBookings.clear();
                     cachedBookings.addAll(response.body());
                     lastLoadTime = System.currentTimeMillis();
@@ -138,6 +150,8 @@ public class ManageBookingsFragment extends Fragment {
 
             @Override
             public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
+                if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
+                Log.e(TAG, "Lỗi tải lịch đặt bàn: " + t.getMessage());
                 if (getContext() != null) {
                     Toast.makeText(getContext(), "Lỗi tải lịch đặt bàn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }

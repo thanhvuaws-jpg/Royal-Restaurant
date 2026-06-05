@@ -16,13 +16,17 @@ import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.StaffResponse;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import java.util.Calendar;
+import android.util.Log;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
 public class Register2ndActivity extends AppCompatActivity {
+
+    private static final String TAG = "Register2ndActivity";
 
     RadioGroup RG_signup2nd_Gender;
     DatePicker DT_signup2nd_DOB;
@@ -54,6 +58,7 @@ public class Register2ndActivity extends AppCompatActivity {
         BTN_signup2nd_Complete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
                 if(!validateAge() | !validateGender()){
                     return;
                 }
@@ -82,10 +87,12 @@ public class Register2ndActivity extends AppCompatActivity {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                            Log.d(TAG, "Đăng ký thành công: username=" + tenDN);
                             Toast.makeText(Register2ndActivity.this, "Đăng ký thành công lên Cloud!", Toast.LENGTH_SHORT).show();
                             callLoginFromRegister();
                         } else {
                             String msg = response.body() != null ? response.body().getMessage() : "Lỗi đăng ký";
+                            Log.w(TAG, "Đăng ký thất bại: " + msg);
                             Toast.makeText(Register2ndActivity.this, msg, Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -93,6 +100,7 @@ public class Register2ndActivity extends AppCompatActivity {
                     @Override
                     public void onFailure(Call<StaffResponse> call, Throwable t) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
+                        Log.e(TAG, "Lỗi kết nối API đăng ký: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(Register2ndActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

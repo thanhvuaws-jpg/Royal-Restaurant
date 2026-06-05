@@ -26,6 +26,7 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.LoaiMonResponse;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
@@ -33,6 +34,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Base64;
+import android.util.Log;
 
 import org.w3c.dom.Text;
 
@@ -41,6 +43,8 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class AddCategoryActivity extends AppCompatActivity implements View.OnClickListener {
+
+    private static final String TAG = "AddCategoryActivity";
 
     Button BTN_addcategory_CreateCategory;
     ImageView IMG_addcategory_back, IMG_addcategory_AddImage;
@@ -94,6 +98,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 public void onResponse(Call<LoaiMonResponse> call, Response<LoaiMonResponse> response) {
                     if (isFinishing() || isDestroyed()) return;
                     if (response.isSuccessful() && response.body() != null) {
+                        Log.d(TAG, "Tải thông tin loại thành công: maloai=" + maloai);
                         TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
                         String imageUrl = ApiClient.BASE_URL + response.body().getHinhAnh();
                         Glide.with(AddCategoryActivity.this)
@@ -104,7 +109,9 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     }
                 }
                 @Override
-                public void onFailure(Call<LoaiMonResponse> call, Throwable t) {}
+                public void onFailure(Call<LoaiMonResponse> call, Throwable t) {
+                    Log.e(TAG, "Lỗi tải thông tin loại: " + t.getMessage());
+                }
             });
         }
         //endregion
@@ -133,6 +140,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 break;
 
             case R.id.btn_addcategory_CreateCategory:
+                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
                 if(!validateImage() | !validateName()){
                     return;
                 }
@@ -151,6 +159,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful()) {
+                            Log.d(TAG, "Quản lý loại thành công: action=" + action + ", maloai=" + maloai);
                             Intent intent = new Intent();
                             intent.putExtra("ktra", true);
                             intent.putExtra("chucnang", (maloai != 0) ? "sualoai" : "themloai");
@@ -162,6 +171,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
+                        Log.e(TAG, "Lỗi kết nối API quản lý loại: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

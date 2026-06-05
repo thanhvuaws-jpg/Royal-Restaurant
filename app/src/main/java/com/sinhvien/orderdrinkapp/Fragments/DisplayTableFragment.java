@@ -40,8 +40,11 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import android.util.Log;
 
 public class DisplayTableFragment extends Fragment {
+
+    private static final String TAG = "DisplayTableFragment";
 
     RecyclerView rvDisplayTable;
     TabLayout tabLayoutTable;
@@ -204,6 +207,7 @@ public class DisplayTableFragment extends Fragment {
                 }
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Đồng bộ danh sách bàn thành công: count=" + response.body().size());
                     // Cập nhật dữ liệu mới vào SQLite dưới nền
                     LocalDatabaseHelper.getExecutor().execute(() -> {
                         dbHelper.syncTables(response.body());
@@ -224,6 +228,7 @@ public class DisplayTableFragment extends Fragment {
                 if (swipeRefresh != null) {
                     swipeRefresh.setRefreshing(false);
                 }
+                Log.e(TAG, "Lỗi đồng bộ danh sách bàn: " + t.getMessage());
                 if (isAdded() && getActivity() != null) {
                     Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }

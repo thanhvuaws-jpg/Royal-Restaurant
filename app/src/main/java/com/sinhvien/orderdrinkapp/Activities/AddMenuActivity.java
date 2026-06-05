@@ -28,6 +28,7 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.MonResponse;
 import com.sinhvien.orderdrinkapp.Api.OrderResponse;
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
@@ -35,12 +36,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Base64;
+import android.util.Log;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 public class AddMenuActivity extends AppCompatActivity implements View.OnClickListener{
+
+    private static final String TAG = "AddMenuActivity";
 
     Button btn_add_DishCreate;
     LinearLayout layout_add_DishStatus;
@@ -112,6 +116,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                     if (response.isSuccessful() && response.body() != null) {
                         MonResponse res = response.body();
                         maloai = res.getMaLoai(); // Cập nhật mã loại từ server
+                        Log.d(TAG, "Tải thông tin món thành công: mamon=" + mamon + ", tenmon=" + res.getTenMon());
                         
                         if(txtl_add_DishName.getEditText() != null) txtl_add_DishName.getEditText().setText(res.getTenMon());
                         if(txtl_add_DishPrice.getEditText() != null) {
@@ -133,7 +138,9 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             }
                             @Override
-                            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Throwable t) {}
+                            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Throwable t) {
+                                Log.e(TAG, "Lỗi tải tên loại cho món: " + t.getMessage());
+                            }
                         });
 
                         if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
@@ -213,6 +220,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 break;
 
             case R.id.btn_add_DishCreate:
+                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
                 if(!validateImage() | !validateName() | !validatePrice()){
                     return;
                 }
@@ -242,15 +250,18 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                         if (response.isSuccessful() && response.body() != null) {
                             OrderResponse res = response.body();
                             if ("success".equals(res.getStatus())) {
+                                Log.d(TAG, "Quản lý món thành công: action=" + actionMon + ", mamon=" + mamon + ", tenmon=" + sTenMon);
                                 Intent intent = new Intent();
                                 intent.putExtra("ktra", true);
                                 intent.putExtra("chucnang", (mamon != 0) ? "suamon" : "themmon");
                                 setResult(RESULT_OK, intent);
                                 finish();
                             } else {
+                                Log.w(TAG, "Lỗi quản lý món: " + res.getMessage());
                                 Toast.makeText(AddMenuActivity.this, "Lỗi: " + res.getMessage(), Toast.LENGTH_LONG).show();
                             }
                         } else {
+                            Log.w(TAG, "Server không phản hồi đúng định dạng khi quản lý món");
                             Toast.makeText(AddMenuActivity.this, "Lỗi Server không phản hồi đúng định dạng", Toast.LENGTH_SHORT).show();
                         }
                     }
@@ -258,6 +269,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
+                        Log.e(TAG, "Lỗi kết nối API quản lý món: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
                             Toast.makeText(AddMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }

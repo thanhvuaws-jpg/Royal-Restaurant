@@ -10,6 +10,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -40,6 +41,8 @@ import com.google.android.material.tabs.TabLayout;
 
 public class DisplayCashierFragment extends Fragment {
 
+    private static final String TAG = "DisplayCashierFragment";
+
     RecyclerView rv_cashier_OrderList;
     List<DonDatDTO> donDatDTOList;
     List<DonDatDTO> paidOrdersList;
@@ -51,6 +54,9 @@ public class DisplayCashierFragment extends Fragment {
     TextView txt_cashier_TodayRevenue, txt_cashier_TodayCash, txt_cashier_TodayTransfer;
     TabLayout tab_cashier_Toggle;
     private int currentTab = 0;
+
+    private boolean isFirstLoad = true;
+    private androidx.appcompat.app.AlertDialog loadingDialog;
 
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
@@ -174,6 +180,11 @@ public class DisplayCashierFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        // Chỉ hiện loading dialog lần đầu tiên, khi list đang trống
+        if (isFirstLoad && donDatDTOList.isEmpty()) {
+            loadingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
+            if (loadingDialog != null) loadingDialog.show();
+        }
         loadPendingOrders();
         
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
@@ -227,7 +238,13 @@ public class DisplayCashierFragment extends Fragment {
             @Override
             public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
+                // Ẩn loading dialog khi lần đầu có dữ liệu về
+                if (isFirstLoad) {
+                    isFirstLoad = false;
+                    if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
+                }
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Tải đơn hàng chờ thanh toán thành công: count=" + response.body().size());
                     donDatDTOList.clear();
                     SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
@@ -261,7 +278,13 @@ public class DisplayCashierFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {}
+            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
+                Log.e(TAG, "Lỗi kết nối API tải đơn hàng chờ thanh toán: " + t.getMessage());
+                if (isFirstLoad) {
+                    isFirstLoad = false;
+                    if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
+                }
+            }
         });
 
         // 2. Load paid orders for today summary and history tab
@@ -274,6 +297,7 @@ public class DisplayCashierFragment extends Fragment {
             public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
                 if (!isAdded() || getActivity() == null) return;
                 if (response.isSuccessful() && response.body() != null) {
+                    Log.d(TAG, "Tải lịch sử hóa đơn hôm nay thành công: count=" + response.body().size());
                     paidOrdersList.clear();
                     
                     long totalRevenue = 0;
@@ -329,7 +353,9 @@ public class DisplayCashierFragment extends Fragment {
             }
 
             @Override
-            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {}
+            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
+                Log.e(TAG, "Lỗi kết nối API tải lịch sử hóa đơn: " + t.getMessage());
+            }
         });
     }
 }
