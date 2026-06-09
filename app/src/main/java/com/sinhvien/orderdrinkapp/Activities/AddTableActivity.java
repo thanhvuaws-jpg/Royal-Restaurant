@@ -30,6 +30,7 @@ public class AddTableActivity extends AppCompatActivity {
     TextInputLayout TXTL_addtable_TableName;
     Button BTN_addtable_CreateTable;
     ImageView IMG_addtable_back;
+    int maban = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,7 +42,10 @@ public class AddTableActivity extends AppCompatActivity {
         BTN_addtable_CreateTable = (Button)findViewById(R.id.btn_addtable_CreateTable);
         IMG_addtable_back = (ImageView)findViewById(R.id.img_addtable_back);
 
-        final int maban = getIntent().getIntExtra("maban", 0);
+        maban = getIntent().getIntExtra("maban", 0);
+        if (savedInstanceState != null) {
+            maban = savedInstanceState.getInt("maban", maban);
+        }
         if (maban != 0) {
             BTN_addtable_CreateTable.setText("Cập nhật bàn");
         }
@@ -104,5 +108,11 @@ public class AddTableActivity extends AppCompatActivity {
             TXTL_addtable_TableName.setErrorEnabled(false);
             return true;
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("maban", maban);
     }
 }
