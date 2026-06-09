@@ -400,7 +400,8 @@ public class DisplayMenuFragment extends Fragment {
 
     private void refreshMenuInPlace() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getDishes(maloai, 1, 100, currentSearch).enqueue(new retrofit2.Callback<DishPageResponse>() {
+        // Tải toàn bộ món của danh mục (truyền rỗng) để đồng bộ đầy đủ SQLite local
+        apiService.getDishes(maloai, 1, 100, "").enqueue(new retrofit2.Callback<DishPageResponse>() {
             @Override
             public void onResponse(retrofit2.Call<DishPageResponse> call, retrofit2.Response<DishPageResponse> response) {
                 if (!isAdded() || getActivity() == null) return;
@@ -409,7 +410,9 @@ public class DisplayMenuFragment extends Fragment {
                     if (newItems != null) {
                         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
                         LocalDatabaseHelper.getExecutor().execute(() -> {
-                            dbHelper.syncDishes(maloai, newItems, false);
+                            // Xóa sạch cache món cũ của danh mục này và nạp mới để xử lý cả trường hợp XÓA món
+                            dbHelper.syncDishes(maloai, newItems, true);
+                            // Lọc lại danh sách món bằng từ khóa tìm kiếm hiện tại
                             List<MonDTO> updatedList = dbHelper.getDishes(maloai, currentSearch);
                             
                             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
