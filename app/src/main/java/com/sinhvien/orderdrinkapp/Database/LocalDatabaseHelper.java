@@ -130,6 +130,7 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
+            db.delete("LOAIMON", null, null);
             for (com.sinhvien.orderdrinkapp.Api.LoaiMonResponse cat : categories) {
                 ContentValues cv = new ContentValues();
                 cv.put("MALOAI", cat.getMaLoai());
