@@ -68,6 +68,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
     private io.socket.client.Socket mSocket;
     private io.socket.emitter.Emitter.Listener onMenuChanged;
 
+    private int savedTableId = -1;
+    private Map<Integer, Integer> savedQuantities = new java.util.HashMap<>();
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,6 +80,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
             selectedDay = savedInstanceState.getInt("selectedDay", -1);
             selectedHour = savedInstanceState.getInt("selectedHour", -1);
             selectedMinute = savedInstanceState.getInt("selectedMinute", -1);
+            savedTableId = savedInstanceState.getInt("selectedTableId", -1);
+            String jsonQuantities = savedInstanceState.getString("selectedQuantities");
+            if (jsonQuantities != null && !jsonQuantities.isEmpty()) {
+                java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<Map<Integer, Integer>>(){}.getType();
+                savedQuantities = new Gson().fromJson(jsonQuantities, type);
+            }
         }
         setContentView(R.layout.activity_customer_booking);
 
@@ -181,6 +190,15 @@ public class CustomerBookingActivity extends AppCompatActivity {
             tableNames.add("Hiện tại không có bàn trống");
         }
         tableAdapter.notifyDataSetChanged();
+
+        if (savedTableId != -1) {
+            for (int i = 0; i < tableList.size(); i++) {
+                if (tableList.get(i).getMaBan() == savedTableId) {
+                    spinner_tables.setSelection(i);
+                    break;
+                }
+            }
+        }
     }
 
     private void setupDateTimePickers() {
@@ -258,6 +276,10 @@ public class CustomerBookingActivity extends AppCompatActivity {
                     dishesAdapter = new PreorderDishesAdapter(CustomerBookingActivity.this, dishList, quantities -> {
                         updateTotalPriceDisplay(quantities);
                     });
+                    if (savedQuantities != null && !savedQuantities.isEmpty()) {
+                        dishesAdapter.getSelectedQuantities().putAll(savedQuantities);
+                        savedQuantities.clear();
+                    }
                     rv_booking_dishes.setLayoutManager(new LinearLayoutManager(CustomerBookingActivity.this));
                     rv_booking_dishes.setAdapter(dishesAdapter);
                 } else {
@@ -421,6 +443,15 @@ public class CustomerBookingActivity extends AppCompatActivity {
         outState.putInt("selectedDay", selectedDay);
         outState.putInt("selectedHour", selectedHour);
         outState.putInt("selectedMinute", selectedMinute);
+
+        int selectedPos = spinner_tables.getSelectedItemPosition();
+        if (selectedPos != -1 && selectedPos < tableList.size()) {
+            outState.putInt("selectedTableId", tableList.get(selectedPos).getMaBan());
+        }
+        if (dishesAdapter != null) {
+            String jsonQuantities = new com.google.gson.Gson().toJson(dishesAdapter.getSelectedQuantities());
+            outState.putString("selectedQuantities", jsonQuantities);
+        }
     }
 
     @Override
