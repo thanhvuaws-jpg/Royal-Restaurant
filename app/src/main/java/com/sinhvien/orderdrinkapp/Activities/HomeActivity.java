@@ -56,6 +56,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private BottomNavigationView bottomNav;
     private ImageView btnToggleNav;
     private boolean useBottomNav;
+    private boolean bypassMoreSheet = false;
     private BottomSheetDialog moreBottomSheet;
     private Fragment currentFragment;
 
@@ -172,7 +173,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
                 navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
             } else if (id == R.id.nav_more) {
-                showMoreBottomSheet();
+                if (bypassMoreSheet) {
+                    bypassMoreSheet = false;
+                } else {
+                    showMoreBottomSheet();
+                }
             }
             return true;
         });
@@ -333,12 +338,32 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         } else if (currentFragment instanceof DisplayStatisticFragment) {
             bottomNav.setSelectedItemId(R.id.nav_statistic);
             navigationView.setCheckedItem(R.id.nav_statistic);
+        } else if (currentFragment instanceof DisplayStaffFragment) {
+            bypassMoreSheet = true;
+            bottomNav.setSelectedItemId(R.id.nav_more);
+            navigationView.setCheckedItem(R.id.nav_staff);
+        } else if (currentFragment instanceof com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment) {
+            bypassMoreSheet = true;
+            bottomNav.setSelectedItemId(R.id.nav_more);
+            navigationView.setCheckedItem(R.id.nav_manage_bookings);
         }
     }
 
     public void selectBottomNavItem(int menuId) {
         if (useBottomNav && bottomNav != null) {
-            bottomNav.setSelectedItemId(menuId);
+            if (menuId == R.id.nav_staff) {
+                Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
+                navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
+                bypassMoreSheet = true;
+                bottomNav.setSelectedItemId(R.id.nav_more);
+            } else if (menuId == R.id.nav_manage_bookings) {
+                Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
+                navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
+                bypassMoreSheet = true;
+                bottomNav.setSelectedItemId(R.id.nav_more);
+            } else {
+                bottomNav.setSelectedItemId(menuId);
+            }
         } else {
             MenuItem item = navigationView.getMenu().findItem(menuId);
             if (item != null) {

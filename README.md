@@ -94,25 +94,29 @@ Register ──────▶  DisplayHomeFragment  DisplayTableFragment  Displ
 
 ### Tính năng chính
 
-- 🔐 **Đăng nhập & Phân quyền** — Tự động ẩn/hiện tính năng theo vai trò: Admin · Nhân viên · Thu ngân
-- 🪑 **Sơ đồ Bàn thời gian thực** — Trạng thái Trống / Đang dùng cập nhật trực tiếp từ Cloud
-- 🍜 **Thực đơn thông minh** — Phân trang, tìm kiếm theo tên, ảnh tải từ Cloud qua Glide
-- 🛒 **Gọi món nhanh** — Chọn bàn → Chọn món → Nhập số lượng → Đồng bộ ngay lên server
-- 💳 **Thanh toán đa phương thức** — Tiền mặt · Chuyển khoản · QR VietQR (BIDV)
-- 📊 **Thống kê doanh thu** — Biểu đồ cột MPAndroidChart, lịch sử đơn chi tiết
-- 📸 **Xuất hóa đơn** — Chụp ảnh hóa đơn, chia sẻ trực tiếp qua ReceiptHelper
+- 🔐 **Đăng nhập & Bảo mật** — Phân quyền vai trò người dùng (Admin, Nhân viên, Thu ngân). Bảo mật dữ liệu mật khẩu bằng cơ chế mã hóa **Bcrypt** tự động cả ở client và server, hỗ trợ chuyển đổi mật khẩu cũ tự động khi đăng nhập thành công.
+- ⚡ **Realtime Socket.IO** — Đồng bộ thông tin đơn hàng, đặt bàn, thay đổi trạng thái bàn ăn tức thời giữa các nhân viên, thu ngân và bếp mà không cần tải lại trang.
+- 💾 **Bộ nhớ đệm SQLite & Đồng bộ hóa nền** — Hỗ trợ tải dữ liệu ngoại tuyến (Offline) tức thì bằng cơ sở dữ liệu `ql_nhahang_local.db` cục bộ, tự động đồng bộ ngầm cập nhật mới từ Cloud khi thiết bị kết nối mạng.
+- 🪑 **Sơ đồ Bàn thời gian thực** — Trạng thái Trống / Đang dùng cập nhật trực tiếp và đồng bộ realtime.
+- 🍜 **Thực đơn thông minh** — Phân trang hiển thị món ăn, tìm kiếm theo tên, tải ảnh từ Cloud cực nhanh thông qua thư viện Glide.
+- 🛒 **Gọi món nhanh** — Trải nghiệm UX mượt mà với công cụ chống nhấp chuột nhanh liên tiếp (**Spam double-click protection**) tránh tạo đơn trùng lặp, chọn món gán trực tiếp lên sơ đồ bàn ăn.
+- 💳 **Thanh toán đa phương thức** — Hỗ trợ thanh toán Tiền mặt, Chuyển khoản, hoặc tự tạo mã QR VietQR (BIDV) động theo giá trị hóa đơn.
+- 📊 **Thống kê doanh thu** — Trực quan hóa doanh thu dạng biểu đồ cột thông qua thư viện MPAndroidChart, xem lại lịch sử chi tiết hóa đơn.
+- 📸 **Xuất hóa đơn** — Chụp ảnh biên lai và chia sẻ trực tiếp với khách hàng qua ReceiptHelper.
 
 ### Stack công nghệ
 
 | Thư viện | Phiên bản | Mục đích |
 |---|---|---|
-| **Retrofit 2** | 2.9.0 | HTTP Client giao tiếp REST API |
-| **OkHttp 3** | 4.x | Tầng mạng, Timeout 30s |
-| **Gson** | 2.x | Serialize / Deserialize JSON |
-| **Glide** | 4.12.0 | Tải & cache ảnh từ URL |
-| **MPAndroidChart** | 3.1.0 | BarChart doanh thu |
-| **Material Components** | 1.3.0 | TextInputLayout, CardView, v.v. |
-| **CircleImageView** | 3.1.0 | Ảnh đại diện dạng tròn |
+| **Retrofit 2** | 2.9.0 | Khung kết nối, định nghĩa các API Endpoints giao tiếp REST API |
+| **OkHttp 3** | 4.x | Quản lý kết nối HTTP, cấu hình Timeout 30s tránh nghẽn mạng |
+| **Gson** | 2.x | Serialize / Deserialize dữ liệu JSON thành Java Object |
+| **Socket.IO Client** | 2.0.0 | Thiết lập kết nối hai chiều (Full-Duplex) Real-time với Server |
+| **SQLite (OpenHelper)** | Built-in | Cơ sở dữ liệu cục bộ hỗ trợ lưu cache ngoại tuyến và tối ưu hóa tải trang |
+| **Glide** | 4.12.0 | Tải, xử lý và bộ nhớ đệm (caching) hình ảnh từ máy chủ |
+| **MPAndroidChart** | 3.1.0 | Biểu đồ trực quan hóa dữ liệu thống kê doanh số |
+| **Material Components** | 1.3.0 | Bộ công cụ thiết kế Material Design (CardView, TextInputLayout, BottomSheet) |
+| **CircleImageView** | 3.1.0 | Định dạng ảnh đại diện nhân viên dạng hình tròn thẩm mỹ |
 
 ---
 
