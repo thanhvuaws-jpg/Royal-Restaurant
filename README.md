@@ -79,22 +79,21 @@ Toàn bộ dữ liệu xử lý tập trung trên **Cloud VPS**, không dùng b�
 ### Màn hình & Luồng điều hướng
 
 ```
-SplashActivity (3s)
+SplashActivity (Màn hình khởi động 3s)
        │
-WelcomeActivity ──── (đã login?) ──▶ HomeActivity
-       │                                    │
-LoginActivity              ┌───────────────┼────────────────┐
-       │                   ▼               ▼                ▼
-Register ──────▶  DisplayHomeFragment  DisplayTableFragment  DisplayMenuFragment
-(Step 1+2)             (Dashboard)       (Sơ đồ bàn)        (Thực đơn)
-                           │
-                  DisplayStaffFragment   DisplayStatisticFragment
-                   (Quản lý NV)           (Thống kê & Biểu đồ)
+WelcomeActivity ──── (Đã đăng nhập?) ────┬─▶ [Admin/NV/Thu ngân] ─▶ HomeActivity
+       │                                 │                             │
+LoginActivity                            └─▶ [Khách hàng] ────────▶ CustomerHomeActivity
+       │                                                               │
+Register (Bước 1+2)                                                    ├─▶ CustomerBookingFragment
+                                                                       │    (Đặt bàn & Chọn món)
+                                                                       └─▶ CustomerProfileFragment
+                                                                            (Lịch sử & Chi tiêu)
 ```
 
 ### Tính năng chính
 
-- 🔐 **Đăng nhập & Bảo mật** — Phân quyền vai trò người dùng (Admin, Nhân viên, Thu ngân). Bảo mật dữ liệu mật khẩu bằng cơ chế mã hóa **Bcrypt** tự động cả ở client và server, hỗ trợ chuyển đổi mật khẩu cũ tự động khi đăng nhập thành công.
+- 🔐 **Đăng nhập & Bảo mật** — Phân quyền vai trò người dùng (Admin, Nhân viên, Thu ngân, Khách hàng). Bảo mật dữ liệu mật khẩu bằng cơ chế mã hóa **Bcrypt** tự động cả ở client và server, hỗ trợ chuyển đổi mật khẩu cũ tự động khi đăng nhập thành công.
 - ⚡ **Realtime Socket.IO** — Đồng bộ thông tin đơn hàng, đặt bàn, thay đổi trạng thái bàn ăn tức thời giữa các nhân viên, thu ngân và bếp mà không cần tải lại trang.
 - 💾 **Bộ nhớ đệm SQLite & Đồng bộ hóa nền** — Hỗ trợ tải dữ liệu ngoại tuyến (Offline) tức thì bằng cơ sở dữ liệu `ql_nhahang_local.db` cục bộ, tự động đồng bộ ngầm cập nhật mới từ Cloud khi thiết bị kết nối mạng.
 - 🪑 **Sơ đồ Bàn thời gian thực** — Trạng thái Trống / Đang dùng cập nhật trực tiếp và đồng bộ realtime.
@@ -362,11 +361,12 @@ systemctl reload apache2
 
 ## 🔐 Phân quyền Hệ thống
 
-| Vai trò | Mã quyền | Quyền truy cập |
-|---|---|---|
-| **Admin** | `1` | Toàn quyền: quản lý thực đơn, nhân viên, bàn, thống kê |
-| **Nhân viên** | `2` | Gọi món, xem bàn, xem thực đơn, thanh toán |
-| **Thu ngân** | `3` | Xem & xác nhận đơn chờ thanh toán |
+| Vai trò | Mã quyền | Giao diện chính | Quyền truy cập |
+|---|---|---|---|
+| **Admin** | `1` | `HomeActivity` | Toàn quyền quản trị hệ thống: quản lý nhân sự, thực đơn, sơ đồ bàn, cấu hình và báo cáo thống kê doanh số |
+| **Nhân viên** | `2` | `HomeActivity` | Phục vụ bàn ăn: Xem sơ đồ bàn, gọi món trực tiếp tại bàn, thanh toán nhanh qua BIDV QR / Tiền mặt |
+| **Thu ngân** | `3` | `HomeActivity` | Xác nhận hóa đơn: Kiểm tra và duyệt thanh toán cho các đơn hàng của nhân viên/khách đặt |
+| **Khách hàng** | `4` | `CustomerHomeActivity` | Khách dùng bữa: Tự đặt bàn trước, chọn món qua menu online, theo dõi tiến độ đơn hàng thời gian thực, quản lý lịch sử chi tiêu |
 
 ---
 
