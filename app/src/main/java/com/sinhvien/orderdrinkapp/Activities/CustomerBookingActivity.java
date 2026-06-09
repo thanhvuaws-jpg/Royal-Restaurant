@@ -65,6 +65,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
     long totalPreorderPrice = 0;
 
+    private io.socket.client.Socket mSocket;
+    private io.socket.emitter.Emitter.Listener onMenuChanged;
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -111,6 +114,18 @@ public class CustomerBookingActivity extends AppCompatActivity {
             if (ViewUtils.isFastDoubleClick()) return; // Chống double click
             submitBooking();
         });
+
+        mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        onMenuChanged = args -> {
+            runOnUiThread(() -> {
+                if (!isFinishing() && !isDestroyed()) {
+                    loadDishes();
+                }
+            });
+        };
+        if (mSocket != null) {
+            mSocket.on("menu_changed", onMenuChanged);
+        }
     }
 
     private void loadTables() {
@@ -208,32 +223,58 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
     }
 
+    private void updateTotalPriceDisplay(Map<Integer, Integer> quantities) {
+        totalPreorderPrice = 0;
+        for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
+            int mamon = entry.getKey();
+            int qty = entry.getValue();
+            for (MonDTO dish : dishList) {
+                if (dish.getMaMon() == mamon) {
+                    try {
+                        totalPreorderPrice += qty * Long.parseLong(dish.getGiaTien());
+                    } catch (NumberFormatException ignored) {}
+                    break;
+                }
+            }
+        }
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
+    }
+
     private void loadDishes() {
         LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<MonDTO> cachedList = dbHelper.getAllDishes();
+            List<MonDTO> allCached = dbHelper.getAllDishes();
+            List<MonDTO> cachedList = new ArrayList<>();
+            for (MonDTO dish : allCached) {
+                if ("true".equalsIgnoreCase(dish.getTinhTrang())) {
+                    cachedList.add(dish);
+                }
+            }
             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                Map<Integer, Integer> currentSelected = dishesAdapter != null ? dishesAdapter.getSelectedQuantities() : new HashMap<>();
                 dishList.clear();
                 dishList.addAll(cachedList);
-                if (dishesAdapter != null) dishesAdapter.notifyDataSetChanged();
-                dishesAdapter = new PreorderDishesAdapter(CustomerBookingActivity.this, dishList, quantities -> {
-                    totalPreorderPrice = 0;
-                    for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
-                        int mamon = entry.getKey();
-                        int qty = entry.getValue();
+                if (dishesAdapter == null) {
+                    dishesAdapter = new PreorderDishesAdapter(CustomerBookingActivity.this, dishList, quantities -> {
+                        updateTotalPriceDisplay(quantities);
+                    });
+                    rv_booking_dishes.setLayoutManager(new LinearLayoutManager(CustomerBookingActivity.this));
+                    rv_booking_dishes.setAdapter(dishesAdapter);
+                } else {
+                    Map<Integer, Integer> validSelected = new HashMap<>();
+                    for (Map.Entry<Integer, Integer> entry : currentSelected.entrySet()) {
                         for (MonDTO dish : dishList) {
-                            if (dish.getMaMon() == mamon) {
-                                try {
-                                    totalPreorderPrice += qty * Long.parseLong(dish.getGiaTien());
-                                } catch (NumberFormatException ignored) {}
+                            if (dish.getMaMon() == entry.getKey()) {
+                                validSelected.put(entry.getKey(), entry.getValue());
                                 break;
                             }
                         }
                     }
-                    DecimalFormat formatter = new DecimalFormat("#,###");
-                    txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
-                });
-                rv_booking_dishes.setLayoutManager(new LinearLayoutManager(CustomerBookingActivity.this));
-                rv_booking_dishes.setAdapter(dishesAdapter);
+                    dishesAdapter.getSelectedQuantities().clear();
+                    dishesAdapter.getSelectedQuantities().putAll(validSelected);
+                    dishesAdapter.notifyDataSetChanged();
+                }
+                updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
             });
         });
 
@@ -257,11 +298,32 @@ public class CustomerBookingActivity extends AppCompatActivity {
                             for (Map.Entry<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> entry : grouped.entrySet()) {
                                 dbHelper.syncDishes(entry.getKey(), entry.getValue(), true);
                             }
-                            List<MonDTO> updatedList = dbHelper.getAllDishes();
+                            List<MonDTO> allUpdated = dbHelper.getAllDishes();
+                            List<MonDTO> updatedList = new ArrayList<>();
+                            for (MonDTO dish : allUpdated) {
+                                if ("true".equalsIgnoreCase(dish.getTinhTrang())) {
+                                    updatedList.add(dish);
+                                }
+                            }
                             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                                Map<Integer, Integer> currentSelected = dishesAdapter != null ? dishesAdapter.getSelectedQuantities() : new HashMap<>();
                                 dishList.clear();
                                 dishList.addAll(updatedList);
-                                if (dishesAdapter != null) dishesAdapter.notifyDataSetChanged();
+                                if (dishesAdapter != null) {
+                                    Map<Integer, Integer> validSelected = new HashMap<>();
+                                    for (Map.Entry<Integer, Integer> entry : currentSelected.entrySet()) {
+                                        for (MonDTO dish : dishList) {
+                                            if (dish.getMaMon() == entry.getKey()) {
+                                                validSelected.put(entry.getKey(), entry.getValue());
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    dishesAdapter.getSelectedQuantities().clear();
+                                    dishesAdapter.getSelectedQuantities().putAll(validSelected);
+                                    dishesAdapter.notifyDataSetChanged();
+                                    updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
+                                }
                             });
                         });
                     }
@@ -359,5 +421,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
         outState.putInt("selectedDay", selectedDay);
         outState.putInt("selectedHour", selectedHour);
         outState.putInt("selectedMinute", selectedMinute);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mSocket != null && onMenuChanged != null) {
+            mSocket.off("menu_changed", onMenuChanged);
+        }
     }
 }
