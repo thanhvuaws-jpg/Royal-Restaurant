@@ -105,6 +105,7 @@ public class DisplayCategoryFragment extends Fragment {
         }
 
         adapter = new AdapterDisplayCategory(getActivity(), loaiMonDTOList);
+        adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rv_category_CategoryList.setAdapter(adapter);
 
         // Click item → chuyển sang màn hình món ăn

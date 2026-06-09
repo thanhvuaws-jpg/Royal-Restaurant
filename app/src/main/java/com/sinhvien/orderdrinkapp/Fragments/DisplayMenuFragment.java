@@ -133,6 +133,7 @@ public class DisplayMenuFragment extends Fragment {
             rv_menu_DishList.setLayoutManager(layoutManager);
 
             adapter = new AdapterDisplayMenuRecycler(getActivity(), monDTOList, maban);
+            adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
             rv_menu_DishList.setAdapter(adapter);
 
             // Tải từ SQLite cache trước để hiển thị tức thì

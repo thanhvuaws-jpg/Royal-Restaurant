@@ -92,6 +92,7 @@ public class DisplayTableFragment extends Fragment {
         rvDisplayTable.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
         adapterDisplayTable = new AdapterDisplayTable(getActivity(), filteredList);
+        adapterDisplayTable.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rvDisplayTable.setAdapter(adapterDisplayTable);
 
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);

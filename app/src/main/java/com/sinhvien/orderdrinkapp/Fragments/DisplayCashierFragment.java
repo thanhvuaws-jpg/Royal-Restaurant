@@ -129,6 +129,7 @@ public class DisplayCashierFragment extends Fragment {
         List<DonDatDTO> activeList = (currentTab == 0) ? donDatDTOList : paidOrdersList;
         if (adapter == null) {
             adapter = new AdapterDisplayStatistic(getActivity(), activeList);
+            adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
             rv_cashier_OrderList.setAdapter(adapter);
             adapter.setOnItemClickListener(position -> {
                 List<DonDatDTO> currentList = (currentTab == 0) ? donDatDTOList : paidOrdersList;

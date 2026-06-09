@@ -101,6 +101,7 @@ public class DisplayStaffFragment extends Fragment {
         });
 
         adapterDisplayStaff = new AdapterDisplayStaff(getActivity(), nhanVienDTOS);
+        adapterDisplayStaff.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rvStaff.setAdapter(adapterDisplayStaff);
 
         // Xử lý click (chọn nhân viên) và long-click (Sửa/Xóa)
