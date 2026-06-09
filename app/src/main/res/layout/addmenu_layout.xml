@@ -79,6 +79,7 @@
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_add_DishName"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:inputType="text" />
@@ -95,6 +96,7 @@
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_add_DishPrice"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:inputType="number" />
@@ -110,6 +112,7 @@
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_add_DishType"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:inputType="text" />

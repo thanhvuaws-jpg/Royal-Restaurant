@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:scrollbars="vertical"
+    android:fillViewport="true"
     android:background="@android:color/transparent">
 
     <androidx.cardview.widget.CardView
@@ -52,6 +54,7 @@
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/et_addtable_TableName"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="text" />
@@ -73,4 +76,4 @@
 
         </LinearLayout>
     </androidx.cardview.widget.CardView>
-</FrameLayout>
+</ScrollView>

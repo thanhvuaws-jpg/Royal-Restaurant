@@ -57,6 +57,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private ImageView btnToggleNav;
     private boolean useBottomNav;
     private boolean bypassMoreSheet = false;
+    private boolean isSyncingNav = false;
     private BottomSheetDialog moreBottomSheet;
     private Fragment currentFragment;
 
@@ -158,7 +159,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             applyNavMode(useBottomNav);
         });
 
-        bottomNav.setOnNavigationItemSelectedListener(item -> {
+         bottomNav.setOnNavigationItemSelectedListener(item -> {
+            if (isSyncingNav) {
+                return true;
+            }
             int id = item.getItemId();
             if (id == R.id.nav_home) {
                 Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
@@ -192,8 +196,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             bottomNav.getMenu().findItem(R.id.nav_table).setVisible(false);
             bottomNav.getMenu().findItem(R.id.nav_more).setVisible(false);
             
-            navigateTo(new DisplayCashierFragment(), "CashierFragment");
-            navigationView.setCheckedItem(R.id.nav_cashier);
+            if (savedInstanceState == null) {
+                navigateTo(new DisplayCashierFragment(), "CashierFragment");
+                navigationView.setCheckedItem(R.id.nav_cashier);
+            }
         } else {
             // Admin hoặc Nhân viên
             navigationView.getMenu().findItem(R.id.nav_cashier).setVisible(false);
@@ -204,9 +210,23 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 
                 bottomNav.getMenu().findItem(R.id.nav_statistic).setVisible(false);
             }
-            navigateTo(new DisplayHomeFragment(), "HomeFragment");
-            navigationView.setCheckedItem(R.id.nav_home);
-            bottomNav.setSelectedItemId(R.id.nav_home);
+            if (savedInstanceState == null) {
+                navigateTo(new DisplayHomeFragment(), "HomeFragment");
+                navigationView.setCheckedItem(R.id.nav_home);
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            }
+        }
+
+        if (savedInstanceState != null) {
+            for (Fragment f : fragmentManager.getFragments()) {
+                if (f != null && f.isAdded() && !f.isHidden()) {
+                    currentFragment = f;
+                    break;
+                }
+            }
+            if (currentFragment != null) {
+                updateToolbarTitle(currentFragment);
+            }
         }
 
         fragmentManager.addOnBackStackChangedListener(() -> {
@@ -275,11 +295,23 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void navigateTo(Fragment newFragment, String tag) {
+        if (currentFragment != null && tag.equals(currentFragment.getTag())) {
+            return;
+        }
+
+        if (fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStackImmediate(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        }
+
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.setCustomAnimations(R.anim.fragment_fade_in, R.anim.fragment_fade_out);
-        if (currentFragment != null) {
-            transaction.hide(currentFragment);
+        
+        for (Fragment f : fragmentManager.getFragments()) {
+            if (f != null && f.isAdded()) {
+                transaction.hide(f);
+            }
         }
+
         Fragment existing = fragmentManager.findFragmentByTag(tag);
         if (existing == null) {
             transaction.add(R.id.contentView, newFragment, tag);
@@ -326,26 +358,31 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     }
 
     private void syncNavSelection() {
-        if (currentFragment instanceof DisplayHomeFragment) {
-            bottomNav.setSelectedItemId(R.id.nav_home);
-            navigationView.setCheckedItem(R.id.nav_home);
-        } else if (currentFragment instanceof DisplayTableFragment) {
-            bottomNav.setSelectedItemId(R.id.nav_table);
-            navigationView.setCheckedItem(R.id.nav_table);
-        } else if (currentFragment instanceof DisplayCategoryFragment) {
-            bottomNav.setSelectedItemId(R.id.nav_category);
-            navigationView.setCheckedItem(R.id.nav_category);
-        } else if (currentFragment instanceof DisplayStatisticFragment) {
-            bottomNav.setSelectedItemId(R.id.nav_statistic);
-            navigationView.setCheckedItem(R.id.nav_statistic);
-        } else if (currentFragment instanceof DisplayStaffFragment) {
-            bypassMoreSheet = true;
-            bottomNav.setSelectedItemId(R.id.nav_more);
-            navigationView.setCheckedItem(R.id.nav_staff);
-        } else if (currentFragment instanceof com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment) {
-            bypassMoreSheet = true;
-            bottomNav.setSelectedItemId(R.id.nav_more);
-            navigationView.setCheckedItem(R.id.nav_manage_bookings);
+        isSyncingNav = true;
+        try {
+            if (currentFragment instanceof DisplayHomeFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_home);
+                navigationView.setCheckedItem(R.id.nav_home);
+            } else if (currentFragment instanceof DisplayTableFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_table);
+                navigationView.setCheckedItem(R.id.nav_table);
+            } else if (currentFragment instanceof DisplayCategoryFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_category);
+                navigationView.setCheckedItem(R.id.nav_category);
+            } else if (currentFragment instanceof DisplayStatisticFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_statistic);
+                navigationView.setCheckedItem(R.id.nav_statistic);
+            } else if (currentFragment instanceof DisplayStaffFragment) {
+                bypassMoreSheet = true;
+                bottomNav.setSelectedItemId(R.id.nav_more);
+                navigationView.setCheckedItem(R.id.nav_staff);
+            } else if (currentFragment instanceof com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment) {
+                bypassMoreSheet = true;
+                bottomNav.setSelectedItemId(R.id.nav_more);
+                navigationView.setCheckedItem(R.id.nav_manage_bookings);
+            }
+        } finally {
+            isSyncingNav = false;
         }
     }
 
@@ -354,15 +391,34 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             if (menuId == R.id.nav_staff) {
                 Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
                 navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
+                isSyncingNav = true;
                 bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
+                isSyncingNav = false;
             } else if (menuId == R.id.nav_manage_bookings) {
                 Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
                 navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
+                isSyncingNav = true;
                 bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
+                isSyncingNav = false;
             } else {
+                if (menuId == R.id.nav_home) {
+                    Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
+                    navigateTo(f != null ? f : new DisplayHomeFragment(), "HomeFragment");
+                } else if (menuId == R.id.nav_table) {
+                    Fragment f = fragmentManager.findFragmentByTag("TableFragment");
+                    navigateTo(f != null ? f : new DisplayTableFragment(), "TableFragment");
+                } else if (menuId == R.id.nav_category) {
+                    Fragment f = fragmentManager.findFragmentByTag("CategoryFragment");
+                    navigateTo(f != null ? f : new DisplayCategoryFragment(), "CategoryFragment");
+                } else if (menuId == R.id.nav_statistic) {
+                    Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
+                    navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
+                }
+                isSyncingNav = true;
                 bottomNav.setSelectedItemId(menuId);
+                isSyncingNav = false;
             }
         } else {
             MenuItem item = navigationView.getMenu().findItem(menuId);
@@ -420,35 +476,44 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.nav_home) {
-            Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
-            navigateTo(f != null ? f : new DisplayHomeFragment(), "HomeFragment");
-            bottomNav.setSelectedItemId(R.id.nav_home);
-        } else if (id == R.id.nav_statistic) {
-            Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
-            navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
-            bottomNav.setSelectedItemId(R.id.nav_statistic);
-        } else if (id == R.id.nav_cashier) {
-            Fragment f = fragmentManager.findFragmentByTag("CashierFragment");
-            navigateTo(f != null ? f : new DisplayCashierFragment(), "CashierFragment");
-        } else if (id == R.id.nav_table) {
-            Fragment f = fragmentManager.findFragmentByTag("TableFragment");
-            navigateTo(f != null ? f : new DisplayTableFragment(), "TableFragment");
-            bottomNav.setSelectedItemId(R.id.nav_table);
-        } else if (id == R.id.nav_manage_bookings) {
-            Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
-            navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
-        } else if (id == R.id.nav_category) {
-            Fragment f = fragmentManager.findFragmentByTag("CategoryFragment");
-            navigateTo(f != null ? f : new DisplayCategoryFragment(), "CategoryFragment");
-            bottomNav.setSelectedItemId(R.id.nav_category);
-        } else if (id == R.id.nav_staff) {
-            Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
-            navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
-        } else if (id == R.id.nav_logout) {
-            logout();
+        if (isSyncingNav) {
             return true;
+        }
+        int id = item.getItemId();
+        isSyncingNav = true;
+        try {
+            if (id == R.id.nav_home) {
+                Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
+                navigateTo(f != null ? f : new DisplayHomeFragment(), "HomeFragment");
+                bottomNav.setSelectedItemId(R.id.nav_home);
+            } else if (id == R.id.nav_statistic) {
+                Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
+                navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
+                bottomNav.setSelectedItemId(R.id.nav_statistic);
+            } else if (id == R.id.nav_cashier) {
+                Fragment f = fragmentManager.findFragmentByTag("CashierFragment");
+                navigateTo(f != null ? f : new DisplayCashierFragment(), "CashierFragment");
+            } else if (id == R.id.nav_table) {
+                Fragment f = fragmentManager.findFragmentByTag("TableFragment");
+                navigateTo(f != null ? f : new DisplayTableFragment(), "TableFragment");
+                bottomNav.setSelectedItemId(R.id.nav_table);
+            } else if (id == R.id.nav_manage_bookings) {
+                Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
+                navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
+            } else if (id == R.id.nav_category) {
+                Fragment f = fragmentManager.findFragmentByTag("CategoryFragment");
+                navigateTo(f != null ? f : new DisplayCategoryFragment(), "CategoryFragment");
+                bottomNav.setSelectedItemId(R.id.nav_category);
+            } else if (id == R.id.nav_staff) {
+                Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
+                navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
+            } else if (id == R.id.nav_logout) {
+                isSyncingNav = false;
+                logout();
+                return true;
+            }
+        } finally {
+            isSyncingNav = false;
         }
         drawerLayout.closeDrawers();
         return true;
