@@ -68,6 +68,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if (savedInstanceState != null) {
+            selectedYear = savedInstanceState.getInt("selectedYear", -1);
+            selectedMonth = savedInstanceState.getInt("selectedMonth", -1);
+            selectedDay = savedInstanceState.getInt("selectedDay", -1);
+            selectedHour = savedInstanceState.getInt("selectedHour", -1);
+            selectedMinute = savedInstanceState.getInt("selectedMinute", -1);
+        }
         setContentView(R.layout.activity_customer_booking);
 
         Toolbar toolbar = findViewById(R.id.booking_toolbar);
@@ -95,6 +102,10 @@ public class CustomerBookingActivity extends AppCompatActivity {
         loadTables();
         setupDateTimePickers();
         loadDishes();
+
+        if (savedInstanceState != null) {
+            updateDateTimeDisplay();
+        }
 
         btn_confirm_booking.setOnClickListener(v -> {
             if (ViewUtils.isFastDoubleClick()) return; // Chống double click
@@ -338,5 +349,15 @@ public class CustomerBookingActivity extends AppCompatActivity {
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("selectedYear", selectedYear);
+        outState.putInt("selectedMonth", selectedMonth);
+        outState.putInt("selectedDay", selectedDay);
+        outState.putInt("selectedHour", selectedHour);
+        outState.putInt("selectedMinute", selectedMinute);
     }
 }
