@@ -125,10 +125,10 @@ public class DisplayStaffFragment extends Fragment {
 
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            HienThiDSNV(swipeRefreshLayout);
+            HienThiDSNV(swipeRefreshLayout, true);
         });
 
-        HienThiDSNV();
+        HienThiDSNV(savedInstanceState == null);
         return view;
     }
 
@@ -213,10 +213,14 @@ public class DisplayStaffFragment extends Fragment {
     }
 
     private void HienThiDSNV() {
-        HienThiDSNV(null);
+        HienThiDSNV(true);
     }
 
-    private void HienThiDSNV(SwipeRefreshLayout swipeRefresh) {
+    private void HienThiDSNV(boolean fetchApi) {
+        HienThiDSNV(null, fetchApi);
+    }
+
+    private void HienThiDSNV(SwipeRefreshLayout swipeRefresh, boolean fetchApi) {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
@@ -230,6 +234,13 @@ public class DisplayStaffFragment extends Fragment {
                 applyFilter();
             });
         });
+
+        if (!fetchApi) {
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+            return;
+        }
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);

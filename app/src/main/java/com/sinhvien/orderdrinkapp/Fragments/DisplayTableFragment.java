@@ -64,11 +64,17 @@ public class DisplayTableFragment extends Fragment {
                 }
             });
 
+    private boolean isRecreated = false;
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.displaytable_layout, container, false);
         setHasOptionsMenu(true);
         ((HomeActivity) getActivity()).getSupportActionBar().setTitle("Quản lý bàn");
+
+        if (savedInstanceState != null) {
+            isRecreated = true;
+        }
 
         tabLayoutTable = view.findViewById(R.id.tabLayoutTable);
         tabLayoutTable.addTab(tabLayoutTable.newTab().setText("Ngồi tại bàn"));
@@ -97,7 +103,7 @@ public class DisplayTableFragment extends Fragment {
 
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            HienThiDSBan(swipeRefreshLayout);
+            HienThiDSBan(swipeRefreshLayout, true);
         });
 
         view.findViewById(R.id.fab_add_table).setOnClickListener(v ->
@@ -124,7 +130,12 @@ public class DisplayTableFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        HienThiDSBan();
+        if (isRecreated) {
+            HienThiDSBan(false);
+            isRecreated = false;
+        } else {
+            HienThiDSBan(true);
+        }
         
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null) {
@@ -180,10 +191,14 @@ public class DisplayTableFragment extends Fragment {
     }
 
     private void HienThiDSBan() {
-        HienThiDSBan(null);
+        HienThiDSBan(true);
     }
 
-    private void HienThiDSBan(SwipeRefreshLayout swipeRefresh) {
+    private void HienThiDSBan(boolean fetchApi) {
+        HienThiDSBan(null, fetchApi);
+    }
+
+    private void HienThiDSBan(SwipeRefreshLayout swipeRefresh, boolean fetchApi) {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
@@ -197,6 +212,13 @@ public class DisplayTableFragment extends Fragment {
                 filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
             });
         });
+
+        if (!fetchApi) {
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+            return;
+        }
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);

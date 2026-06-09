@@ -130,10 +130,10 @@ public class DisplayCategoryFragment extends Fragment {
 
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
-            HienThiDSLoai(swipeRefreshLayout);
+            HienThiDSLoai(swipeRefreshLayout, true);
         });
 
-        HienThiDSLoai();
+        HienThiDSLoai(savedInstanceState == null);
         return view;
     }
 
@@ -157,10 +157,14 @@ public class DisplayCategoryFragment extends Fragment {
     }
 
     private void HienThiDSLoai() {
-        HienThiDSLoai(null);
+        HienThiDSLoai(true);
     }
 
-    private void HienThiDSLoai(SwipeRefreshLayout swipeRefresh) {
+    private void HienThiDSLoai(boolean fetchApi) {
+        HienThiDSLoai(null, fetchApi);
+    }
+
+    private void HienThiDSLoai(SwipeRefreshLayout swipeRefresh, boolean fetchApi) {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
@@ -175,6 +179,13 @@ public class DisplayCategoryFragment extends Fragment {
                 capNhatTrangThai();
             });
         });
+
+        if (!fetchApi) {
+            if (swipeRefresh != null) {
+                swipeRefresh.setRefreshing(false);
+            }
+            return;
+        }
 
         // 2. Gọi API đồng bộ ở chế độ nền
         ApiService apiService = ApiClient.getClient().create(ApiService.class);

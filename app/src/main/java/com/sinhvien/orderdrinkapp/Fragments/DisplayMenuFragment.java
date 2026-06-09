@@ -126,6 +126,8 @@ public class DisplayMenuFragment extends Fragment {
 
             if (savedInstanceState != null) {
                 currentSearch = savedInstanceState.getString("current_search", "");
+                currentPage = savedInstanceState.getInt("current_page", 1);
+                hasMore = savedInstanceState.getBoolean("has_more", true);
             }
 
             // Thiết lập RecyclerView dạng lưới 2 cột
@@ -157,7 +159,9 @@ public class DisplayMenuFragment extends Fragment {
             });
 
             // Tải trang đầu tiên từ Server để đồng bộ
-            taiThemMon();
+            if (savedInstanceState == null) {
+                taiThemMon();
+            }
 
             // Lắng nghe sự kiện cuộn - Infinite Scroll
             rv_menu_DishList.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -478,5 +482,7 @@ public class DisplayMenuFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("current_search", currentSearch);
+        outState.putInt("current_page", currentPage);
+        outState.putBoolean("has_more", hasMore);
     }
 }
