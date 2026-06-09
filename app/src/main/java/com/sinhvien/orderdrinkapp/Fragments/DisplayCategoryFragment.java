@@ -262,42 +262,13 @@ public class DisplayCategoryFragment extends Fragment {
                         List<LoaiMonDTO> updatedList = dbHelper.getCategories();
 
                         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            // Remove items not in updatedList
-                    for (int i = loaiMonDTOList.size() - 1; i >= 0; i--) {
-                        LoaiMonDTO oldItem = loaiMonDTOList.get(i);
-                        boolean found = false;
-                        for (LoaiMonDTO newItem : updatedList) {
-                            if (oldItem.getMaLoai() == newItem.getMaLoai()) {
-                                found = true;
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            loaiMonDTOList.remove(i);
-                            adapter.notifyItemRemoved(i);
-                        }
-                    }
-
-                    // Update existing items and add new items
-                    for (int i = 0; i < updatedList.size(); i++) {
-                        LoaiMonDTO newItem = updatedList.get(i);
-                        boolean found = false;
-                        for (int j = 0; j < loaiMonDTOList.size(); j++) {
-                            LoaiMonDTO oldItem = loaiMonDTOList.get(j);
-                            if (oldItem.getMaLoai() == newItem.getMaLoai()) {
-                                found = true;
-                                oldItem.setTenLoai(newItem.getTenLoai());
-                                oldItem.setHinhAnh(newItem.getHinhAnh());
-                                adapter.notifyItemChanged(j);
-                                break;
-                            }
-                        }
-                        if (!found) {
-                            loaiMonDTOList.add(newItem);
-                                adapter.notifyItemInserted(loaiMonDTOList.size() - 1);
-                            }
-                        }
-                        capNhatTrangThai();
+                            // Sử dụng DiffUtil để tự động đồng bộ danh mục và duy trì thứ tự sắp xếp chuẩn
+                            androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
+                                    androidx.recyclerview.widget.DiffUtil.calculateDiff(new CategoryDiffCallback(loaiMonDTOList, updatedList));
+                            loaiMonDTOList.clear();
+                            loaiMonDTOList.addAll(updatedList);
+                            diffResult.dispatchUpdatesTo(adapter);
+                            capNhatTrangThai();
                         });
                     });
                 }
@@ -324,6 +295,43 @@ public class DisplayCategoryFragment extends Fragment {
         if (mSocket != null) {
             mSocket.off("refresh_orders", onRefreshOrders);
             mSocket.off("menu_changed", onMenuChanged);
+        }
+    }
+
+    private static class CategoryDiffCallback extends androidx.recyclerview.widget.DiffUtil.Callback {
+        private final List<LoaiMonDTO> oldList;
+        private final List<LoaiMonDTO> newList;
+
+        public CategoryDiffCallback(List<LoaiMonDTO> oldList, List<LoaiMonDTO> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldList.get(oldItemPosition).getMaLoai() == newList.get(newItemPosition).getMaLoai();
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            LoaiMonDTO oldItem = oldList.get(oldItemPosition);
+            LoaiMonDTO newItem = newList.get(newItemPosition);
+            return equalsOrNull(oldItem.getTenLoai(), newItem.getTenLoai())
+                    && equalsOrNull(oldItem.getHinhAnh(), newItem.getHinhAnh());
+        }
+
+        private boolean equalsOrNull(Object a, Object b) {
+            return a == b || (a != null && a.equals(b));
         }
     }
 }

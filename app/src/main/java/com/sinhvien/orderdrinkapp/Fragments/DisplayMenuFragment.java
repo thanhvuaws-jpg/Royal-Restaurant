@@ -416,43 +416,12 @@ public class DisplayMenuFragment extends Fragment {
                             List<MonDTO> updatedList = dbHelper.getDishes(maloai, currentSearch);
                             
                             new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                                // 1. Remove items not in updatedList
-                                for (int i = monDTOList.size() - 1; i >= 0; i--) {
-                                    MonDTO oldItem = monDTOList.get(i);
-                                    boolean found = false;
-                                    for (MonDTO newItem : updatedList) {
-                                        if (oldItem.getMaMon() == newItem.getMaMon()) {
-                                            found = true;
-                                            break;
-                                        }
-                                    }
-                                    if (!found) {
-                                        monDTOList.remove(i);
-                                        adapter.notifyItemRemoved(i);
-                                    }
-                                }
-
-                                // 2. Update existing items and add new items
-                                for (int i = 0; i < updatedList.size(); i++) {
-                                    MonDTO newItem = updatedList.get(i);
-                                    boolean found = false;
-                                    for (int j = 0; j < monDTOList.size(); j++) {
-                                        MonDTO oldItem = monDTOList.get(j);
-                                        if (oldItem.getMaMon() == newItem.getMaMon()) {
-                                            found = true;
-                                            oldItem.setTenMon(newItem.getTenMon());
-                                            oldItem.setGiaTien(newItem.getGiaTien());
-                                            oldItem.setTinhTrang(newItem.getTinhTrang());
-                                            oldItem.setHinhAnhUrl(newItem.getHinhAnhUrl());
-                                            adapter.notifyItemChanged(j);
-                                            break;
-                                        }
-                                    }
-                                    if (!found) {
-                                        monDTOList.add(newItem);
-                                        adapter.notifyItemInserted(monDTOList.size() - 1);
-                                    }
-                                }
+                                // Sử dụng DiffUtil để tự động đồng bộ và giữ nguyên thứ tự sắp xếp chuẩn
+                                androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
+                                        androidx.recyclerview.widget.DiffUtil.calculateDiff(new MenuDiffCallback(monDTOList, updatedList));
+                                monDTOList.clear();
+                                monDTOList.addAll(updatedList);
+                                diffResult.dispatchUpdatesTo(adapter);
                                 capNhatTrangThai();
                             });
                         });
@@ -498,5 +467,44 @@ public class DisplayMenuFragment extends Fragment {
         outState.putString("current_search", currentSearch);
         outState.putInt("current_page", currentPage);
         outState.putBoolean("has_more", hasMore);
+    }
+
+    private static class MenuDiffCallback extends androidx.recyclerview.widget.DiffUtil.Callback {
+        private final List<MonDTO> oldList;
+        private final List<MonDTO> newList;
+
+        public MenuDiffCallback(List<MonDTO> oldList, List<MonDTO> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() {
+            return oldList.size();
+        }
+
+        @Override
+        public int getNewListSize() {
+            return newList.size();
+        }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldList.get(oldItemPosition).getMaMon() == newList.get(newItemPosition).getMaMon();
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            MonDTO oldItem = oldList.get(oldItemPosition);
+            MonDTO newItem = newList.get(newItemPosition);
+            return equalsOrNull(oldItem.getTenMon(), newItem.getTenMon())
+                    && equalsOrNull(oldItem.getGiaTien(), newItem.getGiaTien())
+                    && equalsOrNull(oldItem.getTinhTrang(), newItem.getTinhTrang())
+                    && equalsOrNull(oldItem.getHinhAnhUrl(), newItem.getHinhAnhUrl());
+        }
+
+        private boolean equalsOrNull(Object a, Object b) {
+            return a == b || (a != null && a.equals(b));
+        }
     }
 }
