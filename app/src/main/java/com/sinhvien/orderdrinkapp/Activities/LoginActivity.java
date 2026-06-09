@@ -21,11 +21,6 @@ import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
-import androidx.lifecycle.ViewModelProvider;
-import com.sinhvien.orderdrinkapp.ViewModel.LoginViewModel;
-import android.text.Editable;
-import android.text.TextWatcher;
-
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -39,14 +34,10 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     CheckBox cb_login_RememberMe;
     ImageView img_login_BackBtn;
 
-    private LoginViewModel viewModel;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.login_layout);
-
-        viewModel = new ViewModelProvider(this).get(LoginViewModel.class);
 
         txtl_login_UserName = findViewById(R.id.txtl_login_UserName);
         txtl_login_Password = findViewById(R.id.txtl_login_Password);
@@ -67,65 +58,33 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         } catch (Exception e) {}
         boolean isRemember = sharedPreferences.getBoolean("isRemember", false);
 
-        // Khôi phục dữ liệu từ ViewModel hoặc SharedPreferences
-        restoreLoginData(user, pass, isRemember);
+        String savedUsername = "";
+        String savedPassword = "";
+        boolean savedRememberMe = false;
 
-        // Thiết lập lắng nghe thay đổi
-        setupLoginWatchers();
+        if (savedInstanceState != null) {
+            savedUsername = savedInstanceState.getString("username", "");
+            savedPassword = savedInstanceState.getString("password", "");
+            savedRememberMe = savedInstanceState.getBoolean("remember_me", false);
+        } else {
+            if (isRemember) {
+                savedUsername = user;
+                savedPassword = pass;
+                savedRememberMe = true;
+            }
+        }
+
+        if (txtl_login_UserName.getEditText() != null) {
+            txtl_login_UserName.getEditText().setText(savedUsername);
+        }
+        if (txtl_login_Password.getEditText() != null) {
+            txtl_login_Password.getEditText().setText(savedPassword);
+        }
+        cb_login_RememberMe.setChecked(savedRememberMe);
 
         btn_login_SignIn.setOnClickListener(this);
         btn_login_SignUp.setOnClickListener(this);
         img_login_BackBtn.setOnClickListener(this);
-    }
-
-    private void restoreLoginData(String spUser, String spPass, boolean spRemember) {
-        // Nếu ViewModel trống (lần đầu vào màn hình), lấy từ SharedPreferences
-        if (viewModel.getUsername().isEmpty() && viewModel.getPassword().isEmpty() && !viewModel.isRememberMe()) {
-            if (spRemember) {
-                viewModel.setUsername(spUser);
-                viewModel.setPassword(spPass);
-                viewModel.setRememberMe(true);
-            }
-        }
-
-        // Đổ dữ liệu từ ViewModel lên giao diện
-        if (txtl_login_UserName.getEditText() != null) {
-            txtl_login_UserName.getEditText().setText(viewModel.getUsername());
-        }
-        if (txtl_login_Password.getEditText() != null) {
-            txtl_login_Password.getEditText().setText(viewModel.getPassword());
-        }
-        cb_login_RememberMe.setChecked(viewModel.isRememberMe());
-    }
-
-    private void setupLoginWatchers() {
-        if (txtl_login_UserName.getEditText() != null) {
-            txtl_login_UserName.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setUsername(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-        if (txtl_login_Password.getEditText() != null) {
-            txtl_login_Password.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setPassword(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-        cb_login_RememberMe.setOnCheckedChangeListener((buttonView, isChecked) -> {
-            viewModel.setRememberMe(isChecked);
-        });
     }
 
     @Override
@@ -205,5 +164,21 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             finish();
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        String user = "";
+        String pass = "";
+        if (txtl_login_UserName.getEditText() != null) {
+            user = txtl_login_UserName.getEditText().getText().toString();
+        }
+        if (txtl_login_Password.getEditText() != null) {
+            pass = txtl_login_Password.getEditText().getText().toString();
+        }
+        outState.putString("username", user);
+        outState.putString("password", pass);
+        outState.putBoolean("remember_me", cb_login_RememberMe.isChecked());
     }
 }

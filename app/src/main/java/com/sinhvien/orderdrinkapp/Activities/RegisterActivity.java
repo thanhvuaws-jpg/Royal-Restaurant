@@ -12,11 +12,6 @@ import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
 import com.sinhvien.orderdrinkapp.R;
 
-import androidx.lifecycle.ViewModelProvider;
-import com.sinhvien.orderdrinkapp.ViewModel.RegisterViewModel;
-import android.text.Editable;
-import android.text.TextWatcher;
-
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener {
     public static final String BUNDLE = "bundle";
 
@@ -24,14 +19,10 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     TextInputLayout txtl_signup_FullName, txtl_signup_UserName, txtl_signup_Email, txtl_signup_PhoneNumber, txtl_signup_Password;
     Button btn_signup_Next;
 
-    private RegisterViewModel viewModel;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.register_layout);
-
-        viewModel = new ViewModelProvider(this).get(RegisterViewModel.class);
 
         //region Lấy đối tượng view
         img_signup_BackBtn = findViewById(R.id.img_signup_BackBtn);
@@ -43,95 +34,22 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         btn_signup_Next = findViewById(R.id.btn_signup_Next);
         //endregion
 
-        // Khôi phục dữ liệu từ ViewModel nếu có
-        restoreViewModelData();
+        if (savedInstanceState != null) {
+            String savedFullName = savedInstanceState.getString("fullname", "");
+            String savedUserName = savedInstanceState.getString("username", "");
+            String savedEmail = savedInstanceState.getString("email", "");
+            String savedPhoneNumber = savedInstanceState.getString("phone", "");
+            String savedPassword = savedInstanceState.getString("password", "");
 
-        // Lắng nghe thay đổi để cập nhật vào ViewModel
-        setupTextWatchers();
+            if (txtl_signup_FullName.getEditText() != null) txtl_signup_FullName.getEditText().setText(savedFullName);
+            if (txtl_signup_UserName.getEditText() != null) txtl_signup_UserName.getEditText().setText(savedUserName);
+            if (txtl_signup_Email.getEditText() != null) txtl_signup_Email.getEditText().setText(savedEmail);
+            if (txtl_signup_PhoneNumber.getEditText() != null) txtl_signup_PhoneNumber.getEditText().setText(savedPhoneNumber);
+            if (txtl_signup_Password.getEditText() != null) txtl_signup_Password.getEditText().setText(savedPassword);
+        }
 
         img_signup_BackBtn.setOnClickListener(this);
         btn_signup_Next.setOnClickListener(this);
-    }
-
-    private void restoreViewModelData() {
-        if (txtl_signup_FullName.getEditText() != null && !viewModel.getFullName().isEmpty()) {
-            txtl_signup_FullName.getEditText().setText(viewModel.getFullName());
-        }
-        if (txtl_signup_UserName.getEditText() != null && !viewModel.getUserName().isEmpty()) {
-            txtl_signup_UserName.getEditText().setText(viewModel.getUserName());
-        }
-        if (txtl_signup_Email.getEditText() != null && !viewModel.getEmail().isEmpty()) {
-            txtl_signup_Email.getEditText().setText(viewModel.getEmail());
-        }
-        if (txtl_signup_PhoneNumber.getEditText() != null && !viewModel.getPhoneNumber().isEmpty()) {
-            txtl_signup_PhoneNumber.getEditText().setText(viewModel.getPhoneNumber());
-        }
-        if (txtl_signup_Password.getEditText() != null && !viewModel.getPassword().isEmpty()) {
-            txtl_signup_Password.getEditText().setText(viewModel.getPassword());
-        }
-    }
-
-    private void setupTextWatchers() {
-        if (txtl_signup_FullName.getEditText() != null) {
-            txtl_signup_FullName.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setFullName(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-        if (txtl_signup_UserName.getEditText() != null) {
-            txtl_signup_UserName.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setUserName(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-        if (txtl_signup_Email.getEditText() != null) {
-            txtl_signup_Email.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setEmail(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-        if (txtl_signup_PhoneNumber.getEditText() != null) {
-            txtl_signup_PhoneNumber.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setPhoneNumber(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
-        if (txtl_signup_Password.getEditText() != null) {
-            txtl_signup_Password.getEditText().addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-                @Override
-                public void onTextChanged(CharSequence s, int start, int before, int count) {
-                    viewModel.setPassword(s.toString());
-                }
-                @Override
-                public void afterTextChanged(Editable s) {}
-            });
-        }
     }
 
     @Override
@@ -230,4 +148,20 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
     }
     //endregion
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        String fullName = txtl_signup_FullName.getEditText() != null ? txtl_signup_FullName.getEditText().getText().toString() : "";
+        String userName = txtl_signup_UserName.getEditText() != null ? txtl_signup_UserName.getEditText().getText().toString() : "";
+        String email = txtl_signup_Email.getEditText() != null ? txtl_signup_Email.getEditText().getText().toString() : "";
+        String phone = txtl_signup_PhoneNumber.getEditText() != null ? txtl_signup_PhoneNumber.getEditText().getText().toString() : "";
+        String pass = txtl_signup_Password.getEditText() != null ? txtl_signup_Password.getEditText().getText().toString() : "";
+
+        outState.putString("fullname", fullName);
+        outState.putString("username", userName);
+        outState.putString("email", email);
+        outState.putString("phone", phone);
+        outState.putString("password", pass);
+    }
 }
