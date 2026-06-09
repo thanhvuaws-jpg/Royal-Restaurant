@@ -57,6 +57,8 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
     Bitmap bitmapold;
     int maloai;
     int mamon = 0;
+    private String selectedImageUriStr;
+    private String cloudImageUrl;
 
     ActivityResultLauncher<Intent> resultLauncherOpenIMG = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -64,6 +66,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 public void onActivityResult(ActivityResult result) {
                     if(result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
                         Uri uri = result.getData().getData();
+                        selectedImageUriStr = uri.toString();
                         try{
                             InputStream inputStream = getContentResolver().openInputStream(uri);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
@@ -108,63 +111,90 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         mamon = getIntent().getIntExtra("mamon",0);
         if(mamon != 0){
             txt_add_DishTitle.setText("Sửa thực đơn");
-            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            apiService.getDishById(mamon).enqueue(new Callback<MonResponse>() {
-                @Override
-                public void onResponse(Call<MonResponse> call, Response<MonResponse> response) {
-                    if (isFinishing() || isDestroyed()) return;
-                    if (response.isSuccessful() && response.body() != null) {
-                        MonResponse res = response.body();
-                        maloai = res.getMaLoai(); // Cập nhật mã loại từ server
-                        Log.d(TAG, "Tải thông tin món thành công: mamon=" + mamon + ", tenmon=" + res.getTenMon());
-                        
-                        if(txtl_add_DishName.getEditText() != null) txtl_add_DishName.getEditText().setText(res.getTenMon());
-                        if(txtl_add_DishPrice.getEditText() != null) {
-                            try {
-                                long price = Long.parseLong(res.getGiaTien());
-                                String formatted = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(price);
-                                txtl_add_DishPrice.getEditText().setText(formatted);
-                            } catch (Exception e) {
-                                txtl_add_DishPrice.getEditText().setText(res.getGiaTien());
-                            }
-                        }
-
-                        // Lấy tên loại món từ server để hiển thị
-                        apiService.getCategoryById(maloai).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>() {
-                            @Override
-                            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Response<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> response) {
-                                if (response.isSuccessful() && response.body() != null) {
-                                    txtl_add_DishType.getEditText().setText(response.body().getTenLoai());
+            btn_add_DishCreate.setText("Sửa món");
+            if (savedInstanceState == null) {
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                apiService.getDishById(mamon).enqueue(new Callback<MonResponse>() {
+                    @Override
+                    public void onResponse(Call<MonResponse> call, Response<MonResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            MonResponse res = response.body();
+                            maloai = res.getMaLoai(); // Cập nhật mã loại từ server
+                            Log.d(TAG, "Tải thông tin món thành công: mamon=" + mamon + ", tenmon=" + res.getTenMon());
+                            
+                            if(txtl_add_DishName.getEditText() != null) txtl_add_DishName.getEditText().setText(res.getTenMon());
+                            if(txtl_add_DishPrice.getEditText() != null) {
+                                try {
+                                    long price = Long.parseLong(res.getGiaTien());
+                                    String formatted = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(price);
+                                    txtl_add_DishPrice.getEditText().setText(formatted);
+                                } catch (Exception e) {
+                                    txtl_add_DishPrice.getEditText().setText(res.getGiaTien());
                                 }
                             }
-                            @Override
-                            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Throwable t) {
-                                Log.e(TAG, "Lỗi tải tên loại cho món: " + t.getMessage());
+
+                            // Lấy tên loại món từ server để hiển thị
+                            apiService.getCategoryById(maloai).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>() {
+                                @Override
+                                public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Response<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> response) {
+                                    if (response.isSuccessful() && response.body() != null) {
+                                        txtl_add_DishType.getEditText().setText(response.body().getTenLoai());
+                                    }
+                                }
+                                @Override
+                                public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Throwable t) {
+                                    Log.e(TAG, "Lỗi tải tên loại cho món: " + t.getMessage());
+                                }
+                            });
+
+                            if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
+                                String imageUrl = ApiClient.BASE_URL + res.getHinhAnh();
+                                cloudImageUrl = imageUrl;
+                                Glide.with(AddMenuActivity.this)
+                                        .load(imageUrl)
+                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                        .into(img_add_DishImage);
                             }
-                        });
 
-                        if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
-                            String imageUrl = ApiClient.BASE_URL + res.getHinhAnh();
-                            Glide.with(AddMenuActivity.this)
-                                    .load(imageUrl)
-                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                    .into(img_add_DishImage);
+                            layout_add_DishStatus.setVisibility(View.VISIBLE);
+                            if("true".equals(res.getTinhTrang())){
+                                rd_add_DishAvailable.setChecked(true);
+                            } else {
+                                rd_add_DishUnavailable.setChecked(true);
+                            }
                         }
-
-                        layout_add_DishStatus.setVisibility(View.VISIBLE);
-                        if("true".equals(res.getTinhTrang())){
-                            rd_add_DishAvailable.setChecked(true);
-                        } else {
-                            rd_add_DishUnavailable.setChecked(true);
-                        }
-                        btn_add_DishCreate.setText("Sửa món");
                     }
-                }
-                @Override
-                public void onFailure(Call<MonResponse> call, Throwable t) {}
-            });
+                    @Override
+                    public void onFailure(Call<MonResponse> call, Throwable t) {}
+                });
+            }
         }
 
+        if (savedInstanceState != null) {
+            selectedImageUriStr = savedInstanceState.getString("selected_image_uri");
+            cloudImageUrl = savedInstanceState.getString("cloud_image_url");
+            maloai = savedInstanceState.getInt("maloai", maloai);
+            int statusId = savedInstanceState.getInt("status_id", -1);
+            if (statusId != -1) {
+                rg_add_DishStatus.check(statusId);
+            }
+            if (selectedImageUriStr != null) {
+                try {
+                    Uri uri = Uri.parse(selectedImageUriStr);
+                    InputStream inputStream = getContentResolver().openInputStream(uri);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    img_add_DishImage.setImageBitmap(bitmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            } else if (cloudImageUrl != null) {
+                Glide.with(AddMenuActivity.this)
+                        .load(cloudImageUrl)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(img_add_DishImage);
+            }
+        }
         //endregion
 
         //region Tự động format giá tiền khi nhập
@@ -370,5 +400,14 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
     //endregion
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("selected_image_uri", selectedImageUriStr);
+        outState.putString("cloud_image_url", cloudImageUrl);
+        outState.putInt("maloai", maloai);
+        outState.putInt("status_id", rg_add_DishStatus.getCheckedRadioButtonId());
+    }
 
 }

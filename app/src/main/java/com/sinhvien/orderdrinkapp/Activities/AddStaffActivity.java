@@ -82,46 +82,75 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
         manv = getIntent().getIntExtra("manv",0);
         if(manv != 0){
             txt_add_StaffTitle.setText(getResources().getString(R.string.edit_staff_title));
-            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            apiService.getStaffById(manv).enqueue(new Callback<StaffResponse>() {
-                @Override
-                public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
-                    if (isFinishing() || isDestroyed()) return;
-                    if (response.isSuccessful() && response.body() != null) {
-                        StaffResponse res = response.body();
-                        Log.d(TAG, "Tải thông tin nhân viên thành công: manv=" + manv + ", hoten=" + res.getHoTenNV());
-                        txtl_add_StaffFullName.getEditText().setText(res.getHoTenNV());
-                        txtl_add_StaffUserName.getEditText().setText(res.getTenDN());
-                        txtl_add_StaffEmail.getEditText().setText(res.getEmail());
-                        txtl_add_StaffPhone.getEditText().setText(res.getSdt());
-                        txtl_add_StaffPassword.getEditText().setText(res.getMatKhau());
+            btn_add_StaffCreate.setText(getResources().getString(R.string.edit_staff_btn));
+            if (savedInstanceState == null) {
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                apiService.getStaffById(manv).enqueue(new Callback<StaffResponse>() {
+                    @Override
+                    public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            StaffResponse res = response.body();
+                            Log.d(TAG, "Tải thông tin nhân viên thành công: manv=" + manv + ", hoten=" + res.getHoTenNV());
+                            txtl_add_StaffFullName.getEditText().setText(res.getHoTenNV());
+                            txtl_add_StaffUserName.getEditText().setText(res.getTenDN());
+                            txtl_add_StaffEmail.getEditText().setText(res.getEmail());
+                            txtl_add_StaffPhone.getEditText().setText(res.getSdt());
+                            txtl_add_StaffPassword.getEditText().setText(res.getMatKhau());
 
-                        if("Nam".equals(res.getGioiTinh())) rd_add_StaffMale.setChecked(true);
-                        else if("Nữ".equals(res.getGioiTinh())) rd_add_StaffFemale.setChecked(true);
-                        else rd_add_StaffOther.setChecked(true);
+                            if("Nam".equals(res.getGioiTinh())) rd_add_StaffMale.setChecked(true);
+                            else if("Nữ".equals(res.getGioiTinh())) rd_add_StaffFemale.setChecked(true);
+                            else rd_add_StaffOther.setChecked(true);
 
-                        if(res.getMaQuyen() == 1) rd_add_StaffAdmin.setChecked(true);
-                        else if (res.getMaQuyen() == 3) rd_add_StaffCashier.setChecked(true);
-                        else rd_add_StaffStandard.setChecked(true);
+                            if(res.getMaQuyen() == 1) rd_add_StaffAdmin.setChecked(true);
+                            else if (res.getMaQuyen() == 3) rd_add_StaffCashier.setChecked(true);
+                            else rd_add_StaffStandard.setChecked(true);
 
-                        String date = res.getNgaySinh();
-                        if(date != null && date.contains("-")){ // Cloud format yyyy-MM-dd
-                            String[] items = date.split("-");
-                            dt_add_StaffDOB.updateDate(Integer.parseInt(items[0]), Integer.parseInt(items[1])-1, Integer.parseInt(items[2]));
+                            String date = res.getNgaySinh();
+                            if(date != null && date.contains("-")){ // Cloud format yyyy-MM-dd
+                                String[] items = date.split("-");
+                                dt_add_StaffDOB.updateDate(Integer.parseInt(items[0]), Integer.parseInt(items[1])-1, Integer.parseInt(items[2]));
+                            }
                         }
-                        btn_add_StaffCreate.setText(getResources().getString(R.string.edit_staff_btn));
                     }
-                }
-                @Override
-                public void onFailure(Call<StaffResponse> call, Throwable t) {
-                    Log.e(TAG, "Lỗi tải thông tin nhân viên: " + t.getMessage());
-                }
-            });
+                    @Override
+                    public void onFailure(Call<StaffResponse> call, Throwable t) {
+                        Log.e(TAG, "Lỗi tải thông tin nhân viên: " + t.getMessage());
+                    }
+                });
+            }
+        }
+
+        if (savedInstanceState != null) {
+            int genderId = savedInstanceState.getInt("gender_id", -1);
+            if (genderId != -1) {
+                rg_add_StaffGender.check(genderId);
+            }
+            int roleId = savedInstanceState.getInt("role_id", -1);
+            if (roleId != -1) {
+                rg_add_StaffRole.check(roleId);
+            }
+            int year = savedInstanceState.getInt("dob_year", -1);
+            int month = savedInstanceState.getInt("dob_month", -1);
+            int day = savedInstanceState.getInt("dob_day", -1);
+            if (year != -1 && month != -1 && day != -1) {
+                dt_add_StaffDOB.updateDate(year, month, day);
+            }
         }
         //endregion
 
         btn_add_StaffCreate.setOnClickListener(this);
         img_add_StaffBack.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onSaveInstanceState(android.os.Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("gender_id", rg_add_StaffGender.getCheckedRadioButtonId());
+        outState.putInt("role_id", rg_add_StaffRole.getCheckedRadioButtonId());
+        outState.putInt("dob_year", dt_add_StaffDOB.getYear());
+        outState.putInt("dob_month", dt_add_StaffDOB.getMonth());
+        outState.putInt("dob_day", dt_add_StaffDOB.getDayOfMonth());
     }
 
     @Override

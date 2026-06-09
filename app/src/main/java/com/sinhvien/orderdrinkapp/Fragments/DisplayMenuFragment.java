@@ -124,6 +124,10 @@ public class DisplayMenuFragment extends Fragment {
             tenloai = bundle.getString("tenloai");
             maban = bundle.getInt("maban");
 
+            if (savedInstanceState != null) {
+                currentSearch = savedInstanceState.getString("current_search", "");
+            }
+
             // Thiết lập RecyclerView dạng lưới 2 cột
             GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 2);
             rv_menu_DishList.setLayoutManager(layoutManager);
@@ -191,6 +195,10 @@ public class DisplayMenuFragment extends Fragment {
 
         // Thanh tìm kiếm → Gửi từ khóa lên Server
         SearchView sv = view.findViewById(R.id.sv_menu_SearchDish);
+        if (currentSearch != null && !currentSearch.isEmpty()) {
+            sv.setQuery(currentSearch, false);
+            sv.clearFocus();
+        }
         sv.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -463,5 +471,11 @@ public class DisplayMenuFragment extends Fragment {
         if (searchRunnable != null) {
             searchHandler.removeCallbacks(searchRunnable);
         }
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("current_search", currentSearch);
     }
 }

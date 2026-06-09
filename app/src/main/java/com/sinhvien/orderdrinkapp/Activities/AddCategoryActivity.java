@@ -52,6 +52,8 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
     TextInputLayout TXTL_addcategory_CategoryName;
     int maloai = 0;
     Bitmap bitmapold;   //Bitmap dạng ảnh theo ma trận các pixel
+    private String selectedImageUriStr;
+    private String cloudImageUrl;
 
     //dùng result launcher do activityforresult ko dùng đc nữa
     ActivityResultLauncher<Intent> resultLauncherOpenIMG = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
@@ -60,6 +62,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 public void onActivityResult(ActivityResult result) {
                     if(result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
                         Uri uri = result.getData().getData();
+                        selectedImageUriStr = uri.toString();
                         try{
                             InputStream inputStream = getContentResolver().openInputStream(uri);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
@@ -92,34 +95,64 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         maloai = getIntent().getIntExtra("maloai",0);
         if(maloai != 0){
             TXT_addcategory_title.setText(getResources().getString(R.string.editcategory));
-            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            apiService.getCategoryById(maloai).enqueue(new Callback<LoaiMonResponse>() {
-                @Override
-                public void onResponse(Call<LoaiMonResponse> call, Response<LoaiMonResponse> response) {
-                    if (isFinishing() || isDestroyed()) return;
-                    if (response.isSuccessful() && response.body() != null) {
-                        Log.d(TAG, "Tải thông tin loại thành công: maloai=" + maloai);
-                        TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
-                        String imageUrl = ApiClient.BASE_URL + response.body().getHinhAnh();
-                        Glide.with(AddCategoryActivity.this)
-                                .load(imageUrl)
-                                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                                .into(IMG_addcategory_AddImage);
-                        BTN_addcategory_CreateCategory.setText("Sửa loại");
+            BTN_addcategory_CreateCategory.setText("Sửa loại");
+            if (savedInstanceState == null) {
+                ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                apiService.getCategoryById(maloai).enqueue(new Callback<LoaiMonResponse>() {
+                    @Override
+                    public void onResponse(Call<LoaiMonResponse> call, Response<LoaiMonResponse> response) {
+                        if (isFinishing() || isDestroyed()) return;
+                        if (response.isSuccessful() && response.body() != null) {
+                            Log.d(TAG, "Tải thông tin loại thành công: maloai=" + maloai);
+                            TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
+                            String imageUrl = ApiClient.BASE_URL + response.body().getHinhAnh();
+                            cloudImageUrl = imageUrl;
+                            Glide.with(AddCategoryActivity.this)
+                                    .load(imageUrl)
+                                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                                    .into(IMG_addcategory_AddImage);
+                        }
                     }
+                    @Override
+                    public void onFailure(Call<LoaiMonResponse> call, Throwable t) {
+                        Log.e(TAG, "Lỗi tải thông tin loại: " + t.getMessage());
+                    }
+                });
+            }
+        }
+
+        if (savedInstanceState != null) {
+            selectedImageUriStr = savedInstanceState.getString("selected_image_uri");
+            cloudImageUrl = savedInstanceState.getString("cloud_image_url");
+            if (selectedImageUriStr != null) {
+                try {
+                    Uri uri = Uri.parse(selectedImageUriStr);
+                    InputStream inputStream = getContentResolver().openInputStream(uri);
+                    Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
+                    IMG_addcategory_AddImage.setImageBitmap(bitmap);
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-                @Override
-                public void onFailure(Call<LoaiMonResponse> call, Throwable t) {
-                    Log.e(TAG, "Lỗi tải thông tin loại: " + t.getMessage());
-                }
-            });
+            } else if (cloudImageUrl != null) {
+                Glide.with(AddCategoryActivity.this)
+                        .load(cloudImageUrl)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .into(IMG_addcategory_AddImage);
+            }
         }
         //endregion
 
         IMG_addcategory_back.setOnClickListener(this);
         IMG_addcategory_AddImage.setOnClickListener(this);
         BTN_addcategory_CreateCategory.setOnClickListener(this);
-        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("selected_image_uri", selectedImageUriStr);
+        outState.putString("cloud_image_url", cloudImageUrl);
+    }
 
     @Override
     public void onClick(View v) {

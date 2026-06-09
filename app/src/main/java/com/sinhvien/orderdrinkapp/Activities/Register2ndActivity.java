@@ -55,6 +55,19 @@ public class Register2ndActivity extends AppCompatActivity {
              matKhau = bundle.getString("matkhau");
         }
 
+        if (savedInstanceState != null) {
+            int genderId = savedInstanceState.getInt("gender_id", -1);
+            if (genderId != -1) {
+                RG_signup2nd_Gender.check(genderId);
+            }
+            int year = savedInstanceState.getInt("dob_year", -1);
+            int month = savedInstanceState.getInt("dob_month", -1);
+            int day = savedInstanceState.getInt("dob_day", -1);
+            if (year != -1 && month != -1 && day != -1) {
+                DT_signup2nd_DOB.updateDate(year, month, day);
+            }
+        }
+
         BTN_signup2nd_Complete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -118,6 +131,15 @@ public class Register2ndActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("gender_id", RG_signup2nd_Gender.getCheckedRadioButtonId());
+        outState.putInt("dob_year", DT_signup2nd_DOB.getYear());
+        outState.putInt("dob_month", DT_signup2nd_DOB.getMonth());
+        outState.putInt("dob_day", DT_signup2nd_DOB.getDayOfMonth());
     }
 
     @Override

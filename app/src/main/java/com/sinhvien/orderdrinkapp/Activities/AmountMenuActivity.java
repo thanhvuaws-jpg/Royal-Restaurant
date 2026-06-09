@@ -55,7 +55,12 @@ public class AmountMenuActivity extends AppCompatActivity {
         mamon = intent.getIntExtra("mamon", 0);
 
         // Lấy mã đơn hàng từ Cloud
-        layMaDonHangTuCloud();
+        if (savedInstanceState != null) {
+            madondatCloud = savedInstanceState.getInt("madondat_cloud", 0);
+        }
+        if (madondatCloud == 0) {
+            layMaDonHangTuCloud();
+        }
 
         btn_amount_Confirm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -162,5 +167,11 @@ public class AmountMenuActivity extends AppCompatActivity {
             txtl_amount_Quantity.setErrorEnabled(false);
             return true;
         }
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("madondat_cloud", madondatCloud);
     }
 }
