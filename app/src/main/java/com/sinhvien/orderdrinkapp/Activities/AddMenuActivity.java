@@ -281,6 +281,13 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             OrderResponse res = response.body();
                             if ("success".equals(res.getStatus())) {
                                 Log.d(TAG, "Quản lý món thành công: action=" + actionMon + ", mamon=" + mamon + ", tenmon=" + sTenMon);
+                                
+                                // Gửi socket để đồng bộ thực đơn real-time
+                                io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                                if (socket != null && socket.connected()) {
+                                    socket.emit("menu_changed");
+                                }
+
                                 Intent intent = new Intent();
                                 intent.putExtra("ktra", true);
                                 intent.putExtra("chucnang", (mamon != 0) ? "suamon" : "themmon");

@@ -118,6 +118,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                         if (socket != null && socket.connected()) {
                             socket.emit("refresh_orders");
+                            socket.emit("menu_changed");
                         }
                     } else {
                         Toast.makeText(context, "Lỗi cập nhật Cloud", Toast.LENGTH_SHORT).show();
@@ -159,6 +160,12 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                                             notifyItemRemoved(currentPos);
                                             notifyItemRangeChanged(currentPos, monDTOList.size());
                                         }
+
+                                        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                                        if (socket != null && socket.connected()) {
+                                            socket.emit("menu_changed");
+                                        }
+
                                         Toast.makeText(context, "Đã xóa món", Toast.LENGTH_SHORT).show();
                                     }
                                 }

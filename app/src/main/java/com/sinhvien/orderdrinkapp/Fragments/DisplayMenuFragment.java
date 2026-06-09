@@ -82,6 +82,15 @@ public class DisplayMenuFragment extends Fragment {
         }
     };
 
+    private final Emitter.Listener onMenuChanged = new Emitter.Listener() {
+        @Override
+        public void call(Object... args) {
+            if (getActivity() != null) {
+                getActivity().runOnUiThread(() -> refreshMenuInPlace());
+            }
+        }
+    };
+
     ActivityResultLauncher<Intent> resultLauncherMenu = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -459,6 +468,7 @@ public class DisplayMenuFragment extends Fragment {
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null) {
             mSocket.on("refresh_orders", onRefreshOrders);
+            mSocket.on("menu_changed", onMenuChanged);
         }
     }
 
@@ -467,6 +477,7 @@ public class DisplayMenuFragment extends Fragment {
         super.onPause();
         if (mSocket != null) {
             mSocket.off("refresh_orders", onRefreshOrders);
+            mSocket.off("menu_changed", onMenuChanged);
         }
     }
 
