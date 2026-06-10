@@ -1,6 +1,7 @@
 package com.sinhvien.orderdrinkapp.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -42,6 +43,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
     String ngaydat, tongtien, tenNv, tenBan, phuongthuc;
     List<ThanhToanDTO> thanhToanDTOList;
     AdapterDisplayPayment adapterDisplayPayment;
+    private android.os.Parcelable savedLayoutState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,10 @@ public class CashierConfirmActivity extends AppCompatActivity {
         rv_cashier_DishList.setLayoutManager(new LinearLayoutManager(this));
         btn_cashier_Cash = findViewById(R.id.btn_cashier_Cash);
         btn_cashier_Bank = findViewById(R.id.btn_cashier_Bank);
+
+        if (savedInstanceState != null) {
+            savedLayoutState = savedInstanceState.getParcelable("list_state");
+        }
 
         // Get Data
         Intent intent = getIntent();
@@ -99,6 +105,14 @@ public class CashierConfirmActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (rv_cashier_DishList != null && rv_cashier_DishList.getLayoutManager() != null) {
+            outState.putParcelable("list_state", rv_cashier_DishList.getLayoutManager().onSaveInstanceState());
+        }
+    }
+
     private void loadOrderDetails() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getOrderDetails(madon).enqueue(new Callback<List<OrderDetailResponse>>() {
@@ -117,6 +131,11 @@ public class CashierConfirmActivity extends AppCompatActivity {
                     }
                     adapterDisplayPayment = new AdapterDisplayPayment(CashierConfirmActivity.this, thanhToanDTOList);
                     rv_cashier_DishList.setAdapter(adapterDisplayPayment);
+
+                    if (savedLayoutState != null && rv_cashier_DishList.getLayoutManager() != null) {
+                        rv_cashier_DishList.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                        savedLayoutState = null;
+                    }
                 }
             }
 
