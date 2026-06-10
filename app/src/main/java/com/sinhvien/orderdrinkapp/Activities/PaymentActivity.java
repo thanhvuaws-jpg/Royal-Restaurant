@@ -56,6 +56,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     private Runnable pollingRunnable;
     private androidx.appcompat.app.AlertDialog waitingDialog;
     private boolean isPolling = false;
+    private boolean isReceiptShowing = false;
+    private boolean shouldShowReceipt = false;
+    private android.os.Parcelable savedLayoutState;
 
     private io.socket.client.Socket mSocket;
     private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
@@ -85,6 +88,13 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         btn_payment_Pay        = findViewById(R.id.btn_payment_Pay);
         //endregion
 
+        boolean wasPolling = false;
+        if (savedInstanceState != null) {
+            savedLayoutState = savedInstanceState.getParcelable("list_state");
+            wasPolling = savedInstanceState.getBoolean("is_polling", false);
+            shouldShowReceipt = savedInstanceState.getBoolean("is_receipt_showing", false);
+        }
+
         maban   = getIntent().getIntExtra("maban", 0);
         tenban  = getIntent().getStringExtra("tenban");
         ngaydat = getIntent().getStringExtra("ngaydat");
@@ -94,6 +104,10 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         txt_payment_OrderDate.setText(ngaydat);
 
         HienThiDSMonThanhToan();
+
+        if (wasPolling) {
+            startPollingForApproval();
+        }
 
         img_payment_BackBtn.setOnClickListener(this);
         btn_payment_Pay.setOnClickListener(this);
@@ -136,6 +150,16 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         txt_payment_TotalAmount.setText(
                 String.format("%,d", tongtien) + " " +
                         getResources().getString(R.string.currency_vnd));
+
+        if (savedLayoutState != null && rv_payment_DishList.getLayoutManager() != null) {
+            rv_payment_DishList.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+            savedLayoutState = null;
+        }
+
+        if (shouldShowReceipt) {
+            shouldShowReceipt = false;
+            HienThiHoaDon();
+        }
     }
 
     @Override
@@ -320,6 +344,16 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("is_polling", isPolling);
+        outState.putBoolean("is_receipt_showing", isReceiptShowing);
+        if (rv_payment_DishList != null && rv_payment_DishList.getLayoutManager() != null) {
+            outState.putParcelable("list_state", rv_payment_DishList.getLayoutManager().onSaveInstanceState());
+        }
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         stopPolling();
@@ -330,6 +364,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
      * Người dùng có thể chia sẻ hoặc đóng hóa đơn.
      */
     private void HienThiHoaDon() {
+        isReceiptShowing = true;
         View receiptView = LayoutInflater.from(this)
                 .inflate(R.layout.receipt_layout, null);
 
@@ -400,6 +435,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
 
         // Nút đóng → về màn hình chính
         btn_receipt_Close.setOnClickListener(v -> {
+            isReceiptShowing = false;
             dialog.dismiss();
             Toast.makeText(this,
                     getString(R.string.payment_success_msg),

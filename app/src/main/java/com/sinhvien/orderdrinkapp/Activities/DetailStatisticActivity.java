@@ -1,6 +1,7 @@
 package com.sinhvien.orderdrinkapp.Activities;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.annotation.NonNull;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -33,6 +34,7 @@ public class DetailStatisticActivity extends AppCompatActivity {
     String ngaydat, tongtien, tenNv, tenBan;
     List<ThanhToanDTO> thanhToanDTOList;
     AdapterDisplayPayment adapterDisplayPayment;
+    private android.os.Parcelable savedLayoutState;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -59,6 +61,10 @@ public class DetailStatisticActivity extends AppCompatActivity {
         rvDetailStatistic = findViewById(R.id.rvDetailStatistic);
         rvDetailStatistic.setLayoutManager(new LinearLayoutManager(this));
         //endregion
+
+        if (savedInstanceState != null) {
+            savedLayoutState = savedInstanceState.getParcelable("list_state");
+        }
 
         //chỉ hiển thị nếu lấy đc mã đơn đc chọn
         if (madon !=0){
@@ -89,6 +95,14 @@ public class DetailStatisticActivity extends AppCompatActivity {
         });
     }
 
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (rvDetailStatistic != null && rvDetailStatistic.getLayoutManager() != null) {
+            outState.putParcelable("list_state", rvDetailStatistic.getLayoutManager().onSaveInstanceState());
+        }
+    }
+
     private void HienThiDSCTDD(){
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getOrderDetails(madon).enqueue(new Callback<List<OrderDetailResponse>>() {
@@ -107,6 +121,11 @@ public class DetailStatisticActivity extends AppCompatActivity {
                     }
                     adapterDisplayPayment = new AdapterDisplayPayment(DetailStatisticActivity.this, thanhToanDTOList);
                     rvDetailStatistic.setAdapter(adapterDisplayPayment);
+
+                    if (savedLayoutState != null && rvDetailStatistic.getLayoutManager() != null) {
+                        rvDetailStatistic.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                        savedLayoutState = null;
+                    }
                 }
             }
 
