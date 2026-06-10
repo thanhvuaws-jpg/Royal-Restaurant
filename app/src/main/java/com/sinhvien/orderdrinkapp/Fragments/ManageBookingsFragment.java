@@ -39,6 +39,7 @@ public class ManageBookingsFragment extends Fragment {
     List<BookingResponse> filteredBookings = new ArrayList<>();
     ManageBookingsAdapter adapter;
     private androidx.appcompat.app.AlertDialog loadingDialog;
+    private android.os.Parcelable savedLayoutState;
 
     private io.socket.client.Socket mSocket;
 
@@ -58,6 +59,17 @@ public class ManageBookingsFragment extends Fragment {
         tabLayout_bookings.addTab(tabLayout_bookings.newTab().setText("Quá giờ"));
         tabLayout_bookings.addTab(tabLayout_bookings.newTab().setText("Đã hủy"));
         tabLayout_bookings.addTab(tabLayout_bookings.newTab().setText("Tất cả"));
+
+        int savedTabPosition = 0;
+        if (savedInstanceState != null) {
+            savedTabPosition = savedInstanceState.getInt("selected_tab_position", 0);
+            savedLayoutState = savedInstanceState.getParcelable("list_state");
+        }
+
+        TabLayout.Tab targetTab = tabLayout_bookings.getTabAt(savedTabPosition);
+        if (targetTab != null) {
+            targetTab.select();
+        }
 
         tabLayout_bookings.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
@@ -85,6 +97,17 @@ public class ManageBookingsFragment extends Fragment {
     public static void clearCache() {
         cachedBookings.clear();
         lastLoadTime = 0;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (tabLayout_bookings != null) {
+            outState.putInt("selected_tab_position", tabLayout_bookings.getSelectedTabPosition());
+        }
+        if (rv_manage_bookings != null && rv_manage_bookings.getLayoutManager() != null) {
+            outState.putParcelable("list_state", rv_manage_bookings.getLayoutManager().onSaveInstanceState());
+        }
     }
 
     @Override
@@ -121,6 +144,10 @@ public class ManageBookingsFragment extends Fragment {
             allBookings.clear();
             allBookings.addAll(cachedBookings);
             filterBookings(tabLayout_bookings.getSelectedTabPosition());
+            if (savedLayoutState != null && rv_manage_bookings.getLayoutManager() != null) {
+                rv_manage_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                savedLayoutState = null;
+            }
             return;
         }
 
@@ -145,6 +172,10 @@ public class ManageBookingsFragment extends Fragment {
                     allBookings.clear();
                     allBookings.addAll(cachedBookings);
                     filterBookings(tabLayout_bookings.getSelectedTabPosition());
+                    if (savedLayoutState != null && rv_manage_bookings.getLayoutManager() != null) {
+                        rv_manage_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                        savedLayoutState = null;
+                    }
                 }
             }
 
