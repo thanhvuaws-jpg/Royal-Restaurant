@@ -36,7 +36,8 @@ public class CustomerProfileFragment extends Fragment {
     RecyclerView rv_history_bookings;
     BookingHistoryAdapter adapter;
     List<BookingResponse> bookingList = new ArrayList<>();
-    private android.os.Parcelable savedLayoutState;
+    private androidx.core.widget.NestedScrollView nsv_customer_profile;
+    private int savedScrollY = -1;
 
     @Nullable
     @Override
@@ -48,6 +49,7 @@ public class CustomerProfileFragment extends Fragment {
         txt_profile_spending = view.findViewById(R.id.txt_profile_spending);
         txt_profile_badge = view.findViewById(R.id.txt_profile_badge);
         rv_history_bookings = view.findViewById(R.id.rv_history_bookings);
+        nsv_customer_profile = view.findViewById(R.id.nsv_customer_profile);
 
         if (savedInstanceState != null) {
             String json = savedInstanceState.getString("saved_bookings");
@@ -73,7 +75,7 @@ public class CustomerProfileFragment extends Fragment {
                     drawable.setColor(Color.parseColor(badgeColor));
                 }
             }
-            savedLayoutState = savedInstanceState.getParcelable("list_state");
+            savedScrollY = savedInstanceState.getInt("saved_scroll_y", -1);
         }
 
         rv_history_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -82,8 +84,14 @@ public class CustomerProfileFragment extends Fragment {
 
         txt_profile_name.setText(SessionManager.getFullName(getContext()));
 
-        if (savedLayoutState != null && rv_history_bookings.getLayoutManager() != null) {
-            rv_history_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+        if (savedScrollY != -1 && nsv_customer_profile != null) {
+            final int y = savedScrollY;
+            nsv_customer_profile.post(new Runnable() {
+                @Override
+                public void run() {
+                    nsv_customer_profile.scrollTo(0, y);
+                }
+            });
         }
 
         loadCustomerSpendingAndHistory();
@@ -101,9 +109,8 @@ public class CustomerProfileFragment extends Fragment {
         if (txt_profile_phone != null) outState.putString("saved_phone", txt_profile_phone.getText().toString());
         if (txt_profile_spending != null) outState.putString("saved_spending", txt_profile_spending.getText().toString());
         if (txt_profile_badge != null) outState.putString("saved_badge", txt_profile_badge.getText().toString());
-        if (rv_history_bookings != null && rv_history_bookings.getLayoutManager() != null) {
-            android.os.Parcelable listState = rv_history_bookings.getLayoutManager().onSaveInstanceState();
-            outState.putParcelable("list_state", listState);
+        if (nsv_customer_profile != null) {
+            outState.putInt("saved_scroll_y", nsv_customer_profile.getScrollY());
         }
     }
 
@@ -142,9 +149,15 @@ public class CustomerProfileFragment extends Fragment {
                         bookingList.addAll(profile.getBookings());
                     }
                     adapter.notifyDataSetChanged();
-                    if (savedLayoutState != null && rv_history_bookings.getLayoutManager() != null) {
-                        rv_history_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
-                        savedLayoutState = null;
+                    if (savedScrollY != -1 && nsv_customer_profile != null) {
+                        final int y = savedScrollY;
+                        nsv_customer_profile.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                nsv_customer_profile.scrollTo(0, y);
+                            }
+                        });
+                        savedScrollY = -1;
                     }
                 }
             }

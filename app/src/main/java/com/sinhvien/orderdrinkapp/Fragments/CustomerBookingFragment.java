@@ -35,7 +35,8 @@ public class CustomerBookingFragment extends Fragment {
     RecyclerView rv_active_bookings;
     BookingHistoryAdapter adapter;
     List<BookingResponse> bookingList = new ArrayList<>();
-    private android.os.Parcelable savedLayoutState;
+    private androidx.core.widget.NestedScrollView nsv_customer_booking;
+    private int savedScrollY = -1;
 
     @Nullable
     @Override
@@ -44,6 +45,7 @@ public class CustomerBookingFragment extends Fragment {
 
         btn_new_booking = view.findViewById(R.id.btn_new_booking);
         rv_active_bookings = view.findViewById(R.id.rv_active_bookings);
+        nsv_customer_booking = view.findViewById(R.id.nsv_customer_booking);
 
         if (savedInstanceState != null) {
             String json = savedInstanceState.getString("saved_bookings");
@@ -55,15 +57,21 @@ public class CustomerBookingFragment extends Fragment {
                     bookingList.addAll(restored);
                 }
             }
-            savedLayoutState = savedInstanceState.getParcelable("list_state");
+            savedScrollY = savedInstanceState.getInt("saved_scroll_y", -1);
         }
 
         rv_active_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookingHistoryAdapter(getContext(), bookingList);
         rv_active_bookings.setAdapter(adapter);
 
-        if (savedLayoutState != null && rv_active_bookings.getLayoutManager() != null) {
-            rv_active_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+        if (savedScrollY != -1 && nsv_customer_booking != null) {
+            final int y = savedScrollY;
+            nsv_customer_booking.post(new Runnable() {
+                @Override
+                public void run() {
+                    nsv_customer_booking.scrollTo(0, y);
+                }
+            });
         }
 
         btn_new_booking.setOnClickListener(v -> {
@@ -81,9 +89,8 @@ public class CustomerBookingFragment extends Fragment {
             String json = new com.google.gson.Gson().toJson(bookingList);
             outState.putString("saved_bookings", json);
         }
-        if (rv_active_bookings != null && rv_active_bookings.getLayoutManager() != null) {
-            android.os.Parcelable listState = rv_active_bookings.getLayoutManager().onSaveInstanceState();
-            outState.putParcelable("list_state", listState);
+        if (nsv_customer_booking != null) {
+            outState.putInt("saved_scroll_y", nsv_customer_booking.getScrollY());
         }
     }
 
@@ -128,9 +135,15 @@ public class CustomerBookingFragment extends Fragment {
                     bookingList.clear();
                     bookingList.addAll(response.body());
                     adapter.notifyDataSetChanged();
-                    if (savedLayoutState != null && rv_active_bookings.getLayoutManager() != null) {
-                        rv_active_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
-                        savedLayoutState = null;
+                    if (savedScrollY != -1 && nsv_customer_booking != null) {
+                        final int y = savedScrollY;
+                        nsv_customer_booking.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                nsv_customer_booking.scrollTo(0, y);
+                            }
+                        });
+                        savedScrollY = -1;
                     }
                 }
             }
