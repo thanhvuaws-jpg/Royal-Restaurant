@@ -111,17 +111,23 @@ public class ReceiptHelper {
      * Chia sẻ Bitmap qua các ứng dụng (Zalo, Gmail, v.v.)
      */
     public static void shareBitmap(Context context, Bitmap bitmap) {
-        Uri uri = saveBitmapToGallery(context, bitmap);
-        if (uri == null) return;
+        try {
+            Uri uri = saveBitmapToGallery(context, bitmap);
+            if (uri == null) return;
 
-        Intent shareIntent = new Intent(Intent.ACTION_SEND);
-        shareIntent.setType("image/png");
-        shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
-        shareIntent.putExtra(Intent.EXTRA_SUBJECT,
-                context.getString(R.string.receipt_title));
-        shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            Intent shareIntent = new Intent(Intent.ACTION_SEND);
+            shareIntent.setType("image/png");
+            shareIntent.putExtra(Intent.EXTRA_STREAM, uri);
+            shareIntent.putExtra(Intent.EXTRA_SUBJECT,
+                    context.getString(R.string.receipt_title));
+            shareIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-        context.startActivity(Intent.createChooser(shareIntent,
-                context.getString(R.string.receipt_share)));
+            context.startActivity(Intent.createChooser(shareIntent,
+                    context.getString(R.string.receipt_share)));
+        } finally {
+            if (bitmap != null && !bitmap.isRecycled()) {
+                bitmap.recycle();
+            }
+        }
     }
 }

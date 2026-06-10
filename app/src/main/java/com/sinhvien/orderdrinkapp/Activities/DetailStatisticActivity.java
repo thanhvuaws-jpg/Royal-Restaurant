@@ -34,7 +34,16 @@ public class DetailStatisticActivity extends AppCompatActivity {
     String ngaydat, tongtien, tenNv, tenBan;
     List<ThanhToanDTO> thanhToanDTOList;
     AdapterDisplayPayment adapterDisplayPayment;
+    private Call<List<OrderDetailResponse>> orderDetailsCall;
     private android.os.Parcelable savedLayoutState;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (orderDetailsCall != null) {
+            orderDetailsCall.cancel();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -105,7 +114,8 @@ public class DetailStatisticActivity extends AppCompatActivity {
 
     private void HienThiDSCTDD(){
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getOrderDetails(madon).enqueue(new Callback<List<OrderDetailResponse>>() {
+        orderDetailsCall = apiService.getOrderDetails(madon);
+        orderDetailsCall.enqueue(new Callback<List<OrderDetailResponse>>() {
             @Override
             public void onResponse(Call<List<OrderDetailResponse>> call, Response<List<OrderDetailResponse>> response) {
                 if (isFinishing() || isDestroyed()) return;

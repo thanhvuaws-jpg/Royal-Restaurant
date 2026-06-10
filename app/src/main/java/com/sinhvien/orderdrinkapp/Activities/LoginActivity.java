@@ -29,10 +29,19 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
     private static final String TAG = "LoginActivity";
 
+    private Call<StaffResponse> loginCall;
     TextInputLayout txtl_login_UserName, txtl_login_Password;
     Button btn_login_SignIn, btn_login_SignUp;
     CheckBox cb_login_RememberMe;
     ImageView img_login_BackBtn;
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (loginCall != null) {
+            loginCall.cancel();
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -108,7 +117,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             final String finalUser = user;
             final String finalPass = pass;
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
-            apiService.login(user, pass).enqueue(new Callback<StaffResponse>() {
+            loginCall = apiService.login(user, pass);
+            loginCall.enqueue(new Callback<StaffResponse>() {
                 @Override
                 public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
                     if (progressDialog.isShowing()) progressDialog.dismiss();
