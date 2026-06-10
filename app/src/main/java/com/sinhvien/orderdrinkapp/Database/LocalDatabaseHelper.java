@@ -82,11 +82,20 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS BAN");
-        db.execSQL("DROP TABLE IF EXISTS LOAIMON");
-        db.execSQL("DROP TABLE IF EXISTS MON");
-        db.execSQL("DROP TABLE IF EXISTS NHANVIEN");
-        onCreate(db);
+        // Áp dụng cơ chế nâng cấp schema an toàn theo Chương 4.2.J (SQLite Migration)
+        // Thay vì DROP các bảng gây mất dữ liệu cục bộ, ta dùng ALTER TABLE để nâng cấp dần qua từng phiên bản
+        if (oldVersion < 2) {
+            try {
+                // Ví dụ nâng cấp lên v2: Thêm cột mô tả món ăn (MOTA) vào bảng MON mà không làm mất dữ liệu cũ
+                db.execSQL("ALTER TABLE MON ADD COLUMN MOTA TEXT");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (oldVersion < 3) {
+            // Ví dụ nâng cấp lên v3: Thêm bảng mới nếu có yêu cầu lưu trữ mới
+            // db.execSQL("CREATE TABLE IF NOT EXISTS ...");
+        }
     }
 
     //region BAN Sync & Query
