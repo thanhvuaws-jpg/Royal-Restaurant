@@ -36,6 +36,7 @@ public class CustomerProfileFragment extends Fragment {
     RecyclerView rv_history_bookings;
     BookingHistoryAdapter adapter;
     List<BookingResponse> bookingList = new ArrayList<>();
+    private android.os.Parcelable savedLayoutState;
 
     @Nullable
     @Override
@@ -48,15 +49,62 @@ public class CustomerProfileFragment extends Fragment {
         txt_profile_badge = view.findViewById(R.id.txt_profile_badge);
         rv_history_bookings = view.findViewById(R.id.rv_history_bookings);
 
+        if (savedInstanceState != null) {
+            String json = savedInstanceState.getString("saved_bookings");
+            if (json != null && !json.isEmpty()) {
+                java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<List<BookingResponse>>(){}.getType();
+                List<BookingResponse> restored = new com.google.gson.Gson().fromJson(json, type);
+                if (restored != null) {
+                    bookingList.clear();
+                    bookingList.addAll(restored);
+                }
+            }
+            txt_profile_phone.setText(savedInstanceState.getString("saved_phone", ""));
+            txt_profile_spending.setText(savedInstanceState.getString("saved_spending", ""));
+            
+            String badgeText = savedInstanceState.getString("saved_badge", "");
+            txt_profile_badge.setText(badgeText);
+            if (!badgeText.isEmpty()) {
+                String badgeColor = "#CD7F32";
+                if (badgeText.contains("Vàng")) badgeColor = "#FFD700";
+                else if (badgeText.contains("Bạc")) badgeColor = "#C0C0C0";
+                GradientDrawable drawable = (GradientDrawable) txt_profile_badge.getBackground();
+                if (drawable != null) {
+                    drawable.setColor(Color.parseColor(badgeColor));
+                }
+            }
+            savedLayoutState = savedInstanceState.getParcelable("list_state");
+        }
+
         rv_history_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookingHistoryAdapter(getContext(), bookingList);
         rv_history_bookings.setAdapter(adapter);
 
         txt_profile_name.setText(SessionManager.getFullName(getContext()));
 
+        if (savedLayoutState != null && rv_history_bookings.getLayoutManager() != null) {
+            rv_history_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+        }
+
         loadCustomerSpendingAndHistory();
 
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (bookingList != null && !bookingList.isEmpty()) {
+            String json = new com.google.gson.Gson().toJson(bookingList);
+            outState.putString("saved_bookings", json);
+        }
+        if (txt_profile_phone != null) outState.putString("saved_phone", txt_profile_phone.getText().toString());
+        if (txt_profile_spending != null) outState.putString("saved_spending", txt_profile_spending.getText().toString());
+        if (txt_profile_badge != null) outState.putString("saved_badge", txt_profile_badge.getText().toString());
+        if (rv_history_bookings != null && rv_history_bookings.getLayoutManager() != null) {
+            android.os.Parcelable listState = rv_history_bookings.getLayoutManager().onSaveInstanceState();
+            outState.putParcelable("list_state", listState);
+        }
     }
 
     private void loadCustomerSpendingAndHistory() {
@@ -94,6 +142,10 @@ public class CustomerProfileFragment extends Fragment {
                         bookingList.addAll(profile.getBookings());
                     }
                     adapter.notifyDataSetChanged();
+                    if (savedLayoutState != null && rv_history_bookings.getLayoutManager() != null) {
+                        rv_history_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                        savedLayoutState = null;
+                    }
                 }
             }
 

@@ -35,6 +35,7 @@ public class CustomerBookingFragment extends Fragment {
     RecyclerView rv_active_bookings;
     BookingHistoryAdapter adapter;
     List<BookingResponse> bookingList = new ArrayList<>();
+    private android.os.Parcelable savedLayoutState;
 
     @Nullable
     @Override
@@ -44,9 +45,26 @@ public class CustomerBookingFragment extends Fragment {
         btn_new_booking = view.findViewById(R.id.btn_new_booking);
         rv_active_bookings = view.findViewById(R.id.rv_active_bookings);
 
+        if (savedInstanceState != null) {
+            String json = savedInstanceState.getString("saved_bookings");
+            if (json != null && !json.isEmpty()) {
+                java.lang.reflect.Type type = new com.google.gson.reflect.TypeToken<List<BookingResponse>>(){}.getType();
+                List<BookingResponse> restored = new com.google.gson.Gson().fromJson(json, type);
+                if (restored != null) {
+                    bookingList.clear();
+                    bookingList.addAll(restored);
+                }
+            }
+            savedLayoutState = savedInstanceState.getParcelable("list_state");
+        }
+
         rv_active_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookingHistoryAdapter(getContext(), bookingList);
         rv_active_bookings.setAdapter(adapter);
+
+        if (savedLayoutState != null && rv_active_bookings.getLayoutManager() != null) {
+            rv_active_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+        }
 
         btn_new_booking.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), CustomerBookingActivity.class);
@@ -54,6 +72,19 @@ public class CustomerBookingFragment extends Fragment {
         });
 
         return view;
+    }
+
+    @Override
+    public void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (bookingList != null && !bookingList.isEmpty()) {
+            String json = new com.google.gson.Gson().toJson(bookingList);
+            outState.putString("saved_bookings", json);
+        }
+        if (rv_active_bookings != null && rv_active_bookings.getLayoutManager() != null) {
+            android.os.Parcelable listState = rv_active_bookings.getLayoutManager().onSaveInstanceState();
+            outState.putParcelable("list_state", listState);
+        }
     }
 
     private io.socket.client.Socket mSocket;
@@ -97,6 +128,10 @@ public class CustomerBookingFragment extends Fragment {
                     bookingList.clear();
                     bookingList.addAll(response.body());
                     adapter.notifyDataSetChanged();
+                    if (savedLayoutState != null && rv_active_bookings.getLayoutManager() != null) {
+                        rv_active_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                        savedLayoutState = null;
+                    }
                 }
             }
 

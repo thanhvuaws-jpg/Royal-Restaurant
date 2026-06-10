@@ -139,11 +139,35 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             return true;
         });
 
-        // Mặc định mở fragment đặt bàn
-        navigateTo(new CustomerBookingFragment(), "CustomerBookingFragment");
-        navigationView.setCheckedItem(R.id.nav_customer_booking);
-        bottomNav.setSelectedItemId(R.id.nav_customer_booking);
-        if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
+        if (savedInstanceState == null) {
+            // Mặc định mở fragment đặt bàn
+            navigateTo(new CustomerBookingFragment(), "CustomerBookingFragment");
+            navigationView.setCheckedItem(R.id.nav_customer_booking);
+            bottomNav.setSelectedItemId(R.id.nav_customer_booking);
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
+        } else {
+            String activeTag = savedInstanceState.getString("activeFragmentTag");
+            if (activeTag != null) {
+                currentFragment = fragmentManager.findFragmentByTag(activeTag);
+                if ("CustomerBookingFragment".equals(activeTag)) {
+                    navigationView.setCheckedItem(R.id.nav_customer_booking);
+                    bottomNav.setSelectedItemId(R.id.nav_customer_booking);
+                    if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
+                } else if ("CustomerProfileFragment".equals(activeTag)) {
+                    navigationView.setCheckedItem(R.id.nav_customer_history);
+                    bottomNav.setSelectedItemId(R.id.nav_customer_history);
+                    if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+                }
+            }
+        }
+    }
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (currentFragment != null) {
+            outState.putString("activeFragmentTag", currentFragment.getTag());
+        }
     }
 
     @Override
