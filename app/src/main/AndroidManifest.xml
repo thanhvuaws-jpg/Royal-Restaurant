@@ -17,31 +17,34 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.OrderDrinkApp">
-        <activity android:name=".Activities.DetailStatisticActivity" android:exported="false" />
-        <activity android:name=".Activities.CashierConfirmActivity" android:exported="false" />
-        <activity android:name=".Activities.AddStaffActivity" android:exported="false" />
-        <activity android:name=".Activities.PaymentActivity" android:exported="false" />
+        <activity android:name=".Activities.DetailStatisticActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.CashierConfirmActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.AddStaffActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.PaymentActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
         <activity
             android:name=".Activities.AmountMenuActivity"
             android:label="số lượng món"
             android:theme="@style/PopUpActivity"
-            android:exported="false" />
-        <activity android:name=".Activities.AddCategoryActivity" android:exported="false" />
-        <activity android:name=".Activities.AddMenuActivity" android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.AddCategoryActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.AddMenuActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
         <activity
             android:name=".Activities.AddTableActivity"
             android:label="@string/addTable"
             android:theme="@style/PopUpActivity"
-            android:exported="false" />
-        <activity android:name=".Activities.HomeActivity" android:exported="false" />
-        <activity android:name=".Activities.CustomerHomeActivity" android:exported="false" />
-        <activity android:name=".Activities.CustomerBookingActivity" android:exported="false" />
-        <activity android:name=".Activities.LoginActivity" android:exported="false" />
-        <activity android:name=".Activities.Register2ndActivity" android:exported="false" />
-        <activity android:name=".Activities.WelcomeActivity" android:exported="false" />
-        <activity android:name=".Activities.RegisterActivity" android:exported="false" />
+            android:exported="false"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.HomeActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.CustomerHomeActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.CustomerBookingActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.LoginActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.Register2ndActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.WelcomeActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
+        <activity android:name=".Activities.RegisterActivity" android:exported="false" android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize" />
         <activity android:name=".Activities.SplashActivity"
-            android:exported="true">
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden|screenLayout|smallestScreenSize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
