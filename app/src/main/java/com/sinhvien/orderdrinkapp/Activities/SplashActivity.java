@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 
 public class SplashActivity extends AppCompatActivity {
 
@@ -38,7 +39,17 @@ public class SplashActivity extends AppCompatActivity {
         new Handler(android.os.Looper.getMainLooper()).postDelayed(new Runnable() {
             @Override
             public void run() {
-                Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);
+                Intent intent;
+                if (SessionManager.isLoggedIn(SplashActivity.this)) {
+                    if (SessionManager.getMaQuyen(SplashActivity.this) == 4) {
+                        intent = new Intent(SplashActivity.this, CustomerHomeActivity.class);
+                    } else {
+                        intent = new Intent(SplashActivity.this, HomeActivity.class);
+                    }
+                } else {
+                    intent = new Intent(SplashActivity.this, WelcomeActivity.class);
+                }
+                intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                 startActivity(intent);
                 overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
                 finish(); //destroy activity khi back sẽ ko về splash
