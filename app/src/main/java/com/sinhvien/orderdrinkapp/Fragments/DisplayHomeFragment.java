@@ -45,6 +45,8 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     List<DonDatDTO> donDatDTOS;
     AdapterRecycleViewCategory adapterRecycleViewCategory;
     AdapterRecycleViewStatistic adapterRecycleViewStatistic;
+    android.widget.ScrollView sv_display_home;
+    private int savedScrollY = -1;
 
     private static List<DonDatDTO> cachedDonDatDTOS = java.util.Collections.synchronizedList(new ArrayList<>());
     private static long lastLoadTime = 0;
@@ -63,6 +65,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         setHasOptionsMenu(true);
 
         //region Bind views
+        sv_display_home = view.findViewById(R.id.sv_display_home);
         rcv_display_HomeCategoryList = view.findViewById(R.id.rcv_display_HomeCategoryList);
         rcv_display_HomeOrderToday = view.findViewById(R.id.rcv_display_HomeOrderToday);
         layout_display_HomeStatistic = view.findViewById(R.id.layout_display_HomeStatistic);
@@ -74,6 +77,10 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         
         TextView txt_welcome_UserName = view.findViewById(R.id.txt_welcome_UserName);
         //endregion
+
+        if (savedInstanceState != null) {
+            savedScrollY = savedInstanceState.getInt("saved_scroll_y", -1);
+        }
 
         // Hiển thị tên người dùng từ Session
         String fullName = SessionManager.getFullName(getActivity());
@@ -142,6 +149,14 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     };
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        if (sv_display_home != null) {
+            outState.putInt("saved_scroll_y", sv_display_home.getScrollY());
+        }
+    }
+
+    @Override
     public void onResume() {
         super.onResume();
         HienThiDSLoai();
@@ -161,6 +176,19 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    private void checkAndRestoreScroll() {
+        if (savedScrollY != -1 && sv_display_home != null) {
+            final int y = savedScrollY;
+            savedScrollY = -1;
+            sv_display_home.post(new Runnable() {
+                @Override
+                public void run() {
+                    sv_display_home.scrollTo(0, y);
+                }
+            });
+        }
+    }
+
     private void HienThiDSLoai() {
         if (loaiMonDTOList == null) return;
         
@@ -172,6 +200,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
                 loaiMonDTOList.clear();
                 loaiMonDTOList.addAll(cachedList);
                 adapterRecycleViewCategory.notifyDataSetChanged();
+                checkAndRestoreScroll();
             });
         });
 
@@ -192,6 +221,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
                             loaiMonDTOList.clear();
                             loaiMonDTOList.addAll(updatedList);
                             adapterRecycleViewCategory.notifyDataSetChanged();
+                            checkAndRestoreScroll();
                         });
                     });
                 }
@@ -217,6 +247,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         if (cachedDonDatDTOS != null && !cachedDonDatDTOS.isEmpty()) {
             donDatDTOS.addAll(cachedDonDatDTOS);
             adapterRecycleViewStatistic.notifyDataSetChanged();
+            checkAndRestoreScroll();
         }
 
         // Kiểm tra nếu không phải forceRefresh và lần gọi trước cách dưới 30 giây thì không gọi API
@@ -267,6 +298,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
                     lastLoadTime = System.currentTimeMillis();
 
                     adapterRecycleViewStatistic.notifyDataSetChanged();
+                    checkAndRestoreScroll();
                 }
             }
 
