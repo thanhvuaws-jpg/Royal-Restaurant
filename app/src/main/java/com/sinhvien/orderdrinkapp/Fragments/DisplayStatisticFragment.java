@@ -35,6 +35,8 @@ import com.sinhvien.orderdrinkapp.R;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.StatisticViewModel;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -58,6 +60,8 @@ public class DisplayStatisticFragment extends Fragment {
     List<DonDatDTO> tatCaDonDat; // Toàn bộ đơn đã hoàn thành
     AdapterDisplayStatistic adapterDisplayStatistic;
     View view;
+    private StatisticViewModel statisticViewModel;
+    private androidx.appcompat.app.AlertDialog progressDialog;
 
     private static final int FILTER_TODAY   = 0;
     private static final int FILTER_7DAYS   = 7;
@@ -88,8 +92,33 @@ public class DisplayStatisticFragment extends Fragment {
         txt_statistic_AvgOrder      = view.findViewById(R.id.txt_statistic_AvgOrder);
         chipGroup_statistic_Filter  = view.findViewById(R.id.chipGroup_statistic_Filter);
 
-
         tatCaDonDat = new ArrayList<>(); // Khởi tạo trống để tránh crash khi chưa có dữ liệu
+
+        statisticViewModel = new ViewModelProvider(this).get(StatisticViewModel.class);
+        statisticViewModel.getStatisticOrders().observe(getViewLifecycleOwner(), list -> {
+            tatCaDonDat.clear();
+            tatCaDonDat.addAll(list);
+            capNhatDashboard();
+        });
+        statisticViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                if (progressDialog == null && getActivity() != null) {
+                    progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
+                }
+                if (progressDialog != null && !progressDialog.isShowing()) {
+                    progressDialog.show();
+                }
+            } else {
+                if (progressDialog != null && progressDialog.isShowing()) {
+                    progressDialog.dismiss();
+                }
+            }
+        });
+        statisticViewModel.getError().observe(getViewLifecycleOwner(), error -> {
+            if (error != null && !error.isEmpty()) {
+                Toast.makeText(getActivity(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
 
         // Chip filter listener
         chipGroup_statistic_Filter.setOnCheckedChangeListener((group, checkedId) -> {
@@ -102,7 +131,7 @@ public class DisplayStatisticFragment extends Fragment {
             } else if (checkedId == R.id.chip_filter_All) {
                 currentFilter = FILTER_ALL;
             }
-            // [FIX] Gọi API thay vì lọc client
+            statisticViewModel.setCurrentFilter(currentFilter);
             HienThiDSThongKe(true);
         });
 
@@ -117,14 +146,8 @@ public class DisplayStatisticFragment extends Fragment {
         return view;
     }
 
-    private static List<DonDatDTO> cachedStatisticOrders = java.util.Collections.synchronizedList(new ArrayList<>());
-    private static long lastLoadTime = 0;
-    private static int lastFilter = -999; // [FIX] Lưu filter trước đó
-
     public static void clearCache() {
-        cachedStatisticOrders.clear();
-        lastLoadTime = 0;
-        lastFilter = -999;
+        // ViewModel handles lifecycle now
     }
 
     private void HienThiDSThongKe(){
@@ -132,89 +155,7 @@ public class DisplayStatisticFragment extends Fragment {
     }
 
     private void HienThiDSThongKe(boolean forceRefresh) {
-        long currentTime = System.currentTimeMillis();
-        if (!forceRefresh && !cachedStatisticOrders.isEmpty() && (currentTime - lastLoadTime < 30000) && lastFilter == currentFilter) {
-            tatCaDonDat = new ArrayList<>(cachedStatisticOrders);
-            capNhatDashboard();
-            return;
-        }
-
-        androidx.appcompat.app.AlertDialog progressDialog = null;
-        if (cachedStatisticOrders.isEmpty()) {
-            progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
-            progressDialog.show();
-        }
-        final androidx.appcompat.app.AlertDialog finalProgressDialog = progressDialog;
-
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        Call<List<OrderResponse>> call;
-
-        // [FIX] Tính toán from_date và to_date
-        String fromDate = null;
-        String toDate = null;
-        if (currentFilter != FILTER_ALL) {
-            SimpleDateFormat apiFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-            Calendar cal = Calendar.getInstance();
-            toDate = apiFormat.format(cal.getTime());
-            
-            if (currentFilter == FILTER_TODAY) {
-                fromDate = toDate;
-            } else {
-                cal.add(Calendar.DAY_OF_YEAR, -(currentFilter - 1));
-                fromDate = apiFormat.format(cal.getTime());
-            }
-            call = apiService.getPaidOrders(fromDate, toDate);
-        } else {
-            call = apiService.getPaidOrders();
-        }
-
-        call.enqueue(new Callback<List<OrderResponse>>() {
-            @Override
-            public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
-                if (finalProgressDialog != null && finalProgressDialog.isShowing()) {
-                    finalProgressDialog.dismiss();
-                }
-                if (!isAdded() || getActivity() == null) return;
-
-                if (response.isSuccessful() && response.body() != null) {
-                    cachedStatisticOrders.clear();
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    for (OrderResponse res : response.body()) {
-                        DonDatDTO dto = new DonDatDTO();
-                        dto.setMaDonDat(res.getMaDonDat());
-                        dto.setMaNV(res.getMaNV());
-                        dto.setMaBan(res.getMaBan());
-                        dto.setTongTien(String.valueOf(res.getTongTien()));
-                        dto.setTinhTrang("true");
-                        dto.setTenNV(res.getHoTenNV());
-                        dto.setTenBan(res.getTenBan());
-
-                        // Chuyển ngày từ Cloud (yyyy-MM-dd) sang App (dd-MM-yyyy)
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            dto.setNgayDat(DB_FORMAT.format(d));
-                        } catch (Exception e) {
-                            dto.setNgayDat(res.getNgayDat());
-                        }
-                        cachedStatisticOrders.add(dto);
-                    }
-                    lastLoadTime = System.currentTimeMillis();
-                    lastFilter = currentFilter;
-                    tatCaDonDat = new ArrayList<>(cachedStatisticOrders);
-                    capNhatDashboard();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
-                if (finalProgressDialog != null && finalProgressDialog.isShowing()) {
-                    finalProgressDialog.dismiss();
-                }
-                if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi thống kê Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        statisticViewModel.fetchPaidOrders(forceRefresh);
     }
 
     // [FIX] Xóa hàm layDanhSachDaLoc() vì server đã lọc sẵn

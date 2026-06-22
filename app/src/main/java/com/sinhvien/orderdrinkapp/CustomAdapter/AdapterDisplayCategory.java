@@ -68,7 +68,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
 
         // Tải ảnh bằng Glide
         if (loaiMonDTO.getHinhAnhPath() != null && !loaiMonDTO.getHinhAnhPath().isEmpty()) {
-            String url = ApiClient.getBaseUrl() + loaiMonDTO.getHinhAnhPath();
+            String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(loaiMonDTO.getHinhAnhPath());
             Glide.with(context)
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)

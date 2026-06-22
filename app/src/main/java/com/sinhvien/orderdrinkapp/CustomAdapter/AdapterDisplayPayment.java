@@ -50,7 +50,7 @@ public class AdapterDisplayPayment extends RecyclerView.Adapter<AdapterDisplayPa
 
         // Tải ảnh bằng Glide
         if (item.getHinhAnhPath() != null && !item.getHinhAnhPath().isEmpty()) {
-            String imageUrl = ApiClient.BASE_URL + item.getHinhAnhPath();
+            String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(item.getHinhAnhPath());
             Glide.with(context)
                     .load(imageUrl)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)

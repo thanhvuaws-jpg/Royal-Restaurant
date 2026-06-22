@@ -13,3 +13,13 @@
 .externalNativeBuild
 .cxx
 local.properties
+.artifacts/
+.codegraph/
+.cursor/
+.claude/
+.understand-anything/
+build_log.txt
+.idea/
+*.iml
+*.log
+

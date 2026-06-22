@@ -49,6 +49,9 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.MenuViewModel;
+
 public class DisplayMenuFragment extends Fragment {
 
     // Hằng số phân trang (Tăng lên 1000 để load toàn bộ món trong 1 lần, kết hợp với SQLite cache)
@@ -64,10 +67,8 @@ public class DisplayMenuFragment extends Fragment {
     View view;
 
     // Biến điều khiển phân trang và tìm kiếm
-    private int currentPage = 1;
-    private boolean isLoading = false;
-    private boolean hasMore = true;
     private String currentSearch = ""; // Từ khóa tìm kiếm hiện tại
+    private MenuViewModel menuViewModel;
 
     private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable searchRunnable;
@@ -133,10 +134,12 @@ public class DisplayMenuFragment extends Fragment {
             tenloai = bundle.getString("tenloai");
             maban = bundle.getInt("maban");
 
+            menuViewModel = new ViewModelProvider(this).get(MenuViewModel.class);
+
             if (savedInstanceState != null) {
                 currentSearch = savedInstanceState.getString("current_search", "");
-                currentPage = savedInstanceState.getInt("current_page", 1);
-                hasMore = savedInstanceState.getBoolean("has_more", true);
+                menuViewModel.setCurrentPage(savedInstanceState.getInt("current_page", 1));
+                menuViewModel.setHasMore(savedInstanceState.getBoolean("has_more", true));
             }
 
             // Thiết lập RecyclerView dạng lưới 2 cột
@@ -147,23 +150,20 @@ public class DisplayMenuFragment extends Fragment {
             adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
             rv_menu_DishList.setAdapter(adapter);
 
-            // Tải từ SQLite cache trước để hiển thị tức thì
-            LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-            LocalDatabaseHelper.getExecutor().execute(() -> {
-                List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
-                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                    monDTOList.clear();
-                    monDTOList.addAll(cachedList);
-                    adapter.notifyDataSetChanged();
-                    capNhatTrangThai();
-                });
+            menuViewModel.getDishes(maloai, currentSearch).observe(getViewLifecycleOwner(), dishes -> {
+                androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
+                        androidx.recyclerview.widget.DiffUtil.calculateDiff(new MenuDiffCallback(monDTOList, dishes));
+                monDTOList.clear();
+                monDTOList.addAll(dishes);
+                diffResult.dispatchUpdatesTo(adapter);
+                capNhatTrangThai();
             });
 
             SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
             swipeRefreshLayout.setOnRefreshListener(() -> {
-                currentPage = 1;
-                hasMore = true;
-                isLoading = false;
+                menuViewModel.setCurrentPage(1);
+                menuViewModel.setHasMore(true);
+                menuViewModel.setLoading(false);
                 taiThemMon(swipeRefreshLayout);
             });
 
@@ -183,7 +183,7 @@ public class DisplayMenuFragment extends Fragment {
                         int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
                         // Khi còn 4 item cuối thì bắt đầu tải thêm
-                        if (!isLoading && hasMore) {
+                        if (!menuViewModel.isLoading() && menuViewModel.isHasMore()) {
                             if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {
                                 taiThemMon();
                             }
@@ -259,105 +259,49 @@ public class DisplayMenuFragment extends Fragment {
     }
 
     private void taiThemMon(SwipeRefreshLayout swipeRefresh) {
-        if (isLoading || (!hasMore && swipeRefresh == null)) {
+        if (menuViewModel.isLoading() || (!menuViewModel.isHasMore() && swipeRefresh == null)) {
             if (swipeRefresh != null) {
                 swipeRefresh.setRefreshing(false);
             }
             return;
         }
-        isLoading = true;
+
         if (swipeRefresh == null) {
             pb_menu_LoadMore.setVisibility(View.VISIBLE);
         }
 
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getDishes(maloai, currentPage, PAGE_SIZE, currentSearch).enqueue(new Callback<DishPageResponse>() {
-            @Override
-            public void onResponse(Call<DishPageResponse> call, Response<DishPageResponse> response) {
-                if (swipeRefresh != null) {
+        menuViewModel.loadMoreDishes(maloai, currentSearch, swipeRefresh != null, success -> {
+            if (swipeRefresh != null) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                     swipeRefresh.setRefreshing(false);
-                }
-                if (!isAdded() || getActivity() == null) return;
-                pb_menu_LoadMore.setVisibility(View.GONE);
-                isLoading = false;
-
-                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    List<MonResponse> newItems = response.body().getData();
-                    hasMore = response.body().isHasMore();
-
-                    if (newItems != null) {
-                        currentPage++;
-                        // Lưu dữ liệu vào SQLite dưới nền
-                        LocalDatabaseHelper.getExecutor().execute(() -> {
-                            dbHelper.syncDishes(maloai, newItems, currentPage == 2);
-                            // Load lại toàn bộ từ SQLite lên List để đồng nhất dữ liệu
-                            List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
-                            
-                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                                monDTOList.clear();
-                                monDTOList.addAll(cachedList);
-                                adapter.notifyDataSetChanged();
-                                capNhatTrangThai();
-                            });
-                        });
-                    } else {
-                        capNhatTrangThai();
-                    }
-                }
+                });
             }
-
-            @Override
-            public void onFailure(Call<DishPageResponse> call, Throwable t) {
-                if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
-                }
-                if (!isAdded() || getActivity() == null) return;
-                pb_menu_LoadMore.setVisibility(View.GONE);
-                isLoading = false;
-                Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            if (getActivity() != null && isAdded()) {
+                new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                    pb_menu_LoadMore.setVisibility(View.GONE);
+                });
             }
         });
     }
 
     // Reset và tải lại từ đầu (sau khi thêm/sửa/xóa)
     private void resetVaTaiLai() {
-        currentPage = 1;
-        hasMore = true;
-        isLoading = false;
         currentSearch = "";
-        
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                monDTOList.clear();
-                monDTOList.addAll(cachedList);
-                adapter.notifyDataSetChanged();
-                capNhatTrangThai();
-                taiThemMon();
-            });
-        });
+        menuViewModel.setCurrentPage(1);
+        menuViewModel.setHasMore(true);
+        menuViewModel.setLoading(false);
+        menuViewModel.loadDishesFromLocal(maloai, currentSearch);
+        taiThemMon();
     }
 
     // Tìm kiếm trên Server (trả về toàn bộ kết quả khớp)
     private void timKiemTrenServer(String query) {
         currentSearch = query;
-        currentPage = 1;
-        hasMore = true;
-        isLoading = false;
-        
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<MonDTO> cachedList = dbHelper.getDishes(maloai, currentSearch);
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                monDTOList.clear();
-                monDTOList.addAll(cachedList);
-                adapter.notifyDataSetChanged();
-                capNhatTrangThai();
-                taiThemMon();
-            });
-        });
+        menuViewModel.setCurrentPage(1);
+        menuViewModel.setHasMore(true);
+        menuViewModel.setLoading(false);
+        menuViewModel.loadDishesFromLocal(maloai, currentSearch);
+        taiThemMon();
     }
 
     // Cập nhật trạng thái hiển thị danh sách hoặc empty state
@@ -399,39 +343,7 @@ public class DisplayMenuFragment extends Fragment {
     }
 
     private void refreshMenuInPlace() {
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        // Tải toàn bộ món của danh mục (truyền rỗng) để đồng bộ đầy đủ SQLite local
-        apiService.getDishes(maloai, 1, 100, "").enqueue(new retrofit2.Callback<DishPageResponse>() {
-            @Override
-            public void onResponse(retrofit2.Call<DishPageResponse> call, retrofit2.Response<DishPageResponse> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    List<MonResponse> newItems = response.body().getData();
-                    if (newItems != null) {
-                        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-                        LocalDatabaseHelper.getExecutor().execute(() -> {
-                            // Xóa sạch cache món cũ của danh mục này và nạp mới để xử lý cả trường hợp XÓA món
-                            dbHelper.syncDishes(maloai, newItems, true);
-                            // Lọc lại danh sách món bằng từ khóa tìm kiếm hiện tại
-                            List<MonDTO> updatedList = dbHelper.getDishes(maloai, currentSearch);
-                            
-                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                                // Sử dụng DiffUtil để tự động đồng bộ và giữ nguyên thứ tự sắp xếp chuẩn
-                                androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
-                                        androidx.recyclerview.widget.DiffUtil.calculateDiff(new MenuDiffCallback(monDTOList, updatedList));
-                                monDTOList.clear();
-                                monDTOList.addAll(updatedList);
-                                diffResult.dispatchUpdatesTo(adapter);
-                                capNhatTrangThai();
-                            });
-                        });
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<DishPageResponse> call, Throwable t) {}
-        });
+        menuViewModel.loadMoreDishes(maloai, currentSearch, true, null);
     }
 
     @Override
@@ -465,8 +377,10 @@ public class DisplayMenuFragment extends Fragment {
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("current_search", currentSearch);
-        outState.putInt("current_page", currentPage);
-        outState.putBoolean("has_more", hasMore);
+        if (menuViewModel != null) {
+            outState.putInt("current_page", menuViewModel.getCurrentPage());
+            outState.putBoolean("has_more", menuViewModel.isHasMore());
+        }
     }
 
     private static class MenuDiffCallback extends androidx.recyclerview.widget.DiffUtil.Callback {

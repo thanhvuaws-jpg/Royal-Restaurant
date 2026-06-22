@@ -44,7 +44,7 @@ public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecy
         holder.txt_customcategory_CategoryName.setText(loaiMonDTO.getTenLoai());
         
         if (loaiMonDTO.getHinhAnhPath() != null && !loaiMonDTO.getHinhAnhPath().isEmpty()) {
-            String url = ApiClient.getBaseUrl() + loaiMonDTO.getHinhAnhPath();
+            String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(loaiMonDTO.getHinhAnhPath());
             Glide.with(context)
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)

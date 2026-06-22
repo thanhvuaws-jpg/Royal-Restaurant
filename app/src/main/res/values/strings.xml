@@ -3,11 +3,11 @@
     <string name="brand_name">ROYAL RESTAURANT</string>
     <string name="slogan">Đẳng cấp hương vị hoàng gia</string>
     <string name="login">Đăng nhập</string>
-    <string name="logintittle">Đăng <br /> nhập</string>
+    <string name="logintittle">Đăng \n nhập</string>
     <string name="register">Đăng ký</string>
     <string name="function">Quản lý</string>
     <string name="howwork">Hướng dẫn sử dụng</string>
-    <string name="create_acc">Tạo <br /> tài khoản</string>
+    <string name="create_acc">Tạo \n tài khoản</string>
     <string name="enter_fullname">Họ và tên</string>
     <string name="enter_username">Tên tài khoản</string>
     <string name="enter_email">Email</string>
@@ -29,10 +29,10 @@
     <string name="addTable">Thêm bàn ăn</string>
     <string name="tablename">Tên bàn ăn</string>
     <string name="addMenu">Thêm thực đơn</string>
-    <string name="addmenu">Thêm <br /> thực đơn</string>
+    <string name="addmenu">Thêm \n thực đơn</string>
     <string name="addCategory">Thêm loại</string>
-    <string name="addcategory">Thêm <br /> loại</string>
-    <string name="editcategory">Sửa <br /> loại</string>
+    <string name="addcategory">Thêm \n loại</string>
+    <string name="editcategory">Sửa \n loại</string>
     <string name="choseimg">Chọn hình</string>
     <string name="select_gender">Chọn Giới tính</string>
     <string name="gender_male">Nam</string>

@@ -28,9 +28,12 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.BookingViewModel;
 
 public class CustomerBookingFragment extends Fragment {
 
+    private BookingViewModel bookingViewModel;
     MaterialButton btn_new_booking;
     RecyclerView rv_active_bookings;
     BookingHistoryAdapter adapter;
@@ -77,6 +80,23 @@ public class CustomerBookingFragment extends Fragment {
         btn_new_booking.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), CustomerBookingActivity.class);
             startActivity(intent);
+        });
+
+        bookingViewModel = new ViewModelProvider(this).get(BookingViewModel.class);
+        bookingViewModel.getCustomerBookings().observe(getViewLifecycleOwner(), list -> {
+            bookingList.clear();
+            bookingList.addAll(list);
+            adapter.notifyDataSetChanged();
+            if (savedScrollY != -1 && nsv_customer_booking != null) {
+                final int y = savedScrollY;
+                nsv_customer_booking.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        nsv_customer_booking.scrollTo(0, y);
+                    }
+                });
+                savedScrollY = -1;
+            }
         });
 
         return view;
@@ -127,33 +147,6 @@ public class CustomerBookingFragment extends Fragment {
 
     private void loadBookings() {
         int makh = SessionManager.getMaNV(getContext());
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getBookings(makh).enqueue(new Callback<List<BookingResponse>>() {
-            @Override
-            public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    bookingList.clear();
-                    bookingList.addAll(response.body());
-                    adapter.notifyDataSetChanged();
-                    if (savedScrollY != -1 && nsv_customer_booking != null) {
-                        final int y = savedScrollY;
-                        nsv_customer_booking.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                nsv_customer_booking.scrollTo(0, y);
-                            }
-                        });
-                        savedScrollY = -1;
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Lỗi tải lịch hẹn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        bookingViewModel.fetchBookingsForCustomer(makh, false);
     }
 }

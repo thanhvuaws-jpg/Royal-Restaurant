@@ -46,6 +46,9 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Log;
 
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.CategoryViewModel;
+
 public class DisplayCategoryFragment extends Fragment {
 
     private static final String TAG = "DisplayCategoryFragment";
@@ -56,6 +59,7 @@ public class DisplayCategoryFragment extends Fragment {
     FragmentManager fragmentManager;
     int maban;
     View view;
+    CategoryViewModel categoryViewModel;
 
     private Socket mSocket;
     private final Emitter.Listener onRefreshOrders = new Emitter.Listener() {
@@ -117,6 +121,16 @@ public class DisplayCategoryFragment extends Fragment {
         adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rv_category_CategoryList.setAdapter(adapter);
 
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
+        categoryViewModel.getCategories().observe(getViewLifecycleOwner(), categories -> {
+            androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
+                    androidx.recyclerview.widget.DiffUtil.calculateDiff(new CategoryDiffCallback(loaiMonDTOList, categories));
+            loaiMonDTOList.clear();
+            loaiMonDTOList.addAll(categories);
+            diffResult.dispatchUpdatesTo(adapter);
+            capNhatTrangThai();
+        });
+
         // Click item → chuyển sang màn hình món ăn
         adapter.setOnItemClickListener(position -> {
             int maloai = loaiMonDTOList.get(position).getMaLoai();
@@ -177,17 +191,8 @@ public class DisplayCategoryFragment extends Fragment {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
-        // 1. Tải và hiển thị dữ liệu từ SQLite trước
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<LoaiMonDTO> cachedList = dbHelper.getCategories();
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                loaiMonDTOList.clear();
-                loaiMonDTOList.addAll(cachedList);
-                adapter.notifyDataSetChanged();
-                capNhatTrangThai();
-            });
-        });
+        
+        categoryViewModel.loadCategoriesFromLocal();
 
         if (!fetchApi) {
             if (swipeRefresh != null) {
@@ -196,40 +201,27 @@ public class DisplayCategoryFragment extends Fragment {
             return;
         }
 
-        // 2. Gọi API đồng bộ ở chế độ nền
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getCategories().enqueue(new Callback<List<LoaiMonResponse>>() {
+        categoryViewModel.syncCategoriesFromServer(new CategoryViewModel.OnSyncCallback() {
             @Override
-            public void onResponse(Call<List<LoaiMonResponse>> call, Response<List<LoaiMonResponse>> response) {
+            public void onSuccess() {
                 if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
-                }
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Đồng bộ loại món thành công: count=" + response.body().size());
-                    // Cập nhật dữ liệu mới vào SQLite dưới nền
-                    LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncCategories(response.body());
-                        List<LoaiMonDTO> updatedList = dbHelper.getCategories();
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            loaiMonDTOList.clear();
-                            loaiMonDTOList.addAll(updatedList);
-                            adapter.notifyDataSetChanged();
-                            capNhatTrangThai();
-                        });
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        swipeRefresh.setRefreshing(false);
                     });
                 }
             }
 
             @Override
-            public void onFailure(Call<List<LoaiMonResponse>> call, Throwable t) {
+            public void onError(String errorMsg) {
                 if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        swipeRefresh.setRefreshing(false);
+                    });
                 }
-                Log.e(TAG, "Lỗi đồng bộ loại món: " + t.getMessage());
-                // Khi không có mạng, vẫn giữ nguyên dữ liệu từ SQLite đã hiển thị trước đó
                 if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Toast.makeText(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
         });
@@ -250,33 +242,7 @@ public class DisplayCategoryFragment extends Fragment {
         }
     }
     private void refreshCategoriesInPlace() {
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getCategories().enqueue(new Callback<List<LoaiMonResponse>>() {
-            @Override
-            public void onResponse(Call<List<LoaiMonResponse>> call, Response<List<LoaiMonResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncCategories(response.body());
-                        List<LoaiMonDTO> updatedList = dbHelper.getCategories();
-
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            // Sử dụng DiffUtil để tự động đồng bộ danh mục và duy trì thứ tự sắp xếp chuẩn
-                            androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
-                                    androidx.recyclerview.widget.DiffUtil.calculateDiff(new CategoryDiffCallback(loaiMonDTOList, updatedList));
-                            loaiMonDTOList.clear();
-                            loaiMonDTOList.addAll(updatedList);
-                            diffResult.dispatchUpdatesTo(adapter);
-                            capNhatTrangThai();
-                        });
-                    });
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<LoaiMonResponse>> call, Throwable t) {}
-        });
+        categoryViewModel.syncCategoriesFromServer(null);
     }
 
     @Override

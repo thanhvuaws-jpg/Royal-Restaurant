@@ -41,6 +41,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Log;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.TableViewModel;
 
 public class DisplayTableFragment extends Fragment {
 
@@ -52,6 +54,7 @@ public class DisplayTableFragment extends Fragment {
     List<BanAnDTO> filteredList = new ArrayList<>();
     AdapterDisplayTable adapterDisplayTable;
     View view;
+    private TableViewModel tableViewModel;
 
     ActivityResultLauncher<Intent> resultLauncherAdd = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -108,6 +111,16 @@ public class DisplayTableFragment extends Fragment {
 
         view.findViewById(R.id.fab_add_table).setOnClickListener(v ->
                 resultLauncherAdd.launch(new Intent(getActivity(), AddTableActivity.class)));
+
+        tableViewModel = new ViewModelProvider(this).get(TableViewModel.class);
+        tableViewModel.getTables().observe(getViewLifecycleOwner(), list -> {
+            banAnDTOList.clear();
+            banAnDTOList.addAll(list);
+            filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
+        });
+        tableViewModel.getReservedTables().observe(getViewLifecycleOwner(), reservedList -> {
+            adapterDisplayTable.setReservedTables(reservedList);
+        });
 
         return view;
     }
@@ -202,16 +215,8 @@ public class DisplayTableFragment extends Fragment {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
-        // 1. Tải và hiển thị dữ liệu từ SQLite trước
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<BanAnDTO> cachedList = dbHelper.getTables();
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                banAnDTOList.clear();
-                banAnDTOList.addAll(cachedList);
-                filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
-            });
-        });
+        
+        tableViewModel.loadTablesFromLocal();
 
         if (!fetchApi) {
             if (swipeRefresh != null) {
@@ -220,60 +225,35 @@ public class DisplayTableFragment extends Fragment {
             return;
         }
 
-        // 2. Gọi API đồng bộ ở chế độ nền
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getTables().enqueue(new Callback<List<TableResponse>>() {
+        tableViewModel.syncTablesFromServer(true, new TableViewModel.OnSyncCallback() {
             @Override
-            public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
+            public void onSuccess() {
                 if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
-                }
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Đồng bộ danh sách bàn thành công: count=" + response.body().size());
-                    // Cập nhật dữ liệu mới vào SQLite dưới nền
-                    LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncTables(response.body());
-                        List<BanAnDTO> updatedList = dbHelper.getTables();
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            banAnDTOList.clear();
-                            banAnDTOList.addAll(updatedList);
-                            filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
-                            // Fetch reserved tables status
-                            fetchReservedTables();
-                        });
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        swipeRefresh.setRefreshing(false);
                     });
                 }
             }
 
             @Override
-            public void onFailure(Call<List<TableResponse>> call, Throwable t) {
+            public void onError(String errorMsg) {
                 if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        swipeRefresh.setRefreshing(false);
+                    });
                 }
-                Log.e(TAG, "Lỗi đồng bộ danh sách bàn: " + t.getMessage());
+                Log.e(TAG, "Lỗi đồng bộ danh sách bàn: " + errorMsg);
                 if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Toast.makeText(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
         });
     }
 
     private void fetchReservedTables() {
-        if (!isAdded() || getActivity() == null) return;
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getTableBookingStatus().enqueue(new Callback<List<TableResponse>>() {
-            @Override
-            public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    adapterDisplayTable.setReservedTables(response.body());
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<TableResponse>> call, Throwable t) {}
-        });
+        tableViewModel.fetchReservedTables();
     }
 
     private void capNhatTrangThai() {

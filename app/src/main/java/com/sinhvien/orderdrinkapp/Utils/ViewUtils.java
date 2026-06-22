@@ -25,4 +25,14 @@ public class ViewUtils {
         lastClickTime = now;
         return false;
     }
+
+    public static String getImageUrl(String rawPath) {
+        if (rawPath == null || rawPath.isEmpty()) {
+            return "";
+        }
+        if (rawPath.startsWith("http://") || rawPath.startsWith("https://")) {
+            return rawPath;
+        }
+        return com.sinhvien.orderdrinkapp.Api.ApiClient.getBaseUrl() + rawPath;
+    }
 }

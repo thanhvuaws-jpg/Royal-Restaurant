@@ -159,7 +159,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             applyNavMode(useBottomNav);
         });
 
-         bottomNav.setOnNavigationItemSelectedListener(item -> {
+         bottomNav.setOnItemSelectedListener(item -> {
             if (isSyncingNav) {
                 return true;
             }

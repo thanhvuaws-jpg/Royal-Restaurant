@@ -30,7 +30,12 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.CustomerProfileViewModel;
+
 public class CustomerProfileFragment extends Fragment {
+
+    private CustomerProfileViewModel customerProfileViewModel;
 
     TextView txt_profile_name, txt_profile_phone, txt_profile_spending, txt_profile_badge;
     RecyclerView rv_history_bookings;
@@ -94,6 +99,41 @@ public class CustomerProfileFragment extends Fragment {
             });
         }
 
+        customerProfileViewModel = new ViewModelProvider(this).get(CustomerProfileViewModel.class);
+        customerProfileViewModel.getProfile().observe(getViewLifecycleOwner(), profile -> {
+            if (profile == null) return;
+            txt_profile_phone.setText("SĐT: " + (profile.getSdt() != null ? profile.getSdt() : ""));
+
+            String totalSpentStr = profile.getSpending();
+            long totalSpent = 0;
+            try {
+                if (totalSpentStr != null && !totalSpentStr.isEmpty()) {
+                    totalSpent = Long.parseLong(totalSpentStr);
+                }
+            } catch (NumberFormatException ignored) {}
+
+            DecimalFormat formatter = new DecimalFormat("#,###");
+            txt_profile_spending.setText(formatter.format(totalSpent) + " đ");
+
+            updateLoyaltyBadge(totalSpent);
+
+            bookingList.clear();
+            if (profile.getBookings() != null) {
+                bookingList.addAll(profile.getBookings());
+            }
+            adapter.notifyDataSetChanged();
+            if (savedScrollY != -1 && nsv_customer_profile != null) {
+                final int y = savedScrollY;
+                nsv_customer_profile.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        nsv_customer_profile.scrollTo(0, y);
+                    }
+                });
+                savedScrollY = -1;
+            }
+        });
+
         loadCustomerSpendingAndHistory();
 
         return view;
@@ -116,59 +156,7 @@ public class CustomerProfileFragment extends Fragment {
 
     private void loadCustomerSpendingAndHistory() {
         int makh = SessionManager.getMaNV(getContext());
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-
-        apiService.getCustomerProfile(makh).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse>() {
-            @Override
-            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse> call, Response<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse> response) {
-                if (!isAdded() || getContext() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse profile = response.body();
-                    
-                    // 1. Phone number
-                    txt_profile_phone.setText("SĐT: " + (profile.getSdt() != null ? profile.getSdt() : ""));
-
-                    // 2. Spending
-                    String totalSpentStr = profile.getSpending();
-                    long totalSpent = 0;
-                    try {
-                        if (totalSpentStr != null && !totalSpentStr.isEmpty()) {
-                            totalSpent = Long.parseLong(totalSpentStr);
-                        }
-                    } catch (NumberFormatException ignored) {}
-
-                    DecimalFormat formatter = new DecimalFormat("#,###");
-                    txt_profile_spending.setText(formatter.format(totalSpent) + " đ");
-
-                    // Cập nhật hạng thành viên
-                    updateLoyaltyBadge(totalSpent);
-
-                    // 3. History bookings
-                    bookingList.clear();
-                    if (profile.getBookings() != null) {
-                        bookingList.addAll(profile.getBookings());
-                    }
-                    adapter.notifyDataSetChanged();
-                    if (savedScrollY != -1 && nsv_customer_profile != null) {
-                        final int y = savedScrollY;
-                        nsv_customer_profile.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                nsv_customer_profile.scrollTo(0, y);
-                            }
-                        });
-                        savedScrollY = -1;
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse> call, Throwable t) {
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Lỗi tải thông tin: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        customerProfileViewModel.fetchCustomerProfile(makh, false);
     }
 
     private void updateLoyaltyBadge(long spending) {

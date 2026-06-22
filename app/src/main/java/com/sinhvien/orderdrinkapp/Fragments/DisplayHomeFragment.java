@@ -33,10 +33,15 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import android.util.Log;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.CategoryViewModel;
+import com.sinhvien.orderdrinkapp.ViewModel.HomeViewModel;
 
 public class DisplayHomeFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "DisplayHomeFragment";
+    private CategoryViewModel categoryViewModel;
+    private HomeViewModel homeViewModel;
 
     RecyclerView rcv_display_HomeCategoryList, rcv_display_HomeOrderToday;
     MaterialCardView layout_display_HomeStatistic, layout_display_HomeViewTable, layout_display_HomeViewMenu, layout_display_HomeViewStaff;
@@ -48,12 +53,8 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     android.widget.ScrollView sv_display_home;
     private int savedScrollY = -1;
 
-    private static List<DonDatDTO> cachedDonDatDTOS = java.util.Collections.synchronizedList(new ArrayList<>());
-    private static long lastLoadTime = 0;
-
     public static void clearCache() {
-        cachedDonDatDTOS.clear();
-        lastLoadTime = 0;
+        // ViewModel handles lifecycle now
     }
 
     @Override
@@ -130,6 +131,22 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         txt_display_HomeViewAllCategory.setOnClickListener(this);
         txt_display_HomeViewAllStatistic.setOnClickListener(this);
 
+        categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
+        categoryViewModel.getCategories().observe(getViewLifecycleOwner(), list -> {
+            loaiMonDTOList.clear();
+            loaiMonDTOList.addAll(list);
+            adapterRecycleViewCategory.notifyDataSetChanged();
+            checkAndRestoreScroll();
+        });
+
+        homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
+        homeViewModel.getTodayOrders().observe(getViewLifecycleOwner(), list -> {
+            donDatDTOS.clear();
+            donDatDTOS.addAll(list);
+            adapterRecycleViewStatistic.notifyDataSetChanged();
+            checkAndRestoreScroll();
+        });
+
         return view;
     }
 
@@ -190,49 +207,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     }
 
     private void HienThiDSLoai() {
-        if (loaiMonDTOList == null) return;
-        
-        // 1. Tải và hiển thị dữ liệu từ SQLite trước
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<LoaiMonDTO> cachedList = dbHelper.getCategories();
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                loaiMonDTOList.clear();
-                loaiMonDTOList.addAll(cachedList);
-                adapterRecycleViewCategory.notifyDataSetChanged();
-                checkAndRestoreScroll();
-            });
-        });
-
-        // 2. Gọi API đồng bộ ở chế độ nền
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getCategories().enqueue(new retrofit2.Callback<List<LoaiMonResponse>>() {
-            @Override
-            public void onResponse(retrofit2.Call<List<LoaiMonResponse>> call, retrofit2.Response<List<LoaiMonResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Đồng bộ loại món thành công ở trang chủ: count=" + response.body().size());
-                    // Cập nhật dữ liệu mới vào SQLite dưới nền
-                    LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncCategories(response.body());
-                        List<LoaiMonDTO> updatedList = dbHelper.getCategories();
-                        
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            loaiMonDTOList.clear();
-                            loaiMonDTOList.addAll(updatedList);
-                            adapterRecycleViewCategory.notifyDataSetChanged();
-                            checkAndRestoreScroll();
-                        });
-                    });
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<List<LoaiMonResponse>> call, Throwable t) {
-                Log.e(TAG, "Lỗi đồng bộ loại món ở trang chủ: " + t.getMessage());
-                // Giữ nguyên dữ liệu từ SQLite
-            }
-        });
+        categoryViewModel.syncCategoriesFromServer(null);
     }
 
     private void HienThiDonTrongNgay() {
@@ -240,76 +215,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     }
 
     private void HienThiDonTrongNgay(boolean forceRefresh) {
-        if (donDatDTOS == null) return;
-
-        // Hiển thị từ cache tĩnh trước
-        donDatDTOS.clear();
-        if (cachedDonDatDTOS != null && !cachedDonDatDTOS.isEmpty()) {
-            donDatDTOS.addAll(cachedDonDatDTOS);
-            adapterRecycleViewStatistic.notifyDataSetChanged();
-            checkAndRestoreScroll();
-        }
-
-        // Kiểm tra nếu không phải forceRefresh và lần gọi trước cách dưới 30 giây thì không gọi API
-        long currentTime = System.currentTimeMillis();
-        if (!forceRefresh && (currentTime - lastLoadTime < 30000) && !donDatDTOS.isEmpty()) {
-            return;
-        }
-
-        Calendar calendar = Calendar.getInstance();
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
-        String ngaydat = dateFormat.format(calendar.getTime());
-
-        SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault());
-        String queryDate = apiDateFormat.format(calendar.getTime());
-
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getPaidOrders(queryDate).enqueue(new retrofit2.Callback<List<OrderResponse>>() {
-            @Override
-            public void onResponse(retrofit2.Call<List<OrderResponse>> call, retrofit2.Response<List<OrderResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Tải đơn hàng trong ngày thành công ở trang chủ: count=" + response.body().size());
-                    donDatDTOS.clear();
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault());
-                    for (OrderResponse res : response.body()) {
-                        String orderDateStr = res.getNgayDat();
-                        try {
-                            java.util.Date d = cloudFormat.parse(res.getNgayDat());
-                            orderDateStr = dateFormat.format(d);
-                        } catch (Exception ignored) {}
-
-                        // Lọc các đơn của ngày hôm nay
-                        if (ngaydat.equals(orderDateStr)) {
-                            DonDatDTO dto = new DonDatDTO();
-                            dto.setMaDonDat(res.getMaDonDat());
-                            dto.setMaNV(res.getMaNV());
-                            dto.setMaBan(res.getMaBan());
-                            dto.setTongTien(String.valueOf(res.getTongTien()));
-                            dto.setTinhTrang("true");
-                            dto.setNgayDat(orderDateStr);
-                            dto.setTenNV(res.getHoTenNV());
-                            dto.setTenBan(res.getTenBan());
-                            donDatDTOS.add(dto);
-                        }
-                    }
-                    cachedDonDatDTOS.clear();
-                    cachedDonDatDTOS.addAll(donDatDTOS);
-                    lastLoadTime = System.currentTimeMillis();
-
-                    adapterRecycleViewStatistic.notifyDataSetChanged();
-                    checkAndRestoreScroll();
-                }
-            }
-
-            @Override
-            public void onFailure(retrofit2.Call<List<OrderResponse>> call, Throwable t) {
-                Log.e(TAG, "Lỗi tải đơn hàng trong ngày ở trang chủ: " + t.getMessage());
-                if (isAdded() && getActivity() != null) {
-                    android.widget.Toast.makeText(getActivity(), "Lỗi tải đơn hàng: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        homeViewModel.fetchTodayOrders(forceRefresh);
     }
 
     @Override

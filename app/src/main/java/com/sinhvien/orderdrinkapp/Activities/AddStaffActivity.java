@@ -157,83 +157,86 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         int id = v.getId();
         String chucnang;
-        switch (id){
-            case R.id.btn_add_StaffCreate:
-                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
-                if( !validateAge() | !validateEmail() | !validateFullName() | !validateGender() | !validatePassWord() |
-                !validatePermission() | !validatePhone() | !validateUserName()){
-                    return;
-                }
-                //Lấy dữ liệu từ view
-                hoTen = txtl_add_StaffFullName.getEditText().getText().toString();
-                tenDN = txtl_add_StaffUserName.getEditText().getText().toString();
-                eMail = txtl_add_StaffEmail.getEditText().getText().toString();
-                sDT = txtl_add_StaffPhone.getEditText().getText().toString();
-                matKhau = txtl_add_StaffPassword.getEditText().getText().toString();
+        if (id == R.id.btn_add_StaffCreate) {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (!validateAge() | !validateEmail() | !validateFullName() | !validateGender() | !validatePassWord() |
+                    !validatePermission() | !validatePhone() | !validateUserName()) {
+                return;
+            }
+            //Lấy dữ liệu từ view
+            hoTen = txtl_add_StaffFullName.getEditText().getText().toString();
+            tenDN = txtl_add_StaffUserName.getEditText().getText().toString();
+            eMail = txtl_add_StaffEmail.getEditText().getText().toString();
+            sDT = txtl_add_StaffPhone.getEditText().getText().toString();
+            matKhau = txtl_add_StaffPassword.getEditText().getText().toString();
 
-                switch (rg_add_StaffGender.getCheckedRadioButtonId()){
-                    case R.id.rd_add_StaffMale: gioiTinh = "Nam"; break;
-                    case R.id.rd_add_StaffFemale: gioiTinh = "Nữ"; break;
-                    case R.id.rd_add_StaffOther: gioiTinh = "Khác"; break;
-                }
-                switch (rg_add_StaffRole.getCheckedRadioButtonId()){
-                    case R.id.rd_add_StaffAdmin: quyen = 1; break;
-                    case R.id.rd_add_StaffStandard: quyen = 2; break;
-                    case R.id.rd_add_StaffCashier: quyen = 3; break;
-                }
+            int genderId = rg_add_StaffGender.getCheckedRadioButtonId();
+            if (genderId == R.id.rd_add_StaffMale) {
+                gioiTinh = "Nam";
+            } else if (genderId == R.id.rd_add_StaffFemale) {
+                gioiTinh = "Nữ";
+            } else if (genderId == R.id.rd_add_StaffOther) {
+                gioiTinh = "Khác";
+            }
 
-                // Định dạng ngày chuẩn MySQL: yyyy-MM-dd
-                ngaySinh = dt_add_StaffDOB.getYear() + "-" + (dt_add_StaffDOB.getMonth() + 1)
-                        + "-" + dt_add_StaffDOB.getDayOfMonth();
+            int roleId = rg_add_StaffRole.getCheckedRadioButtonId();
+            if (roleId == R.id.rd_add_StaffAdmin) {
+                quyen = 1;
+            } else if (roleId == R.id.rd_add_StaffStandard) {
+                quyen = 2;
+            } else if (roleId == R.id.rd_add_StaffCashier) {
+                quyen = 3;
+            }
 
-                //truyền dữ liệu vào obj nhanvienDTO
-                NhanVienDTO nhanVienDTO = new NhanVienDTO();
-                nhanVienDTO.setHOTENNV(hoTen);
-                nhanVienDTO.setTENDN(tenDN);
-                nhanVienDTO.setEMAIL(eMail);
-                nhanVienDTO.setSDT(sDT);
-                nhanVienDTO.setMATKHAU(matKhau);
-                nhanVienDTO.setGIOITINH(gioiTinh);
-                nhanVienDTO.setNGAYSINH(ngaySinh);
-                nhanVienDTO.setMAQUYEN(quyen);
+            // Định dạng ngày chuẩn MySQL: yyyy-MM-dd
+            ngaySinh = dt_add_StaffDOB.getYear() + "-" + (dt_add_StaffDOB.getMonth() + 1)
+                    + "-" + dt_add_StaffDOB.getDayOfMonth();
 
-                // Cloud logic cho cả Thêm và Sửa
-                String actionStaff = (manv != 0) ? "edit" : "add";
+            //truyền dữ liệu vào obj nhanvienDTO
+            NhanVienDTO nhanVienDTO = new NhanVienDTO();
+            nhanVienDTO.setHOTENNV(hoTen);
+            nhanVienDTO.setTENDN(tenDN);
+            nhanVienDTO.setEMAIL(eMail);
+            nhanVienDTO.setSDT(sDT);
+            nhanVienDTO.setMATKHAU(matKhau);
+            nhanVienDTO.setGIOITINH(gioiTinh);
+            nhanVienDTO.setNGAYSINH(ngaySinh);
+            nhanVienDTO.setMAQUYEN(quyen);
 
-                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddStaffActivity.this, "Đang xử lý...");
-                progressDialog.show();
+            // Cloud logic cho cả Thêm và Sửa
+            String actionStaff = (manv != 0) ? "edit" : "add";
 
-                ApiService apiServiceStaff = ApiClient.getClient().create(ApiService.class);
-                apiServiceStaff.manageStaff(actionStaff, manv, hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, quyen).enqueue(new Callback<OrderResponse>() {
-                    @Override
-                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        if (isFinishing() || isDestroyed()) return;
-                        if (response.isSuccessful()) {
-                            Log.d(TAG, "Quản lý nhân viên thành công: action=" + actionStaff + ", manv=" + manv + ", hoten=" + hoTen);
-                            Intent intent = new Intent();
-                            intent.putExtra("ketquaktra", (long)1);
-                            intent.putExtra("chucnang", (manv != 0) ? "sua" : "themnv");
-                            setResult(RESULT_OK, intent);
-                            finish();
-                        }
+            androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddStaffActivity.this, "Đang xử lý...");
+            progressDialog.show();
+
+            ApiService apiServiceStaff = ApiClient.getClient().create(ApiService.class);
+            apiServiceStaff.manageStaff(actionStaff, manv, hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, quyen).enqueue(new Callback<OrderResponse>() {
+                @Override
+                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    if (isFinishing() || isDestroyed()) return;
+                    if (response.isSuccessful()) {
+                        Log.d(TAG, "Quản lý nhân viên thành công: action=" + actionStaff + ", manv=" + manv + ", hoten=" + hoTen);
+                        Intent intent = new Intent();
+                        intent.putExtra("ketquaktra", (long) 1);
+                        intent.putExtra("chucnang", (manv != 0) ? "sua" : "themnv");
+                        setResult(RESULT_OK, intent);
+                        finish();
                     }
- 
-                    @Override
-                    public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        Log.e(TAG, "Lỗi kết nối API quản lý nhân viên: " + t.getMessage());
-                        if (!isFinishing() && !isDestroyed()) {
-                            Toast.makeText(AddStaffActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-                break;
+                }
 
-            case R.id.img_add_StaffBack:
-                finish();
-                overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right);
-                break;
+                @Override
+                public void onFailure(Call<OrderResponse> call, Throwable t) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    Log.e(TAG, "Lỗi kết nối API quản lý nhân viên: " + t.getMessage());
+                    if (!isFinishing() && !isDestroyed()) {
+                        Toast.makeText(AddStaffActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                }
+            });
+        } else if (id == R.id.img_add_StaffBack) {
+            finish();
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         }
     }
 

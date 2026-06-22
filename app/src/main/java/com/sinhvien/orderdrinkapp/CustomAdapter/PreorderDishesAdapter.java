@@ -66,7 +66,7 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
 
         // Load image
         if (dish.getHinhAnhUrl() != null && !dish.getHinhAnhUrl().isEmpty()) {
-            String url = ApiClient.getBaseUrl() + dish.getHinhAnhUrl();
+            String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(dish.getHinhAnhUrl());
             Glide.with(context)
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)

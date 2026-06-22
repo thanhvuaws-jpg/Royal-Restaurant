@@ -78,6 +78,21 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 }
             });
 
+    ActivityResultLauncher<Intent> resultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
+                        Bundle extras = result.getData().getExtras();
+                        if (extras != null && extras.get("data") != null) {
+                            Bitmap imageBitmap = (Bitmap) extras.get("data");
+                            img_add_DishImage.setImageBitmap(imageBitmap);
+                            selectedImageUriStr = null;
+                        }
+                    }
+                }
+            });
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,7 +164,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             });
 
                             if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
-                                String imageUrl = ApiClient.BASE_URL + res.getHinhAnh();
+                                String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(res.getHinhAnh());
                                 cloudImageUrl = imageUrl;
                                 Glide.with(AddMenuActivity.this)
                                         .load(imageUrl)
@@ -236,83 +251,75 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         int id = v.getId();
         boolean ktra;
         String chucnang;
-        switch (id){
-            case R.id.img_add_DishImage:
-                Intent iGetIMG = new Intent();
-                iGetIMG.setType("image/*");
-                iGetIMG.setAction(Intent.ACTION_GET_CONTENT);
-                resultLauncherOpenIMG.launch(Intent.createChooser(iGetIMG,getResources().getString(R.string.choseimg)));
-                break;
+        if (id == R.id.img_add_DishImage) {
+            hienThiDialogChonAnh();
+        } else if (id == R.id.img_add_DishBack) {
+            finish();
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
+        } else if (id == R.id.btn_add_DishCreate) {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (!validateImage() | !validateName() | !validatePrice()) {
+                return;
+            }
 
-            case R.id.img_add_DishBack:
-                finish();
-                overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right);
-                break;
+            if (txtl_add_DishName.getEditText() != null)
+                sTenMon = txtl_add_DishName.getEditText().getText().toString();
+            if (txtl_add_DishPrice.getEditText() != null) {
+                sGiaTien = txtl_add_DishPrice.getEditText().getText().toString().replaceAll("[.,]", "");
+            }
 
-            case R.id.btn_add_DishCreate:
-                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
-                if(!validateImage() | !validateName() | !validatePrice()){
-                    return;
-                }
+            sTinhTrang = "true";
+            if (rg_add_DishStatus.getCheckedRadioButtonId() == R.id.rd_add_DishUnavailable) {
+                sTinhTrang = "false";
+            }
 
-                if(txtl_add_DishName.getEditText() != null) sTenMon = txtl_add_DishName.getEditText().getText().toString();
-                if(txtl_add_DishPrice.getEditText() != null) {
-                    sGiaTien = txtl_add_DishPrice.getEditText().getText().toString().replaceAll("[.,]", "");
-                }
+            String actionMon = (mamon != 0) ? "edit" : "add";
+            String imageBase64Mon = imageToBase64(img_add_DishImage);
 
-                sTinhTrang = "true";
-                if (rg_add_DishStatus.getCheckedRadioButtonId() == R.id.rd_add_DishUnavailable) {
-                    sTinhTrang = "false";
-                }
+            androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddMenuActivity.this, "Đang xử lý...");
+            progressDialog.show();
 
-                String actionMon = (mamon != 0) ? "edit" : "add";
-                String imageBase64Mon = imageToBase64(img_add_DishImage);
+            ApiService apiServiceMon = ApiClient.getClient().create(ApiService.class);
+            apiServiceMon.manageDish(actionMon, mamon, sTenMon, sGiaTien, maloai, sTinhTrang, imageBase64Mon).enqueue(new Callback<OrderResponse>() {
+                @Override
+                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    if (isFinishing() || isDestroyed()) return;
+                    if (response.isSuccessful() && response.body() != null) {
+                        OrderResponse res = response.body();
+                        if ("success".equals(res.getStatus())) {
+                            Log.d(TAG, "Quản lý món thành công: action=" + actionMon + ", mamon=" + mamon + ", tenmon=" + sTenMon);
 
-                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddMenuActivity.this, "Đang xử lý...");
-                progressDialog.show();
-
-                ApiService apiServiceMon = ApiClient.getClient().create(ApiService.class);
-                apiServiceMon.manageDish(actionMon, mamon, sTenMon, sGiaTien, maloai, sTinhTrang, imageBase64Mon).enqueue(new Callback<OrderResponse>() {
-                    @Override
-                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        if (isFinishing() || isDestroyed()) return;
-                        if (response.isSuccessful() && response.body() != null) {
-                            OrderResponse res = response.body();
-                            if ("success".equals(res.getStatus())) {
-                                Log.d(TAG, "Quản lý món thành công: action=" + actionMon + ", mamon=" + mamon + ", tenmon=" + sTenMon);
-                                
-                                // Gửi socket để đồng bộ thực đơn real-time
-                                io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
-                                if (socket != null && socket.connected()) {
-                                    socket.emit("menu_changed");
-                                }
-
-                                Intent intent = new Intent();
-                                intent.putExtra("ktra", true);
-                                intent.putExtra("chucnang", (mamon != 0) ? "suamon" : "themmon");
-                                setResult(RESULT_OK, intent);
-                                finish();
-                            } else {
-                                Log.w(TAG, "Lỗi quản lý món: " + res.getMessage());
-                                Toast.makeText(AddMenuActivity.this, "Lỗi: " + res.getMessage(), Toast.LENGTH_LONG).show();
+                            // Gửi socket để đồng bộ thực đơn real-time
+                            io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+                            if (socket != null && socket.connected()) {
+                                socket.emit("menu_changed");
                             }
+
+                            Intent intent = new Intent();
+                            intent.putExtra("ktra", true);
+                            intent.putExtra("chucnang", (mamon != 0) ? "suamon" : "themmon");
+                            setResult(RESULT_OK, intent);
+                            finish();
                         } else {
-                            Log.w(TAG, "Server không phản hồi đúng định dạng khi quản lý món");
-                            Toast.makeText(AddMenuActivity.this, "Lỗi Server không phản hồi đúng định dạng", Toast.LENGTH_SHORT).show();
+                            Log.w(TAG, "Lỗi quản lý món: " + res.getMessage());
+                            Toast.makeText(AddMenuActivity.this, "Lỗi: " + res.getMessage(), Toast.LENGTH_LONG).show();
                         }
+                    } else {
+                        Log.w(TAG, "Server không phản hồi đúng định dạng khi quản lý món");
+                        Toast.makeText(AddMenuActivity.this, "Lỗi Server không phản hồi đúng định dạng", Toast.LENGTH_SHORT).show();
                     }
- 
-                    @Override
-                    public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        Log.e(TAG, "Lỗi kết nối API quản lý món: " + t.getMessage());
-                        if (!isFinishing() && !isDestroyed()) {
-                            Toast.makeText(AddMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
+                }
+
+                @Override
+                public void onFailure(Call<OrderResponse> call, Throwable t) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    Log.e(TAG, "Lỗi kết nối API quản lý món: " + t.getMessage());
+                    if (!isFinishing() && !isDestroyed()) {
+                        Toast.makeText(AddMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-                });
-                break;
+                }
+            });
         }
     }
 
@@ -407,6 +414,25 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
     //endregion
+
+    private void hienThiDialogChonAnh() {
+        String[] options = {"Chọn từ Thư viện", "Chụp ảnh mới"};
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Chọn hình ảnh")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        Intent iGetIMG = new Intent();
+                        iGetIMG.setType("image/*");
+                        iGetIMG.setAction(Intent.ACTION_GET_CONTENT);
+                        resultLauncherOpenIMG.launch(Intent.createChooser(iGetIMG, getResources().getString(R.string.choseimg)));
+                    } else {
+                        Intent iCamera = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        resultLauncherCamera.launch(iCamera);
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {

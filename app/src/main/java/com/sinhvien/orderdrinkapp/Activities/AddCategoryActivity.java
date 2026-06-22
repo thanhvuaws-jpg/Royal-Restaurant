@@ -74,6 +74,21 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 }
             });
 
+    ActivityResultLauncher<Intent> resultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if(result.getResultCode() == Activity.RESULT_OK && result.getData() != null){
+                        Bundle extras = result.getData().getExtras();
+                        if (extras != null && extras.get("data") != null) {
+                            Bitmap imageBitmap = (Bitmap) extras.get("data");
+                            IMG_addcategory_AddImage.setImageBitmap(imageBitmap);
+                            selectedImageUriStr = null;
+                        }
+                    }
+                }
+            });
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -105,7 +120,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                         if (response.isSuccessful() && response.body() != null) {
                             Log.d(TAG, "Tải thông tin loại thành công: maloai=" + maloai);
                             TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
-                            String imageUrl = ApiClient.BASE_URL + response.body().getHinhAnh();
+                            String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(response.body().getHinhAnh());
                             cloudImageUrl = imageUrl;
                             Glide.with(AddCategoryActivity.this)
                                     .load(imageUrl)
@@ -147,6 +162,25 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         BTN_addcategory_CreateCategory.setOnClickListener(this);
     }
 
+    private void hienThiDialogChonAnh() {
+        String[] options = {"Chọn từ Thư viện", "Chụp ảnh mới"};
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Chọn hình ảnh")
+                .setItems(options, (dialog, which) -> {
+                    if (which == 0) {
+                        Intent iGetIMG = new Intent();
+                        iGetIMG.setType("image/*");
+                        iGetIMG.setAction(Intent.ACTION_GET_CONTENT);
+                        resultLauncherOpenIMG.launch(Intent.createChooser(iGetIMG, getResources().getString(R.string.choseimg)));
+                    } else {
+                        Intent iCamera = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        resultLauncherCamera.launch(iCamera);
+                    }
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -159,59 +193,49 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         int id = v.getId();
         boolean ktra;
         String chucnang;
-        switch (id){
-            case R.id.img_addcategory_back:
-                finish();
-                overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right); //animation
-                break;
+        if (id == R.id.img_addcategory_back) {
+            finish();
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); //animation
+        } else if (id == R.id.img_addcategory_AddImage) {
+            hienThiDialogChonAnh();
+        } else if (id == R.id.btn_addcategory_CreateCategory) {
+            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (!validateImage() | !validateName()) {
+                return;
+            }
 
-            case R.id.img_addcategory_AddImage:
-                Intent iGetIMG = new Intent();
-                iGetIMG.setType("image/*"); //lấy những mục chứa hình ảnh
-                iGetIMG.setAction(Intent.ACTION_GET_CONTENT);   //lấy mục hiện tại đang chứa hình
-                resultLauncherOpenIMG.launch(Intent.createChooser(iGetIMG,getResources().getString(R.string.choseimg)));    //mở intent chọn hình ảnh
-                break;
+            String sTenLoai = TXTL_addcategory_CategoryName.getEditText().getText().toString();
+            String action = (maloai != 0) ? "edit" : "add";
+            String imageBase64 = imageToBase64(IMG_addcategory_AddImage);
 
-            case R.id.btn_addcategory_CreateCategory:
-                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
-                if(!validateImage() | !validateName()){
-                    return;
+            androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddCategoryActivity.this, "Đang xử lý...");
+            progressDialog.show();
+
+            ApiService apiService = ApiClient.getClient().create(ApiService.class);
+            apiService.manageCategory(action, maloai, sTenLoai, imageBase64).enqueue(new Callback<OrderResponse>() {
+                @Override
+                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    if (isFinishing() || isDestroyed()) return;
+                    if (response.isSuccessful()) {
+                        Log.d(TAG, "Quản lý loại thành công: action=" + action + ", maloai=" + maloai);
+                        Intent intent = new Intent();
+                        intent.putExtra("ktra", true);
+                        intent.putExtra("chucnang", (maloai != 0) ? "sualoai" : "themloai");
+                        setResult(RESULT_OK, intent);
+                        finish();
+                    }
                 }
 
-                String sTenLoai = TXTL_addcategory_CategoryName.getEditText().getText().toString();
-                String action = (maloai != 0) ? "edit" : "add";
-                String imageBase64 = imageToBase64(IMG_addcategory_AddImage);
-
-                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddCategoryActivity.this, "Đang xử lý...");
-                progressDialog.show();
-
-                ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                apiService.manageCategory(action, maloai, sTenLoai, imageBase64).enqueue(new Callback<OrderResponse>() {
-                    @Override
-                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        if (isFinishing() || isDestroyed()) return;
-                        if (response.isSuccessful()) {
-                            Log.d(TAG, "Quản lý loại thành công: action=" + action + ", maloai=" + maloai);
-                            Intent intent = new Intent();
-                            intent.putExtra("ktra", true);
-                            intent.putExtra("chucnang", (maloai != 0) ? "sualoai" : "themloai");
-                            setResult(RESULT_OK, intent);
-                            finish();
-                        }
+                @Override
+                public void onFailure(Call<OrderResponse> call, Throwable t) {
+                    if (progressDialog.isShowing()) progressDialog.dismiss();
+                    Log.e(TAG, "Lỗi kết nối API quản lý loại: " + t.getMessage());
+                    if (!isFinishing() && !isDestroyed()) {
+                        Toast.makeText(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                     }
-
-                    @Override
-                    public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        Log.e(TAG, "Lỗi kết nối API quản lý loại: " + t.getMessage());
-                        if (!isFinishing() && !isDestroyed()) {
-                            Toast.makeText(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-                break;
-
+                }
+            });
         }
     }
 

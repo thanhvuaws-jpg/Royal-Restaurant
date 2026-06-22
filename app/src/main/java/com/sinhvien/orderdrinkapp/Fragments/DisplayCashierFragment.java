@@ -38,10 +38,13 @@ import retrofit2.Callback;
 import retrofit2.Response;
 
 import com.google.android.material.tabs.TabLayout;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.CashierViewModel;
 
 public class DisplayCashierFragment extends Fragment {
 
     private static final String TAG = "DisplayCashierFragment";
+    private CashierViewModel cashierViewModel;
 
     RecyclerView rv_cashier_OrderList;
     List<DonDatDTO> donDatDTOList;
@@ -116,6 +119,53 @@ public class DisplayCashierFragment extends Fragment {
 
             @Override
             public void onTabReselected(TabLayout.Tab tab) {}
+        });
+
+        cashierViewModel = new ViewModelProvider(this).get(CashierViewModel.class);
+        cashierViewModel.getPendingOrders().observe(getViewLifecycleOwner(), list -> {
+            donDatDTOList.clear();
+            donDatDTOList.addAll(list);
+            if (tab_cashier_Toggle != null && tab_cashier_Toggle.getTabAt(0) != null) {
+                tab_cashier_Toggle.getTabAt(0).setText("Chờ thanh toán (" + list.size() + ")");
+            }
+            if (currentTab == 0) {
+                updateRecyclerView();
+            }
+        });
+        cashierViewModel.getPaidOrders().observe(getViewLifecycleOwner(), list -> {
+            paidOrdersList.clear();
+            paidOrdersList.addAll(list);
+            if (tab_cashier_Toggle != null && tab_cashier_Toggle.getTabAt(1) != null) {
+                tab_cashier_Toggle.getTabAt(1).setText("Lịch sử hôm nay (" + list.size() + ")");
+            }
+            if (currentTab == 1) {
+                updateRecyclerView();
+            }
+        });
+        cashierViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                if (loadingDialog == null && getActivity() != null) {
+                    loadingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
+                }
+                if (loadingDialog != null && !loadingDialog.isShowing()) {
+                    loadingDialog.show();
+                }
+            } else {
+                if (loadingDialog != null && loadingDialog.isShowing()) {
+                    loadingDialog.dismiss();
+                }
+            }
+        });
+
+        java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,###");
+        cashierViewModel.getTodayRevenue().observe(getViewLifecycleOwner(), revenue -> {
+            txt_cashier_TodayRevenue.setText(formatter.format(revenue) + "đ");
+        });
+        cashierViewModel.getTodayCash().observe(getViewLifecycleOwner(), cash -> {
+            txt_cashier_TodayCash.setText(formatter.format(cash) + "đ");
+        });
+        cashierViewModel.getTodayTransfer().observe(getViewLifecycleOwner(), transfer -> {
+            txt_cashier_TodayTransfer.setText(formatter.format(transfer) + "đ");
         });
 
         updateRecyclerView();
@@ -232,131 +282,10 @@ public class DisplayCashierFragment extends Fragment {
     }
 
     private void loadPendingOrders() {
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        
-        // 1. Load pending orders
-        apiService.getPendingOrders().enqueue(new Callback<List<OrderResponse>>() {
-            @Override
-            public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                // Ẩn loading dialog khi lần đầu có dữ liệu về
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
-                }
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Tải đơn hàng chờ thanh toán thành công: count=" + response.body().size());
-                    donDatDTOList.clear();
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-                    
-                    for (OrderResponse res : response.body()) {
-                        DonDatDTO dto = new DonDatDTO();
-                        dto.setMaDonDat(res.getMaDonDat());
-                        dto.setMaNV(res.getMaNV());
-                        dto.setMaBan(res.getMaBan());
-                        dto.setTongTien(String.valueOf(res.getTongTien()));
-                        dto.setTinhTrang("pending");
-                        dto.setTenNV(res.getHoTenNV());
-                        dto.setTenBan(res.getTenBan());
-                        dto.setPhuongThucTT(res.getPhuongThuc());
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            dto.setNgayDat(appFormat.format(d));
-                        } catch (Exception e) {
-                            dto.setNgayDat(res.getNgayDat());
-                        }
-                        donDatDTOList.add(dto);
-                    }
-                    
-                    if (tab_cashier_Toggle.getTabAt(0) != null) {
-                        tab_cashier_Toggle.getTabAt(0).setText("Chờ thanh toán (" + donDatDTOList.size() + ")");
-                    }
-                    if (currentTab == 0) {
-                        updateRecyclerView();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
-                Log.e(TAG, "Lỗi kết nối API tải đơn hàng chờ thanh toán: " + t.getMessage());
-                if (isFirstLoad) {
-                    isFirstLoad = false;
-                    if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
-                }
-            }
-        });
-
-        // 2. Load paid orders for today summary and history tab
-        SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        dateOnlyFormat.setTimeZone(java.util.TimeZone.getTimeZone("GMT+7"));
-        String queryDate = dateOnlyFormat.format(new Date());
-
-        apiService.getPaidOrders(queryDate).enqueue(new Callback<List<OrderResponse>>() {
-            @Override
-            public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Tải lịch sử hóa đơn hôm nay thành công: count=" + response.body().size());
-                    paidOrdersList.clear();
-                    
-                    long totalRevenue = 0;
-                    long totalCash = 0;
-                    long totalTransfer = 0;
-                    
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
-                    
-                    for (OrderResponse res : response.body()) {
-                        DonDatDTO dto = new DonDatDTO();
-                        dto.setMaDonDat(res.getMaDonDat());
-                        dto.setMaNV(res.getMaNV());
-                        dto.setMaBan(res.getMaBan());
-                        dto.setTongTien(String.valueOf(res.getTongTien()));
-                        dto.setTinhTrang("true");
-                        dto.setTenNV(res.getHoTenNV());
-                        dto.setTenBan(res.getTenBan());
-                        dto.setPhuongThucTT(res.getPhuongThuc());
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            dto.setNgayDat(appFormat.format(d));
-                        } catch (Exception e) {
-                            dto.setNgayDat(res.getNgayDat());
-                        }
-
-                        paidOrdersList.add(dto);
-                        
-                        long orderAmount = 0;
-                        try {
-                            orderAmount = Long.parseLong(res.getTongTien());
-                        } catch (Exception ignored) {}
-                        
-                        totalRevenue += orderAmount;
-                        if ("Chuyển khoản".equals(res.getPhuongThuc())) {
-                            totalTransfer += orderAmount;
-                        } else {
-                            totalCash += orderAmount;
-                        }
-                    }
-                    
-                    txt_cashier_TodayRevenue.setText(String.format("%,d", totalRevenue) + " VNĐ");
-                    txt_cashier_TodayCash.setText(String.format("%,d", totalCash) + " VNĐ");
-                    txt_cashier_TodayTransfer.setText(String.format("%,d", totalTransfer) + " VNĐ");
-
-                    if (tab_cashier_Toggle.getTabAt(1) != null) {
-                        tab_cashier_Toggle.getTabAt(1).setText("Lịch sử hôm nay (" + paidOrdersList.size() + ")");
-                    }
-                    if (currentTab == 1) {
-                        updateRecyclerView();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<OrderResponse>> call, Throwable t) {
-                Log.e(TAG, "Lỗi kết nối API tải lịch sử hóa đơn: " + t.getMessage());
-            }
-        });
+        cashierViewModel.loadPendingOrders(isFirstLoad);
+        if (isFirstLoad) {
+            isFirstLoad = false;
+        }
+        cashierViewModel.loadPaidOrdersToday();
     }
 }

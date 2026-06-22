@@ -2,6 +2,9 @@ package com.sinhvien.orderdrinkapp.Api;
 
 import java.util.concurrent.TimeUnit;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import okhttp3.OkHttpClient;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -23,7 +26,7 @@ public class ApiClient {
                     .writeTimeout(30, TimeUnit.SECONDS)
                     .build();
 
-            com.google.gson.Gson gson = new com.google.gson.GsonBuilder()
+            Gson gson = new GsonBuilder()
                     .setLenient()
                     .create();
 

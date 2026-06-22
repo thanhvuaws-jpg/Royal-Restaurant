@@ -36,11 +36,8 @@ public class WelcomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(),LoginActivity.class);
 
-                Pair[] pairs = new Pair[1];
-                pairs[0] = new Pair<View, String>(findViewById(R.id.btn_welcome_Login),"transition_login");
-
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(WelcomeActivity.this,pairs);
+                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(WelcomeActivity.this, findViewById(R.id.btn_welcome_Login),"transition_login");
                     startActivity(intent,options.toBundle());
                 }
                 else {
@@ -53,10 +50,8 @@ public class WelcomeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(getApplicationContext(),RegisterActivity.class);
-                Pair[] pairs = new Pair[1];
-                pairs[0] = new Pair<View, String>(findViewById(R.id.btn_welcome_SignUp),"transition_signup");
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(WelcomeActivity.this,pairs);
+                    ActivityOptions options = ActivityOptions.makeSceneTransitionAnimation(WelcomeActivity.this, findViewById(R.id.btn_welcome_SignUp),"transition_signup");
                     startActivity(intent,options.toBundle());
                 }
                 else {

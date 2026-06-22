@@ -27,10 +27,13 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Log;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.BookingViewModel;
 
 public class ManageBookingsFragment extends Fragment {
 
     private static final String TAG = "ManageBookingsFragment";
+    private BookingViewModel bookingViewModel;
 
     TabLayout tabLayout_bookings;
     RecyclerView rv_manage_bookings;
@@ -88,15 +91,36 @@ public class ManageBookingsFragment extends Fragment {
         adapter = new ManageBookingsAdapter(getContext(), filteredBookings, () -> loadAllBookings(true));
         rv_manage_bookings.setAdapter(adapter);
 
+        bookingViewModel = new ViewModelProvider(this).get(BookingViewModel.class);
+        bookingViewModel.getBookingsAll().observe(getViewLifecycleOwner(), list -> {
+            allBookings.clear();
+            allBookings.addAll(list);
+            filterBookings(tabLayout_bookings.getSelectedTabPosition());
+            if (savedLayoutState != null && rv_manage_bookings.getLayoutManager() != null) {
+                rv_manage_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
+                savedLayoutState = null;
+            }
+        });
+        bookingViewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            if (isLoading) {
+                if (loadingDialog == null && getActivity() != null) {
+                    loadingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
+                }
+                if (loadingDialog != null && !loadingDialog.isShowing()) {
+                    loadingDialog.show();
+                }
+            } else {
+                if (loadingDialog != null && loadingDialog.isShowing()) {
+                    loadingDialog.dismiss();
+                }
+            }
+        });
+
         return view;
     }
 
-    private static List<BookingResponse> cachedBookings = java.util.Collections.synchronizedList(new ArrayList<>());
-    private static long lastLoadTime = 0;
-
     public static void clearCache() {
-        cachedBookings.clear();
-        lastLoadTime = 0;
+        // ViewModel handles lifecycle now
     }
 
     @Override
@@ -139,55 +163,7 @@ public class ManageBookingsFragment extends Fragment {
     };
 
     private void loadAllBookings(boolean forceRefresh) {
-        long currentTime = System.currentTimeMillis();
-        if (!forceRefresh && !cachedBookings.isEmpty() && (currentTime - lastLoadTime < 30000)) {
-            allBookings.clear();
-            allBookings.addAll(cachedBookings);
-            filterBookings(tabLayout_bookings.getSelectedTabPosition());
-            if (savedLayoutState != null && rv_manage_bookings.getLayoutManager() != null) {
-                rv_manage_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
-                savedLayoutState = null;
-            }
-            return;
-        }
-
-        // Chỉ hiện loading lần đầu tiên khi cache rỗng
-        if (cachedBookings.isEmpty()) {
-            loadingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getContext(), "Đang tải lịch đặt bàn...");
-            if (loadingDialog != null) loadingDialog.show();
-        }
-
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getBookings(0).enqueue(new Callback<List<BookingResponse>>() {
-            @Override
-            public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
-                if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
-                if (!isAdded() || getContext() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    Log.d(TAG, "Tải danh sách đặt bàn thành công: count=" + response.body().size());
-                    cachedBookings.clear();
-                    cachedBookings.addAll(response.body());
-                    lastLoadTime = System.currentTimeMillis();
-
-                    allBookings.clear();
-                    allBookings.addAll(cachedBookings);
-                    filterBookings(tabLayout_bookings.getSelectedTabPosition());
-                    if (savedLayoutState != null && rv_manage_bookings.getLayoutManager() != null) {
-                        rv_manage_bookings.getLayoutManager().onRestoreInstanceState(savedLayoutState);
-                        savedLayoutState = null;
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
-                if (loadingDialog != null && loadingDialog.isShowing()) loadingDialog.dismiss();
-                Log.e(TAG, "Lỗi tải lịch đặt bàn: " + t.getMessage());
-                if (getContext() != null) {
-                    Toast.makeText(getContext(), "Lỗi tải lịch đặt bàn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        bookingViewModel.fetchBookingsAll(forceRefresh);
     }
 
     private void filterBookings(int tabPosition) {

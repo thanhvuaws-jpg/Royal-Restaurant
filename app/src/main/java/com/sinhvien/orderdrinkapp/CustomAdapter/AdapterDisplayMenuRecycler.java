@@ -87,7 +87,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
 
         // Tải ảnh bằng Glide (vẫn dùng Glide để load ảnh)
         if (monDTO.getHinhAnhUrl() != null && !monDTO.getHinhAnhUrl().isEmpty()) {
-            String url = ApiClient.getBaseUrl() + monDTO.getHinhAnhUrl();
+            String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(monDTO.getHinhAnhUrl());
             Glide.with(context)
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)

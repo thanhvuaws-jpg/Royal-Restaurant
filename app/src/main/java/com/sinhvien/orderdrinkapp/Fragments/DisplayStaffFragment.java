@@ -41,6 +41,8 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import androidx.lifecycle.ViewModelProvider;
+import com.sinhvien.orderdrinkapp.ViewModel.StaffViewModel;
 
 public class DisplayStaffFragment extends Fragment {
 
@@ -50,6 +52,7 @@ public class DisplayStaffFragment extends Fragment {
     List<NhanVienDTO> allStaffList = new ArrayList<>();
     AdapterDisplayStaff adapterDisplayStaff;
     View view;
+    private StaffViewModel staffViewModel;
 
     ActivityResultLauncher<Intent> resultLauncherAdd = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -126,6 +129,13 @@ public class DisplayStaffFragment extends Fragment {
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
             HienThiDSNV(swipeRefreshLayout, true);
+        });
+
+        staffViewModel = new ViewModelProvider(this).get(StaffViewModel.class);
+        staffViewModel.getStaff().observe(getViewLifecycleOwner(), list -> {
+            allStaffList.clear();
+            allStaffList.addAll(list);
+            applyFilter();
         });
 
         HienThiDSNV(savedInstanceState == null);
@@ -224,16 +234,8 @@ public class DisplayStaffFragment extends Fragment {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
         }
-        // 1. Tải và hiển thị dữ liệu từ SQLite trước
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(getActivity());
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<NhanVienDTO> cachedList = dbHelper.getStaff();
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                allStaffList.clear();
-                allStaffList.addAll(cachedList);
-                applyFilter();
-            });
-        });
+        
+        staffViewModel.loadStaffFromLocal();
 
         if (!fetchApi) {
             if (swipeRefresh != null) {
@@ -242,36 +244,27 @@ public class DisplayStaffFragment extends Fragment {
             return;
         }
 
-        // 2. Gọi API đồng bộ ở chế độ nền
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getStaff().enqueue(new Callback<List<StaffResponse>>() {
+        staffViewModel.syncStaffFromServer(new StaffViewModel.OnSyncCallback() {
             @Override
-            public void onResponse(Call<List<StaffResponse>> call, Response<List<StaffResponse>> response) {
+            public void onSuccess() {
                 if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
-                }
-                if (!isAdded() || getActivity() == null) return;
-                if (response.isSuccessful() && response.body() != null) {
-                    // Cập nhật dữ liệu mới vào SQLite dưới nền
-                    LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncStaff(response.body());
-                        List<NhanVienDTO> updatedList = dbHelper.getStaff();
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            allStaffList.clear();
-                            allStaffList.addAll(updatedList);
-                            applyFilter();
-                        });
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        swipeRefresh.setRefreshing(false);
                     });
                 }
             }
 
             @Override
-            public void onFailure(Call<List<StaffResponse>> call, Throwable t) {
+            public void onError(String errorMsg) {
                 if (swipeRefresh != null) {
-                    swipeRefresh.setRefreshing(false);
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        swipeRefresh.setRefreshing(false);
+                    });
                 }
                 if (isAdded() && getActivity() != null) {
-                    Toast.makeText(getActivity(), "Lỗi đồng bộ: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
+                        Toast.makeText(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT).show();
+                    });
                 }
             }
         });

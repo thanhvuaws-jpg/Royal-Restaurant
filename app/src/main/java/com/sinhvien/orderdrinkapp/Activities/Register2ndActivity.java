@@ -77,13 +77,13 @@ public class Register2ndActivity extends AppCompatActivity {
                 }
 
                 //lấy các thông tin còn lại
-                switch (RG_signup2nd_Gender.getCheckedRadioButtonId()){
-                    case R.id.rd_signup2nd_Male:
-                        gioiTinh = "Nam"; break;
-                    case R.id.rd_signup2nd_Female:
-                        gioiTinh = "Nữ"; break;
-                    case R.id.rd_signup2nd_Other:
-                        gioiTinh = "Khác"; break;
+                int genderId = RG_signup2nd_Gender.getCheckedRadioButtonId();
+                if (genderId == R.id.rd_signup2nd_Male) {
+                    gioiTinh = "Nam";
+                } else if (genderId == R.id.rd_signup2nd_Female) {
+                    gioiTinh = "Nữ";
+                } else if (genderId == R.id.rd_signup2nd_Other) {
+                    gioiTinh = "Khác";
                 }
                 String ngaySinh = DT_signup2nd_DOB.getYear() + "-" + (DT_signup2nd_DOB.getMonth() + 1)
                         + "-" + DT_signup2nd_DOB.getDayOfMonth();
