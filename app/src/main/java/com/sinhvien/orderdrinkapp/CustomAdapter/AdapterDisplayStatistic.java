@@ -33,8 +33,10 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
     }
 
     public void updateData(List<DonDatDTO> newList) {
-        this.donDatDTOS.clear();
-        this.donDatDTOS.addAll(newList);
+        if (this.donDatDTOS != newList) {
+            this.donDatDTOS.clear();
+            this.donDatDTOS.addAll(newList);
+        }
         notifyDataSetChanged();
     }
 
