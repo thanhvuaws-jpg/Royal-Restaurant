@@ -24,6 +24,7 @@ import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerBookingFragment;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerProfileFragment;
+import com.sinhvien.orderdrinkapp.Fragments.CustomerContactFragment;
 
 // [NEW] Imports
 import android.content.SharedPreferences;
@@ -133,6 +134,9 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             } else if (id == R.id.nav_customer_history) {
                 navigateTo(new CustomerProfileFragment(), "CustomerProfileFragment");
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+            } else if (id == R.id.nav_customer_contact) {
+                navigateTo(new CustomerContactFragment(), "CustomerContactFragment");
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle("Liên hệ quán");
             } else if (id == R.id.nav_logout) {
                 logout();
             }
@@ -157,6 +161,10 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                     navigationView.setCheckedItem(R.id.nav_customer_history);
                     bottomNav.setSelectedItemId(R.id.nav_customer_history);
                     if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+                } else if ("CustomerContactFragment".equals(activeTag)) {
+                    navigationView.setCheckedItem(R.id.nav_customer_contact);
+                    bottomNav.setSelectedItemId(R.id.nav_customer_contact);
+                    if (getSupportActionBar() != null) getSupportActionBar().setTitle("Liên hệ quán");
                 }
             }
         }
@@ -240,6 +248,10 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             navigateTo(new CustomerProfileFragment(), "CustomerProfileFragment");
             bottomNav.setSelectedItemId(R.id.nav_customer_history);
             if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+        } else if (id == R.id.nav_customer_contact) {
+            navigateTo(new CustomerContactFragment(), "CustomerContactFragment");
+            bottomNav.setSelectedItemId(R.id.nav_customer_contact);
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Liên hệ quán");
         } else if (id == R.id.nav_logout) {
             logout();
             return true;

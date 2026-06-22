@@ -2,5 +2,6 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/nav_customer_booking" android:title="Đặt bàn" android:icon="@drawable/ic_baseline_calendar_today_24"/>
     <item android:id="@+id/nav_customer_history" android:title="Lịch sử" android:icon="@drawable/ic_baseline_storage_24"/>
+    <item android:id="@+id/nav_customer_contact" android:title="Liên hệ" android:icon="@drawable/ic_baseline_local_phone_24"/>
     <item android:id="@+id/nav_logout" android:title="Đăng xuất" android:icon="@drawable/ic_baseline_exit_to_app_24"/>
 </menu>

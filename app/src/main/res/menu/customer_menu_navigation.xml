@@ -10,6 +10,10 @@
             android:title="Lịch sử đặt bàn"
             android:icon="@drawable/ic_baseline_bar_chart_24"/>
         <item
+            android:id="@+id/nav_customer_contact"
+            android:title="Liên hệ"
+            android:icon="@drawable/ic_baseline_local_phone_24"/>
+        <item
             android:id="@+id/nav_logout"
             android:title="Đăng xuất"
             android:icon="@drawable/ic_baseline_exit_to_app_24"/>
