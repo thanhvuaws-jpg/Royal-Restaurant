@@ -93,19 +93,27 @@ public class CustomerContactFragment extends Fragment {
 
     private void openMap() {
         try {
-            // geo:lat,lng?q=lat,lng(Label)
+            // Thử mở bằng app Bản đồ với geo URI
             String uri = "geo:" + RESTAURANT_LAT + "," + RESTAURANT_LNG + "?q=" + RESTAURANT_LAT + "," + RESTAURANT_LNG + "(" + Uri.encode(RESTAURANT_NAME) + ")";
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
             mapIntent.setPackage("com.google.android.apps.maps"); // Ưu tiên mở bằng Google Maps
+            
             if (mapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
                 startActivity(mapIntent);
             } else {
-                // Nếu không có Google Maps thì mở web hoặc map mặc định
+                // Nếu không có Google Maps thì thử mở map mặc định khác của máy
                 Intent defaultMapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-                startActivity(defaultMapIntent);
+                if (defaultMapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
+                    startActivity(defaultMapIntent);
+                } else {
+                    // Cú chót: Nếu máy hoàn toàn không có app Bản đồ nào -> Mở bằng Trình duyệt Web (Google Chrome)
+                    String webUri = "https://www.google.com/maps/search/?api=1&query=" + RESTAURANT_LAT + "," + RESTAURANT_LNG;
+                    Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUri));
+                    startActivity(webIntent);
+                }
             }
         } catch (Exception e) {
-            Toast.makeText(getContext(), "Không tìm thấy ứng dụng Bản đồ trên máy!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Không thể mở Bản đồ!", Toast.LENGTH_SHORT).show();
             e.printStackTrace();
         }
     }
