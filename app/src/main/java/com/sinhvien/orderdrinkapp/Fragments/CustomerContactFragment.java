@@ -193,38 +193,47 @@ public class CustomerContactFragment extends Fragment {
      */
     private void sendEmailWithUri(Uri attachmentUri) {
         try {
-            // Bước 1: Tìm ứng dụng xử lý mail mặc định bằng ACTION_SENDTO mailto:
+            String defaultText = "Chào ban quản lý nhà hàng,\n\nTôi muốn góp ý về vấn đề:\n";
+
+            if (attachmentUri == null) {
+                // Nếu KHÔNG CÓ ảnh đính kèm: Dùng chuẩn ACTION_SENDTO để mở màn hình soạn mail cực mượt
+                Intent intent = new Intent(Intent.ACTION_SENDTO);
+                intent.setData(Uri.parse("mailto:"));
+                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
+                intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
+                intent.putExtra(Intent.EXTRA_TEXT, defaultText);
+                startActivity(Intent.createChooser(intent, "Gửi góp ý qua Email..."));
+                return;
+            }
+
+            // Nếu CÓ ảnh đính kèm: Phải dùng ACTION_SEND nhưng trỏ đích danh vào màn hình Soạn Mail
             Intent emailFilter = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
             java.util.List<android.content.pm.ResolveInfo> resolveInfos = requireContext().getPackageManager().queryIntentActivities(emailFilter, 0);
 
             if (resolveInfos != null && !resolveInfos.isEmpty()) {
-                // Ưu tiên tìm các ứng dụng thực sự là Email (Gmail, Samsung Mail, Outlook...)
-                // Tránh trường hợp hệ thống lấy nhầm Google Chat hoặc app không mong muốn
                 String targetPackage = resolveInfos.get(0).activityInfo.packageName;
+                String targetActivity = resolveInfos.get(0).activityInfo.name;
+                
                 for (android.content.pm.ResolveInfo info : resolveInfos) {
                     String pkgName = info.activityInfo.packageName.toLowerCase();
                     if (pkgName.contains("gmail") || pkgName.contains("email") || pkgName.contains("mail")) {
                         targetPackage = info.activityInfo.packageName;
+                        targetActivity = info.activityInfo.name; // Lấy đích danh Activity soạn mail
                         break;
                     }
                 }
 
-                // Bước 2: Tạo Intent ACTION_SEND để có thể đính kèm ảnh
                 Intent intent = new Intent(Intent.ACTION_SEND);
-                intent.setType("message/rfc822"); // MIME type chuẩn của email
+                intent.setType("message/rfc822");
                 intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
                 intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
-                
-                String defaultText = "Chào ban quản lý nhà hàng,\n\nTôi muốn góp ý về vấn đề:\n";
                 intent.putExtra(Intent.EXTRA_TEXT, defaultText);
+                intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
 
-                if (attachmentUri != null) {
-                    intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
-                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                }
-
-                // Ép Android mở bằng chính ứng dụng Mail tìm được, bỏ qua bảng Share chung!
-                intent.setPackage(targetPackage);
+                // Ép Android mở bằng chính MÀN HÌNH SOẠN MAIL (ComposeActivity), 
+                // tránh trường hợp Gmail nhận nhầm intent đẩy sang Google Chat.
+                intent.setComponent(new android.content.ComponentName(targetPackage, targetActivity));
                 startActivity(intent);
             } else {
                 Toast.makeText(getContext(), "Không tìm thấy ứng dụng Email nào trên máy!", Toast.LENGTH_SHORT).show();
