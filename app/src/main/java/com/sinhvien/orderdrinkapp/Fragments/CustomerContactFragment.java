@@ -180,7 +180,8 @@ public class CustomerContactFragment extends Fragment {
             bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
             stream.close();
             
-            Uri uri = Uri.fromFile(file);
+            // Dùng FileProvider để tạo content:// URI thay vì file:// URI nhằm tránh lỗi bảo mật Scoped Storage
+            Uri uri = androidx.core.content.FileProvider.getUriForFile(requireContext(), requireContext().getPackageName() + ".fileprovider", file);
             sendEmailWithUri(uri);
         } catch (Exception e) {
             e.printStackTrace();
