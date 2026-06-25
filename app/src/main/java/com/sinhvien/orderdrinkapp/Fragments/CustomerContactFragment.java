@@ -193,8 +193,8 @@ public class CustomerContactFragment extends Fragment {
      */
     private void sendEmailWithUri(Uri attachmentUri) {
         try {
-            Intent intent = new Intent(Intent.ACTION_SENDTO); 
-            intent.setData(Uri.parse("mailto:")); // Chỉ mở các ứng dụng thư điện tử
+            Intent intent = new Intent(Intent.ACTION_SEND); 
+            intent.setType("message/rfc822");
             intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
             intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
             
@@ -202,11 +202,15 @@ public class CustomerContactFragment extends Fragment {
             intent.putExtra(Intent.EXTRA_TEXT, defaultText);
 
             if (attachmentUri != null) {
-                // Đính kèm ảnh thẳng vào ACTION_SENDTO.
-                // Điều này giúp nhảy thẳng vào app Mail (VD: Gmail) thay vì hiện menu Share tổng hợp.
                 intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
+
+            // Sử dụng Selector để ép Android chỉ mở các ứng dụng xử lý mailto (Email clients)
+            // Lưu ý: Đã bổ sung <queries> vào AndroidManifest.xml để giải quyết lỗi Package Visibility trên Android 11+
+            Intent selector = new Intent(Intent.ACTION_SENDTO);
+            selector.setData(Uri.parse("mailto:"));
+            intent.setSelector(selector);
 
             startActivity(Intent.createChooser(intent, "Gửi góp ý qua Email..."));
         } catch (Exception e) {
