@@ -198,8 +198,16 @@ public class CustomerContactFragment extends Fragment {
             java.util.List<android.content.pm.ResolveInfo> resolveInfos = requireContext().getPackageManager().queryIntentActivities(emailFilter, 0);
 
             if (resolveInfos != null && !resolveInfos.isEmpty()) {
-                // Lấy ứng dụng Mail đầu tiên tìm thấy (thường là Gmail hoặc mail mặc định)
-                String packageName = resolveInfos.get(0).activityInfo.packageName;
+                // Ưu tiên tìm các ứng dụng thực sự là Email (Gmail, Samsung Mail, Outlook...)
+                // Tránh trường hợp hệ thống lấy nhầm Google Chat hoặc app không mong muốn
+                String targetPackage = resolveInfos.get(0).activityInfo.packageName;
+                for (android.content.pm.ResolveInfo info : resolveInfos) {
+                    String pkgName = info.activityInfo.packageName.toLowerCase();
+                    if (pkgName.contains("gmail") || pkgName.contains("email") || pkgName.contains("mail")) {
+                        targetPackage = info.activityInfo.packageName;
+                        break;
+                    }
+                }
 
                 // Bước 2: Tạo Intent ACTION_SEND để có thể đính kèm ảnh
                 Intent intent = new Intent(Intent.ACTION_SEND);
@@ -216,7 +224,7 @@ public class CustomerContactFragment extends Fragment {
                 }
 
                 // Ép Android mở bằng chính ứng dụng Mail tìm được, bỏ qua bảng Share chung!
-                intent.setPackage(packageName);
+                intent.setPackage(targetPackage);
                 startActivity(intent);
             } else {
                 Toast.makeText(getContext(), "Không tìm thấy ứng dụng Email nào trên máy!", Toast.LENGTH_SHORT).show();
