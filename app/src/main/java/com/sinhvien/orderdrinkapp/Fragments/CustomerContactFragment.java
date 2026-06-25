@@ -193,29 +193,37 @@ public class CustomerContactFragment extends Fragment {
      */
     private void sendEmailWithUri(Uri attachmentUri) {
         try {
-            Intent intent = new Intent(Intent.ACTION_SEND); 
-            intent.setType("message/rfc822");
-            intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
-            intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
-            
-            String defaultText = "Chào ban quản lý nhà hàng,\n\nTôi muốn góp ý về vấn đề:\n";
-            intent.putExtra(Intent.EXTRA_TEXT, defaultText);
+            // Bước 1: Tìm ứng dụng xử lý mail mặc định bằng ACTION_SENDTO mailto:
+            Intent emailFilter = new Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:"));
+            java.util.List<android.content.pm.ResolveInfo> resolveInfos = requireContext().getPackageManager().queryIntentActivities(emailFilter, 0);
 
-            if (attachmentUri != null) {
-                intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
-                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (resolveInfos != null && !resolveInfos.isEmpty()) {
+                // Lấy ứng dụng Mail đầu tiên tìm thấy (thường là Gmail hoặc mail mặc định)
+                String packageName = resolveInfos.get(0).activityInfo.packageName;
+
+                // Bước 2: Tạo Intent ACTION_SEND để có thể đính kèm ảnh
+                Intent intent = new Intent(Intent.ACTION_SEND);
+                intent.setType("message/rfc822"); // MIME type chuẩn của email
+                intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
+                intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
+                
+                String defaultText = "Chào ban quản lý nhà hàng,\n\nTôi muốn góp ý về vấn đề:\n";
+                intent.putExtra(Intent.EXTRA_TEXT, defaultText);
+
+                if (attachmentUri != null) {
+                    intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                }
+
+                // Ép Android mở bằng chính ứng dụng Mail tìm được, bỏ qua bảng Share chung!
+                intent.setPackage(packageName);
+                startActivity(intent);
+            } else {
+                Toast.makeText(getContext(), "Không tìm thấy ứng dụng Email nào trên máy!", Toast.LENGTH_SHORT).show();
             }
-
-            // Sử dụng Selector để ép Android chỉ mở các ứng dụng xử lý mailto (Email clients)
-            // Lưu ý: Đã bổ sung <queries> vào AndroidManifest.xml để giải quyết lỗi Package Visibility trên Android 11+
-            Intent selector = new Intent(Intent.ACTION_SENDTO);
-            selector.setData(Uri.parse("mailto:"));
-            intent.setSelector(selector);
-
-            startActivity(Intent.createChooser(intent, "Gửi góp ý qua Email..."));
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(getContext(), "Không tìm thấy ứng dụng Email nào trên máy!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Có lỗi xảy ra khi mở Email!", Toast.LENGTH_SHORT).show();
         }
     }
 
