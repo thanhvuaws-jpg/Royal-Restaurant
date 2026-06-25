@@ -194,7 +194,7 @@ public class CustomerContactFragment extends Fragment {
     private void sendEmailWithUri(Uri attachmentUri) {
         try {
             Intent intent = new Intent(Intent.ACTION_SENDTO); 
-            intent.setData(Uri.parse("mailto:")); // lọc các ứng dụng thư điện tử
+            intent.setData(Uri.parse("mailto:")); // Chỉ mở các ứng dụng thư điện tử
             intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
             intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
             
@@ -202,8 +202,8 @@ public class CustomerContactFragment extends Fragment {
             intent.putExtra(Intent.EXTRA_TEXT, defaultText);
 
             if (attachmentUri != null) {
-                intent.setAction(Intent.ACTION_SEND);
-                intent.setType("message/rfc822"); // đảm bảo mở email thay vì ứng dụng nhắn tin sms thông thường
+                // Đính kèm ảnh thẳng vào ACTION_SENDTO.
+                // Điều này giúp nhảy thẳng vào app Mail (VD: Gmail) thay vì hiện menu Share tổng hợp.
                 intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
