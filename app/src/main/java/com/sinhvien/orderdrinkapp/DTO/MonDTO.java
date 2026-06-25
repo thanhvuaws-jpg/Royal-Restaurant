@@ -1,10 +1,19 @@
 package com.sinhvien.orderdrinkapp.DTO;
 
+/**
+ * MonDTO - Lớp truyền tải dữ liệu món ăn/thức uống (Dish).
+ * Ánh xạ dữ liệu món ăn từ SQLite cục bộ, API và các Adapter danh sách hiển thị món ăn của nhà hàng.
+ */
 public class MonDTO {
 
+    // Mã món ăn (MAMON), Mã danh mục loại món ăn (MALOAI) liên kết
     int MaMon, MaLoai;
-    String TenMon,GiaTien,TinhTrang;
+    // Tên món, đơn giá (lưu dạng String), tình trạng món ("true" - còn món, "false" - hết món)
+    String TenMon, GiaTien, TinhTrang;
+    // Mảng Byte chứa dữ liệu hình ảnh (nếu lưu SQLite dạng BLOB)
     byte[] HinhAnh;
+    // URL/Đường dẫn hình ảnh của món ăn lưu trữ trên server VPS
+    String hinhAnhUrl;
 
     public int getMaMon() {
         return MaMon;
@@ -52,12 +61,10 @@ public class MonDTO {
         HinhAnh = hinhAnh;
     }
 
-    String hinhAnhUrl;
     public String getHinhAnhUrl() {
         return hinhAnhUrl;
     }
     public void setHinhAnhUrl(String hinhAnhUrl) {
         this.hinhAnhUrl = hinhAnhUrl;
     }
-
 }

@@ -14,11 +14,23 @@ import com.sinhvien.orderdrinkapp.R;
 
 import java.util.List;
 
+/**
+ * AdapterDisplayStatistic - Adapter quản lý hiển thị các dòng danh sách hóa đơn đơn hàng (Orders) trong báo cáo thống kê hoặc lịch sử thu ngân.
+ * - Trình bày thông tin hóa đơn bao gồm:
+ *   + Mã đơn đặt (OrderId).
+ *   + Ngày giờ lập đơn (OrderDate).
+ *   + Tên nhân viên phục vụ lập đơn (StaffName).
+ *   + Tên bàn ăn đi kèm phương thức thanh toán ví dụ "Bàn số 3 (Tiền mặt)" hoặc "Mang đi (Chuyển khoản)" (TableName).
+ *   + Tổng giá trị đơn hàng (TotalAmount).
+ *   + Badge trạng thái đơn hàng (Đã thanh toán / Chờ duyệt / Chưa thanh toán) với màu viền tương thích.
+ * - Hỗ trợ cập nhật nhanh dữ liệu thông qua phương thức updateData().
+ */
 public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplayStatistic.ViewHolder> {
 
     private final Context context;
     private final List<DonDatDTO> donDatDTOS;
 
+    // Interface truyền sự kiện click dòng hóa đơn về cho Activity/Fragment gọi nó
     public interface OnItemClickListener {
         void onItemClick(int position);
     }
@@ -32,6 +44,9 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
         this.donDatDTOS = donDatDTOS;
     }
 
+    /**
+     * Cập nhật mới danh sách đơn hàng và thông báo làm mới RecyclerView.
+     */
     public void updateData(List<DonDatDTO> newList) {
         if (this.donDatDTOS != newList) {
             this.donDatDTOS.clear();
@@ -56,23 +71,26 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
         holder.txt_TotalAmount.setText(don.getTongTien() + " VNĐ");
         holder.txt_StaffName.setText(don.getTenNV());
         
+        // Tạo chuỗi văn bản bàn ăn đi kèm phương thức thanh toán
         String banText = don.getTenBan();
         if (don.getPhuongThucTT() != null && !don.getPhuongThucTT().isEmpty()) {
             banText += " (" + don.getPhuongThucTT() + ")";
         }
         holder.txt_TableName.setText(banText);
 
+        // Thiết lập trạng thái hóa đơn kèm background viền tương ứng
         if ("true".equals(don.getTinhTrang())) {
             holder.txt_Status.setText("Đã thanh toán");
-            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_primary);
+            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_primary); // Viền xanh lá
         } else if ("pending".equals(don.getTinhTrang())) {
             holder.txt_Status.setText("Chờ duyệt");
-            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);
+            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);   // Viền đen
         } else {
             holder.txt_Status.setText("Chưa thanh toán");
-            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);
+            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);   // Viền đen
         }
 
+        // Bắt sự kiện click
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(position);
         });
@@ -81,6 +99,9 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
     @Override
     public int getItemCount() { return donDatDTOS.size(); }
 
+    /**
+     * ViewHolder chứa cấu trúc dòng hóa đơn thống kê.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txt_OrderId, txt_OrderDate, txt_StaffName, txt_TotalAmount, txt_Status, txt_TableName;
 

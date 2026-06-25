@@ -1,9 +1,16 @@
 package com.sinhvien.orderdrinkapp.DTO;
 
+/**
+ * BanAnDTO - Lớp truyền tải dữ liệu (Data Transfer Object) cho Bàn ăn.
+ * Dùng để ánh xạ dữ liệu bàn ăn giữa SQLite cục bộ, API và tầng hiển thị UI.
+ */
 public class BanAnDTO {
+    // Mã số bàn ăn (MABAN)
     int MaBan;
+    // Tên bàn ăn (TENBAN)
     String TenBan;
-    String TinhTrang; // Thêm biến này để lưu trạng thái Trống/Có người
+    // Trạng thái bàn ăn (TINHTRANG): "true" (Đang hoạt động/Có khách), "false" (Trống)
+    String TinhTrang;
 
     public int getMaBan() {
         return MaBan;

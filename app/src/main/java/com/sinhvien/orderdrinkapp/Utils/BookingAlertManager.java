@@ -27,22 +27,39 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * BookingAlertManager - Bộ quản lý và cảnh báo Đặt bàn quá hạn hoặc chuẩn bị bàn.
+ * Tự động chạy nền kiểm tra định kỳ hoặc thông qua Socket IO để thông báo đẩy (Notification) hoặc hiện AlertDialog nhắc nhở nhân viên.
+ */
 public class BookingAlertManager {
 
+    // ID kênh thông báo cho đặt bàn
     private static final String CHANNEL_ID = "booking_alerts";
+    // Tên hiển thị của kênh thông báo
     private static final String CHANNEL_NAME = "Nhắc nhở đặt bàn";
-    private static final int CHECK_INTERVAL = 60000; // Quét mỗi 1 phút
+    // Khoảng thời gian giữa các lần quét (quét mỗi 60 giây / 1 phút)
+    private static final int CHECK_INTERVAL = 60000; 
 
+    // Sử dụng WeakReference tránh rò rỉ bộ nhớ (memory leak) đối với Context của Activity
     private WeakReference<Context> contextRef;
     private Handler handler = new Handler(Looper.getMainLooper());
     private Runnable runnable;
+    // Cờ trạng thái cho biết bộ quét cảnh báo có đang chạy hay không
     private boolean isRunning = false;
 
+    /**
+     * Khởi tạo BookingAlertManager.
+     * @param context Context của màn hình/ứng dụng (nên là Activity Context để hiện dialog).
+     */
     public BookingAlertManager(Context context) {
         this.contextRef = new WeakReference<>(context); // [FIX] Bỏ getApplicationContext() để AlertDialog có thể dùng được Context này
         createNotificationChannel();
     }
 
+    /**
+     * Tạo Kênh Thông Báo (Notification Channel) cho Android 8.0 trở lên.
+     * Thiết lập độ ưu tiên cao HIGH để thông báo có thể hiển thị dạng banner trên màn hình.
+     */
     private void createNotificationChannel() {
         Context context = contextRef.get();
         if (context == null) return;
@@ -61,13 +78,16 @@ public class BookingAlertManager {
         }
     }
 
+    // Bộ lắng nghe sự kiện khi trạng thái đặt bàn bị thay đổi trên Socket IO
     private io.socket.emitter.Emitter.Listener onBookingStatusUpdated = new io.socket.emitter.Emitter.Listener() {
         @Override
         public void call(Object... args) {
+            // Khi có thay đổi, quét kiểm tra bàn quá hạn ngay lập tức
             checkOverdueBookings();
         }
     };
 
+    // Bộ lắng nghe yêu cầu thu ngân nhắc nhở chuẩn bị bàn ăn
     private io.socket.emitter.Emitter.Listener onNotifyPrepareTable = new io.socket.emitter.Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -86,12 +106,16 @@ public class BookingAlertManager {
                     tenBan = args[0].toString();
                 }
                 
-                // Phải chạy trên background thread hoặc không liên quan UI
+                // Hiển thị thông báo và Dialog cảnh báo nhân viên chuẩn bị bàn ăn
                 showPrepareTableNotification(tenBan);
             }
         }
     };
 
+    /**
+     * Bắt đầu kiểm tra và lắng nghe sự kiện cảnh báo.
+     * Đăng ký Socket Listener và bắt đầu vòng lặp Runnable chạy định kỳ.
+     */
     public void startChecking() {
         if (isRunning) return;
         isRunning = true;
@@ -99,10 +123,11 @@ public class BookingAlertManager {
         io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
         if (socket != null) {
             socket.on("booking_status_updated", onBookingStatusUpdated);
-            socket.off("notify_prepare_table", onNotifyPrepareTable); // [FIX]
+            socket.off("notify_prepare_table", onNotifyPrepareTable); // [FIX] Tránh trùng lặp đăng ký
             socket.on("notify_prepare_table", onNotifyPrepareTable);
         }
 
+        // Tạo vòng lặp kiểm tra cục bộ dự phòng trong trường hợp Socket IO mất kết nối
         runnable = new Runnable() {
             @Override
             public void run() {
@@ -113,12 +138,16 @@ public class BookingAlertManager {
                     checkOverdueBookings();
                 }
                 
+                // Lên lịch chạy lại sau CHECK_INTERVAL
                 handler.postDelayed(this, CHECK_INTERVAL);
             }
         };
         handler.post(runnable);
     }
 
+    /**
+     * Dừng việc kiểm tra định kỳ để giải phóng tài nguyên.
+     */
     public void stopChecking() {
         isRunning = false;
         if (runnable != null) {
@@ -131,7 +160,9 @@ public class BookingAlertManager {
         }
     }
 
-    // [FIX] Thêm hàm destroy() mới
+    /**
+     * Xóa sạch các Listener và giải phóng Socket (dùng khi Activity bị hủy).
+     */
     public void destroy() {
         stopChecking();
         io.socket.client.Socket socket = SocketManager.getInstance().getSocket();
@@ -140,6 +171,9 @@ public class BookingAlertManager {
         }
     }
 
+    /**
+     * Truy vấn danh sách lịch hẹn đặt bàn từ server và lọc ra các lịch hẹn quá hạn 15 phút mà khách chưa nhận bàn.
+     */
     private void checkOverdueBookings() {
         Context context = contextRef.get();
         if (context == null) return;
@@ -169,7 +203,7 @@ public class BookingAlertManager {
                                         }
                                         sb.append(booking.getMaDatBan());
 
-                                        // 2. Hiển thị thông báo đẩy lên điện thoại
+                                        // Hiển thị thông báo đẩy lên thiết bị
                                         showOverdueNotification(booking);
                                     }
                                 }
@@ -177,6 +211,7 @@ public class BookingAlertManager {
                         }
                     }
                     if (sb.length() > 0) {
+                        // Gọi API cập nhật trạng thái hàng loạt sang "overdue"
                         updateBatchBookingStatus(sb.toString(), "overdue");
                     }
                 }
@@ -187,6 +222,9 @@ public class BookingAlertManager {
         });
     }
 
+    /**
+     * Gọi API cập nhật hàng loạt trạng thái của các lịch đặt bàn.
+     */
     private void updateBatchBookingStatus(String madatbans, String status) {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.batchUpdateBookingStatus(madatbans, status).enqueue(new Callback<BookingResponse>() {
@@ -197,6 +235,9 @@ public class BookingAlertManager {
         });
     }
 
+    /**
+     * Hiển thị thông báo đẩy (System Notification) khi một bàn đặt bị quá hạn.
+     */
     private void showOverdueNotification(BookingResponse booking) {
         Context context = contextRef.get();
         if (context == null) return;
@@ -220,6 +261,9 @@ public class BookingAlertManager {
         }
     }
 
+    /**
+     * Hiển thị cảnh báo thông qua AlertDialog và Notification khi có nhắc nhở chuẩn bị bàn từ Thu ngân.
+     */
     private void showPrepareTableNotification(String tenBan) {
         Context context = contextRef.get();
         if (context == null) return;
@@ -227,7 +271,7 @@ public class BookingAlertManager {
         String title = "Chuẩn bị bàn đặt trước!";
         String content = "Thu ngân nhắc chuẩn bị " + tenBan + " cho khách đặt trước. Vui lòng kiểm tra!";
 
-        // [FIX] Hiện AlertDialog trên main thread
+        // Hiển thị AlertDialog trực tiếp trên UI Thread
         try {
             new Handler(Looper.getMainLooper()).post(() -> {
                 Context currentContext = contextRef.get();

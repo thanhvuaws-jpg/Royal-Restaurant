@@ -19,9 +19,16 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * StaffViewModel - Lớp ViewModel quản lý danh sách Nhân viên (Staff).
+ * Cung cấp dữ liệu nhân viên từ SQLite nội bộ phục vụ việc hiển thị danh sách offline nhanh chóng,
+ * đồng thời hỗ trợ gọi API tải danh sách nhân viên từ Server VPS và cập nhật/đồng bộ vào SQLite.
+ */
 public class StaffViewModel extends AndroidViewModel {
 
+    // LiveData nắm giữ danh sách nhân viên hiển thị trên UI
     private final MutableLiveData<List<NhanVienDTO>> staffLiveData = new MutableLiveData<>();
+    // Đối tượng truy vấn cơ sở dữ liệu SQLite
     private final LocalDatabaseHelper dbHelper;
 
     public StaffViewModel(@NonNull Application application) {
@@ -29,6 +36,10 @@ public class StaffViewModel extends AndroidViewModel {
         dbHelper = LocalDatabaseHelper.getInstance(application);
     }
 
+    /**
+     * Lấy LiveData danh sách nhân viên.
+     * Tự động tải từ SQLite nếu LiveData hiện thời đang rỗng.
+     */
     public LiveData<List<NhanVienDTO>> getStaff() {
         if (staffLiveData.getValue() == null) {
             loadStaffFromLocal();
@@ -36,6 +47,9 @@ public class StaffViewModel extends AndroidViewModel {
         return staffLiveData;
     }
 
+    /**
+     * Tải danh sách nhân viên từ cơ sở dữ liệu SQLite lên LiveData trên Background Thread.
+     */
     public void loadStaffFromLocal() {
         LocalDatabaseHelper.getExecutor().execute(() -> {
             List<NhanVienDTO> cachedList = dbHelper.getStaff();
@@ -43,6 +57,10 @@ public class StaffViewModel extends AndroidViewModel {
         });
     }
 
+    /**
+     * Đồng bộ danh sách nhân viên từ API Server về SQLite cục bộ.
+     * @param callback Callback nhận kết quả đồng bộ thành công hay lỗi.
+     */
     public void syncStaffFromServer(OnSyncCallback callback) {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getStaff().enqueue(new Callback<List<StaffResponse>>() {
@@ -50,6 +68,7 @@ public class StaffViewModel extends AndroidViewModel {
             public void onResponse(Call<List<StaffResponse>> call, Response<List<StaffResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     List<StaffResponse> listServer = response.body();
+                    // Lưu dữ liệu vào SQLite trên Background Thread
                     LocalDatabaseHelper.getExecutor().execute(() -> {
                         dbHelper.syncStaff(listServer);
                         List<NhanVienDTO> updatedList = dbHelper.getStaff();
@@ -74,6 +93,9 @@ public class StaffViewModel extends AndroidViewModel {
         });
     }
 
+    /**
+     * Giao diện Callback kết quả đồng bộ danh sách nhân viên.
+     */
     public interface OnSyncCallback {
         void onSuccess();
         void onError(String errorMsg);

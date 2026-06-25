@@ -37,35 +37,57 @@ import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.CategoryViewModel;
 import com.sinhvien.orderdrinkapp.ViewModel.HomeViewModel;
 
+/**
+ * DisplayHomeFragment - Màn hình Trang chủ (Dashboard) của ứng dụng dành cho nhân viên / quản lý.
+ * - Hiển thị lời chào cá nhân hóa (Welcome User) kèm họ tên người dùng.
+ * - Phân quyền giao diện (Admin vs Nhân viên):
+ *   + Ẩn các chức năng Thống kê, Quản lý Nhân viên đối với nhân viên thường.
+ *   + Tự động thay đổi bố cục GridLayout từ 2 cột sang 1 cột cho nút chức năng để lấp đầy khoảng trống UI.
+ * - Hiển thị danh mục món ăn (Category) dạng trượt ngang.
+ * - Hiển thị danh sách các đơn hàng đã thanh toán hôm nay dạng trượt ngang.
+ * - Tự động đồng bộ các đơn hàng hôm nay theo thời gian thực bằng Socket.io.
+ * - Quản lý điều hướng mượt mà đến các tab tương ứng ở thanh Bottom Navigation.
+ */
 public class DisplayHomeFragment extends Fragment implements View.OnClickListener {
 
     private static final String TAG = "DisplayHomeFragment";
+    
+    // ViewModel quản lý loại món ăn
     private CategoryViewModel categoryViewModel;
+    // ViewModel quản lý đơn đặt món trong ngày tại trang chủ
     private HomeViewModel homeViewModel;
 
+    // Hai danh sách RecyclerView trượt ngang
     RecyclerView rcv_display_HomeCategoryList, rcv_display_HomeOrderToday;
+    // Thẻ chức năng điều hướng nhanh
     MaterialCardView layout_display_HomeStatistic, layout_display_HomeViewTable, layout_display_HomeViewMenu, layout_display_HomeViewStaff;
+    // Nút "Xem tất cả"
     TextView txt_display_HomeViewAllCategory, txt_display_HomeViewAllStatistic;
+    
     List<LoaiMonDTO> loaiMonDTOList;
     List<DonDatDTO> donDatDTOS;
     AdapterRecycleViewCategory adapterRecycleViewCategory;
     AdapterRecycleViewStatistic adapterRecycleViewStatistic;
+    
     android.widget.ScrollView sv_display_home;
+    // Lưu lại vị trí cuộn trang dọc khi Fragment tái tạo
     private int savedScrollY = -1;
 
     public static void clearCache() {
-        // ViewModel handles lifecycle now
+        // ViewModel xử lý vòng đời dữ liệu, không cần lưu cache tĩnh
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.displayhome_layout, container, false);
+        
+        // Thiết lập tiêu đề trên thanh ActionBar
         if (getActivity() != null && ((HomeActivity) getActivity()).getSupportActionBar() != null) {
             ((HomeActivity) getActivity()).getSupportActionBar().setTitle(R.string.app_name);
         }
         setHasOptionsMenu(true);
 
-        //region Bind views
+        // Khởi tạo các view trên giao diện
         sv_display_home = view.findViewById(R.id.sv_display_home);
         rcv_display_HomeCategoryList = view.findViewById(R.id.rcv_display_HomeCategoryList);
         rcv_display_HomeOrderToday = view.findViewById(R.id.rcv_display_HomeOrderToday);
@@ -77,29 +99,29 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         txt_display_HomeViewAllStatistic = view.findViewById(R.id.txt_display_HomeViewAllStatistic);
         
         TextView txt_welcome_UserName = view.findViewById(R.id.txt_welcome_UserName);
-        //endregion
 
         if (savedInstanceState != null) {
             savedScrollY = savedInstanceState.getInt("saved_scroll_y", -1);
         }
 
-        // Hiển thị tên người dùng từ Session
+        // Lấy tên đầy đủ của người dùng hiển thị lời chào mừng
         String fullName = SessionManager.getFullName(getActivity());
         if (fullName != null && !fullName.isEmpty()) {
             txt_welcome_UserName.setText(fullName);
         }
 
-        // Phân quyền và căn chỉnh Grid cho Nhân viên
+        // Thực hiện phân quyền chức năng: Nhân viên vs Quản lý (Admin)
         if (!SessionManager.isAdmin(getActivity())) {
+            // Ẩn tính năng quản lý nhân viên và thống kê doanh thu đối với nhân viên thường
             layout_display_HomeViewStaff.setVisibility(View.GONE);
             layout_display_HomeStatistic.setVisibility(View.GONE);
             txt_display_HomeViewAllStatistic.setVisibility(View.GONE);
             
-            // Chuyển sang 1 cột để 2 nút to ra và lấp đầy khoảng trống
+            // Định dạng lại Grid để trải đều giao diện: chuyển sang hiển thị 1 cột duy nhất
             android.widget.GridLayout gridLayout = view.findViewById(R.id.grid_display_HomeActions);
             gridLayout.setColumnCount(1);
 
-            // Chuyển 130dp sang pixel để set height
+            // Nới rộng kích thước chiều cao các nút lớn gấp đôi để bố cục cân đối (130dp)
             int heightPx = (int) (130 * getResources().getDisplayMetrics().density);
 
             ViewGroup.LayoutParams paramsTable = layout_display_HomeViewTable.getLayoutParams();
@@ -111,19 +133,21 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             layout_display_HomeViewMenu.setLayoutParams(paramsMenu);
         }
 
-        // Initialize lists and adapters once
+        // Cài đặt RecyclerView trượt ngang hiển thị Danh mục
         rcv_display_HomeCategoryList.setHasFixedSize(true);
         rcv_display_HomeCategoryList.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         loaiMonDTOList = new ArrayList<>();
         adapterRecycleViewCategory = new AdapterRecycleViewCategory(getActivity(), R.layout.custom_layout_displaycategory, loaiMonDTOList);
         rcv_display_HomeCategoryList.setAdapter(adapterRecycleViewCategory);
 
+        // Cài đặt RecyclerView trượt ngang hiển thị Hóa đơn hôm nay
         rcv_display_HomeOrderToday.setHasFixedSize(true);
         rcv_display_HomeOrderToday.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.HORIZONTAL, false));
         donDatDTOS = new ArrayList<>();
         adapterRecycleViewStatistic = new AdapterRecycleViewStatistic(getActivity(), R.layout.custom_layout_displaystatistic, donDatDTOS);
         rcv_display_HomeOrderToday.setAdapter(adapterRecycleViewStatistic);
 
+        // Đăng ký sự kiện click cho các nút điều hướng nhanh
         layout_display_HomeStatistic.setOnClickListener(this);
         layout_display_HomeViewTable.setOnClickListener(this);
         layout_display_HomeViewMenu.setOnClickListener(this);
@@ -131,6 +155,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         txt_display_HomeViewAllCategory.setOnClickListener(this);
         txt_display_HomeViewAllStatistic.setOnClickListener(this);
 
+        // Đăng ký quan sát dữ liệu danh mục món ăn
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
         categoryViewModel.getCategories().observe(getViewLifecycleOwner(), list -> {
             loaiMonDTOList.clear();
@@ -139,6 +164,7 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
             checkAndRestoreScroll();
         });
 
+        // Đăng ký quan sát dữ liệu hóa đơn hôm nay
         homeViewModel = new ViewModelProvider(this).get(HomeViewModel.class);
         homeViewModel.getTodayOrders().observe(getViewLifecycleOwner(), list -> {
             donDatDTOS.clear();
@@ -151,6 +177,8 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     }
 
     private io.socket.client.Socket mSocket;
+    
+    // Tự động làm mới danh sách hóa đơn trong ngày khi nhận tín hiệu Socket.io
     private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -193,6 +221,9 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    /**
+     * Khôi phục vị trí cuộn ScrollView sau khi nạp dữ liệu xong.
+     */
     private void checkAndRestoreScroll() {
         if (savedScrollY != -1 && sv_display_home != null) {
             final int y = savedScrollY;
@@ -206,6 +237,9 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         }
     }
 
+    /**
+     * Yêu cầu ViewModel cập nhật thông tin loại món ăn.
+     */
     private void HienThiDSLoai() {
         categoryViewModel.syncCategoriesFromServer(null);
     }
@@ -214,10 +248,17 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         HienThiDonTrongNgay(false);
     }
 
+    /**
+     * Yêu cầu ViewModel cập nhật thông tin hóa đơn trong ngày.
+     */
     private void HienThiDonTrongNgay(boolean forceRefresh) {
         homeViewModel.fetchTodayOrders(forceRefresh);
     }
 
+    /**
+     * Xử lý sự kiện click trên các nút điều hướng nhanh ở trang chủ.
+     * Liên kết chuyển tab Bottom Navigation thông qua HomeActivity.
+     */
     @Override
     public void onClick(View v) {
         int id = v.getId();

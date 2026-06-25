@@ -24,15 +24,26 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * StatisticViewModel - Lớp ViewModel phục vụ cho màn hình Thống kê (Statistic).
+ * Cung cấp chức năng lọc danh sách các hóa đơn đã thanh toán theo khoảng thời gian:
+ * Hôm nay (0), 7 ngày gần nhất (7), 30 ngày gần nhất (30) hoặc Tất cả (-1).
+ * Hỗ trợ chuyển đổi định dạng ngày tháng hiển thị và lưu trữ LiveData.
+ */
 public class StatisticViewModel extends AndroidViewModel {
 
     private static final String TAG = "StatisticViewModel";
 
+    // LiveData chứa danh sách các đơn hàng đã thanh toán phù hợp bộ lọc
     private final MutableLiveData<List<DonDatDTO>> statisticOrdersLiveData = new MutableLiveData<>();
+    // Trạng thái đang tải dữ liệu từ API
     private final MutableLiveData<Boolean> isLoadingLiveData = new MutableLiveData<>(false);
+    // LiveData thông báo lỗi nếu có
     private final MutableLiveData<String> errorLiveData = new MutableLiveData<>();
 
+    // Bộ lọc thời gian hiện tại (mặc định lọc 7 ngày gần nhất)
     private int currentFilter = 7;
+    // Định dạng hiển thị ngày trên ứng dụng
     private final SimpleDateFormat DB_FORMAT = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
 
     public StatisticViewModel(@NonNull Application application) {
@@ -59,6 +70,10 @@ public class StatisticViewModel extends AndroidViewModel {
         this.currentFilter = filter;
     }
 
+    /**
+     * Tải danh sách đơn hàng đã thanh toán từ API Server dựa theo bộ lọc thời gian.
+     * @param forceRefresh Ép buộc tải lại dữ liệu mới từ server.
+     */
     public void fetchPaidOrders(boolean forceRefresh) {
         if (!forceRefresh && statisticOrdersLiveData.getValue() != null && !statisticOrdersLiveData.getValue().isEmpty()) {
             return;
@@ -71,19 +86,21 @@ public class StatisticViewModel extends AndroidViewModel {
 
         String fromDate = null;
         String toDate = null;
-        if (currentFilter != -1) { // not FILTER_ALL
+        
+        // Tạo tham số thời gian gửi lên API theo bộ lọc hiện thời
+        if (currentFilter != -1) { // Lọc theo thời gian cụ thể (không phải Tất cả)
             SimpleDateFormat apiFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
             Calendar cal = Calendar.getInstance();
             toDate = apiFormat.format(cal.getTime());
             
-            if (currentFilter == 0) { // FILTER_TODAY
+            if (currentFilter == 0) { // Hôm nay
                 fromDate = toDate;
-            } else {
+            } else { // 7 ngày hoặc 30 ngày gần nhất
                 cal.add(Calendar.DAY_OF_YEAR, -(currentFilter - 1));
                 fromDate = apiFormat.format(cal.getTime());
             }
             call = apiService.getPaidOrders(fromDate, toDate);
-        } else {
+        } else { // Tải toàn bộ lịch sử hóa đơn
             call = apiService.getPaidOrders();
         }
 
@@ -104,6 +121,7 @@ public class StatisticViewModel extends AndroidViewModel {
                         dto.setTenNV(res.getHoTenNV());
                         dto.setTenBan(res.getTenBan());
 
+                        // Chuyển định dạng từ "yyyy-MM-dd HH:mm:ss" sang "dd-MM-yyyy"
                         try {
                             Date d = cloudFormat.parse(res.getNgayDat());
                             dto.setNgayDat(DB_FORMAT.format(d));

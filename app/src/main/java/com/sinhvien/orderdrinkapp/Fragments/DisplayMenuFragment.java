@@ -52,28 +52,44 @@ import retrofit2.Response;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.MenuViewModel;
 
+/**
+ * DisplayMenuFragment - Màn hình danh sách Món ăn/Nước uống (Menu).
+ * Hiển thị toàn bộ các món ăn thuộc một loại danh mục món ăn (maloai).
+ * - Sử dụng RecyclerView dạng lưới 2 cột để trình bày các món ăn (bao gồm hình ảnh, tên món, giá bán).
+ * - Hỗ trợ cơ chế vô hạn cuộn (Infinite Scroll) kết hợp phân trang tải thêm (Pagination) từ API Server.
+ * - Hỗ trợ tìm kiếm theo tên món ăn thông qua SearchView với cơ chế Debounce (trễ 300ms) giảm tải yêu cầu API.
+ * - Cho phép vuốt làm mới danh sách món ăn đồng bộ từ Server về SQLite (SwipeRefreshLayout).
+ * - Tích hợp lắng nghe sự thay đổi menu từ Socket.io ("menu_changed") để tự động cập nhật lại danh sách tức thời.
+ * - Nút thêm món (FAB) hiển thị riêng biệt đối với người dùng là Admin.
+ */
 public class DisplayMenuFragment extends Fragment {
 
-    // Hằng số phân trang (Tăng lên 1000 để load toàn bộ món trong 1 lần, kết hợp với SQLite cache)
+    // Kích thước tối đa tải dữ liệu trong một trang (Pagination size)
     private static final int PAGE_SIZE = 1000;
 
+    // Lưu mã loại món, mã bàn ăn, tên loại món
     int maloai, maban;
     String tenloai;
 
+    // RecyclerView và thanh tiến trình xoay khi tải trang mới
     RecyclerView rv_menu_DishList;
     ProgressBar pb_menu_LoadMore;
     List<MonDTO> monDTOList = new ArrayList<>();
     AdapterDisplayMenuRecycler adapter;
     View view;
 
-    // Biến điều khiển phân trang và tìm kiếm
-    private String currentSearch = ""; // Từ khóa tìm kiếm hiện tại
+    // Bộ lọc từ khóa tìm kiếm món ăn
+    private String currentSearch = ""; 
+    // ViewModel phụ trách xử lý nghiệp vụ danh mục món ăn
     private MenuViewModel menuViewModel;
 
+    // Bộ trì hoãn thời gian xử lý tìm kiếm (Debounce Search)
     private final android.os.Handler searchHandler = new android.os.Handler(android.os.Looper.getMainLooper());
     private Runnable searchRunnable;
 
     private Socket mSocket;
+    
+    // Đồng bộ menu khi có tín hiệu làm mới đơn hàng từ Socket.io
     private final Emitter.Listener onRefreshOrders = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -83,6 +99,7 @@ public class DisplayMenuFragment extends Fragment {
         }
     };
 
+    // Đồng bộ menu khi thực đơn món ăn thay đổi từ Socket.io
     private final Emitter.Listener onMenuChanged = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -92,6 +109,7 @@ public class DisplayMenuFragment extends Fragment {
         }
     };
 
+    // Nhận kết quả thêm/sửa món ăn trả về từ màn hình AddMenuActivity
     ActivityResultLauncher<Intent> resultLauncherMenu = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -103,7 +121,6 @@ public class DisplayMenuFragment extends Fragment {
                             boolean ktra = intent.getBooleanExtra("ktra", false);
                             String chucnang = intent.getStringExtra("chucnang");
                             if (ktra) {
-                                // Reset và tải lại từ đầu khi có thay đổi
                                 resetVaTaiLai();
                                 Toast.makeText(getActivity(),
                                         "themmon".equals(chucnang) ? R.string.add_sucessful : R.string.edit_sucessful,
@@ -136,13 +153,14 @@ public class DisplayMenuFragment extends Fragment {
 
             menuViewModel = new ViewModelProvider(this).get(MenuViewModel.class);
 
+            // Khôi phục lại bộ nhớ tìm kiếm và phân trang
             if (savedInstanceState != null) {
                 currentSearch = savedInstanceState.getString("current_search", "");
                 menuViewModel.setCurrentPage(savedInstanceState.getInt("current_page", 1));
                 menuViewModel.setHasMore(savedInstanceState.getBoolean("has_more", true));
             }
 
-            // Thiết lập RecyclerView dạng lưới 2 cột
+            // Thiết lập RecyclerView dạng lưới 2 cột hiển thị các card món ăn
             GridLayoutManager layoutManager = new GridLayoutManager(getActivity(), 2);
             rv_menu_DishList.setLayoutManager(layoutManager);
 
@@ -150,7 +168,9 @@ public class DisplayMenuFragment extends Fragment {
             adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
             rv_menu_DishList.setAdapter(adapter);
 
+            // Đăng ký quan sát dữ liệu LiveData từ MenuViewModel
             menuViewModel.getDishes(maloai, currentSearch).observe(getViewLifecycleOwner(), dishes -> {
+                // Sử dụng DiffUtil so sánh khác biệt dữ liệu giúp RecyclerView hoạt động mượt mà
                 androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
                         androidx.recyclerview.widget.DiffUtil.calculateDiff(new MenuDiffCallback(monDTOList, dishes));
                 monDTOList.clear();
@@ -159,6 +179,7 @@ public class DisplayMenuFragment extends Fragment {
                 capNhatTrangThai();
             });
 
+            // Vuốt làm mới danh sách
             SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
             swipeRefreshLayout.setOnRefreshListener(() -> {
                 menuViewModel.setCurrentPage(1);
@@ -172,17 +193,17 @@ public class DisplayMenuFragment extends Fragment {
                 taiThemMon();
             }
 
-            // Lắng nghe sự kiện cuộn - Infinite Scroll
+            // Lắng nghe sự kiện cuộn màn hình để tự động tải trang kế tiếp (Lazy Loading/Infinite Scroll)
             rv_menu_DishList.addOnScrollListener(new RecyclerView.OnScrollListener() {
                 @Override
                 public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
                     super.onScrolled(recyclerView, dx, dy);
-                    if (dy > 0) { // Chỉ kích hoạt khi cuộn xuống
+                    if (dy > 0) { 
                         int visibleItemCount = layoutManager.getChildCount();
                         int totalItemCount = layoutManager.getItemCount();
                         int firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition();
 
-                        // Khi còn 4 item cuối thì bắt đầu tải thêm
+                        // Nếu người dùng cuộn đến 4 phần tử cuối, gọi phân trang tải thêm
                         if (!menuViewModel.isLoading() && menuViewModel.isHasMore()) {
                             if ((visibleItemCount + firstVisibleItemPosition) >= totalItemCount - 4) {
                                 taiThemMon();
@@ -193,7 +214,7 @@ public class DisplayMenuFragment extends Fragment {
             });
         }
 
-        // Nút thêm món
+        // Nút nổi thêm món ăn chỉ hiển thị đối với Admin
         View fabAddDish = view.findViewById(R.id.fab_add_dish);
         if (SessionManager.isAdmin(getActivity())) {
             fabAddDish.setVisibility(View.VISIBLE);
@@ -207,7 +228,7 @@ public class DisplayMenuFragment extends Fragment {
             fabAddDish.setVisibility(View.GONE);
         }
 
-        // Thanh tìm kiếm → Gửi từ khóa lên Server
+        // Cài đặt SearchView tìm kiếm món ăn
         SearchView sv = view.findViewById(R.id.sv_menu_SearchDish);
         if (currentSearch != null && !currentSearch.isEmpty()) {
             sv.setQuery(currentSearch, false);
@@ -224,6 +245,7 @@ public class DisplayMenuFragment extends Fragment {
             }
             @Override
             public boolean onQueryTextChange(String newText) {
+                // Áp dụng Debounce 300ms trước khi bắt đầu truy vấn
                 if (searchRunnable != null) {
                     searchHandler.removeCallbacks(searchRunnable);
                 }
@@ -238,7 +260,7 @@ public class DisplayMenuFragment extends Fragment {
             }
         });
 
-        // Nút Back
+        // Xử lý sự kiện nhấn nút Back vật lý trên điện thoại: Quay về danh mục loại món ăn
         view.setFocusableInTouchMode(true);
         view.requestFocus();
         view.setOnKeyListener((v, keyCode, event) -> {
@@ -253,7 +275,9 @@ public class DisplayMenuFragment extends Fragment {
         return view;
     }
 
-    // Tải thêm món từ Server (có phân trang)
+    /**
+     * Tải thêm các món ăn ở trang tiếp theo.
+     */
     private void taiThemMon() {
         taiThemMon(null);
     }
@@ -284,7 +308,9 @@ public class DisplayMenuFragment extends Fragment {
         });
     }
 
-    // Reset và tải lại từ đầu (sau khi thêm/sửa/xóa)
+    /**
+     * Đặt lại các thông số và đồng bộ lại danh sách món ăn từ đầu.
+     */
     private void resetVaTaiLai() {
         currentSearch = "";
         menuViewModel.setCurrentPage(1);
@@ -294,7 +320,9 @@ public class DisplayMenuFragment extends Fragment {
         taiThemMon();
     }
 
-    // Tìm kiếm trên Server (trả về toàn bộ kết quả khớp)
+    /**
+     * Thực hiện tìm kiếm món ăn gửi từ khóa lên API.
+     */
     private void timKiemTrenServer(String query) {
         currentSearch = query;
         menuViewModel.setCurrentPage(1);
@@ -304,7 +332,9 @@ public class DisplayMenuFragment extends Fragment {
         taiThemMon();
     }
 
-    // Cập nhật trạng thái hiển thị danh sách hoặc empty state
+    /**
+     * Hiển thị layout báo trống khi danh sách rỗng.
+     */
     private void capNhatTrangThai() {
         View emptyState = view.findViewById(R.id.layout_empty_state);
         if (monDTOList.isEmpty()) {
@@ -320,6 +350,9 @@ public class DisplayMenuFragment extends Fragment {
         }
     }
 
+    /**
+     * Thêm Actionbar Menu thêm món ăn dành cho Admin.
+     */
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -342,6 +375,9 @@ public class DisplayMenuFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Tự động làm mới dữ liệu tại chỗ (không hiển thị loading dialog).
+     */
     private void refreshMenuInPlace() {
         menuViewModel.loadMoreDishes(maloai, currentSearch, true, null);
     }
@@ -383,6 +419,9 @@ public class DisplayMenuFragment extends Fragment {
         }
     }
 
+    /**
+     * Lớp MenuDiffCallback giúp tối ưu cập nhật danh sách món ăn trên RecyclerView.
+     */
     private static class MenuDiffCallback extends androidx.recyclerview.widget.DiffUtil.Callback {
         private final List<MonDTO> oldList;
         private final List<MonDTO> newList;

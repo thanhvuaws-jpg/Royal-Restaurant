@@ -12,9 +12,18 @@ import android.widget.Toast;
 import com.google.android.material.textfield.TextInputLayout;
 import com.sinhvien.orderdrinkapp.R;
 
+/**
+ * RegisterActivity - Màn hình Đăng ký tài khoản (Bước 1/2).
+ * Nhiệm vụ:
+ * - Thu thập thông tin cá nhân cơ bản của người dùng: Họ và tên, Tên đăng nhập, Email, Số điện thoại, và Mật khẩu.
+ * - Kiểm tra tính hợp lệ của từng trường nhập liệu (Validation) theo thời gian thực (Regex, Kiểm tra trống).
+ * - Đóng gói dữ liệu hợp lệ vào Bundle và truyền tiếp sang màn hình Register2ndActivity (Bước 2).
+ */
 public class RegisterActivity extends AppCompatActivity implements View.OnClickListener {
+    // Khóa định danh Bundle để truyền dữ liệu giữa các Activity
     public static final String BUNDLE = "bundle";
 
+    // Khai báo các thành phần giao diện
     ImageView img_signup_BackBtn;
     TextInputLayout txtl_signup_FullName, txtl_signup_UserName, txtl_signup_Email, txtl_signup_PhoneNumber, txtl_signup_Password;
     Button btn_signup_Next;
@@ -24,7 +33,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         super.onCreate(savedInstanceState);
         setContentView(R.layout.register_layout);
 
-        //region Lấy đối tượng view
+        // Ánh xạ các thành phần View từ tệp giao diện XML
         img_signup_BackBtn = findViewById(R.id.img_signup_BackBtn);
         txtl_signup_FullName = findViewById(R.id.txtl_signup_FullName);
         txtl_signup_UserName = findViewById(R.id.txtl_signup_UserName);
@@ -32,8 +41,8 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         txtl_signup_PhoneNumber = findViewById(R.id.txtl_signup_PhoneNumber);
         txtl_signup_Password = findViewById(R.id.txtl_signup_Password);
         btn_signup_Next = findViewById(R.id.btn_signup_Next);
-        //endregion
 
+        // Phục hồi dữ liệu biểu mẫu từ trạng thái lưu trước đó nếu thiết bị bị xoay màn hình
         if (savedInstanceState != null) {
             String savedFullName = savedInstanceState.getString("fullname", "");
             String savedUserName = savedInstanceState.getString("username", "");
@@ -48,6 +57,7 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             if (txtl_signup_Password.getEditText() != null) txtl_signup_Password.getEditText().setText(savedPassword);
         }
 
+        // Đăng ký sự kiện lắng nghe thao tác Click
         img_signup_BackBtn.setOnClickListener(this);
         btn_signup_Next.setOnClickListener(this);
     }
@@ -56,16 +66,19 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_signup_Next) {
+            // Thực hiện kiểm tra tính hợp lệ của tất cả các ô nhập liệu
             if (!validateFullName() | !validateUserName() | !validateEmail() | !validatePhone() | !validatePass()) {
-                return;
+                return; // Nếu có bất kỳ ô nào lỗi thì dừng lại không tiếp tục
             }
 
+            // Lấy chuỗi văn bản từ các ô nhập liệu đã kiểm duyệt thành công
             String fullname = txtl_signup_FullName.getEditText().getText().toString();
             String username = txtl_signup_UserName.getEditText().getText().toString();
             String email = txtl_signup_Email.getEditText().getText().toString();
             String sdt = txtl_signup_PhoneNumber.getEditText().getText().toString();
             String password = txtl_signup_Password.getEditText().getText().toString();
 
+            // Đóng gói thông tin và gửi sang bước tiếp theo
             Intent intent = new Intent(RegisterActivity.this, Register2ndActivity.class);
             Bundle bundle = new Bundle();
             bundle.putString("hoten", fullname);
@@ -75,15 +88,20 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             bundle.putString("matkhau", password);
             intent.putExtra(BUNDLE, bundle);
             startActivity(intent);
+            
+            // Hiệu ứng trượt ngang khi chuyển sang màn hình tiếp theo
             overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left);
 
         } else if (id == R.id.img_signup_BackBtn) {
+            // Quay lại màn hình chào WelcomeActivity
             finish();
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         }
     }
 
-    //region Validate fields
+    /**
+     * Xác thực ô Họ và tên (không được phép để trống).
+     */
     private boolean validateFullName() {
         String val = txtl_signup_FullName.getEditText().getText().toString().trim();
         if (val.isEmpty()) {
@@ -96,6 +114,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    /**
+     * Xác thực ô Tên đăng nhập (không được phép để trống).
+     */
     private boolean validateUserName() {
         String val = txtl_signup_UserName.getEditText().getText().toString().trim();
         if (val.isEmpty()) {
@@ -108,6 +129,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    /**
+     * Xác thực định dạng địa chỉ Email bằng biểu thức chính quy (Regular Expression).
+     */
     private boolean validateEmail() {
         String val = txtl_signup_Email.getEditText().getText().toString().trim();
         String checkEmail = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+";
@@ -124,6 +148,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    /**
+     * Xác thực ô Số điện thoại (không được phép để trống).
+     */
     private boolean validatePhone() {
         String val = txtl_signup_PhoneNumber.getEditText().getText().toString().trim();
         if (val.isEmpty()) {
@@ -136,6 +163,9 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    /**
+     * Xác thực ô Mật khẩu (không được phép để trống).
+     */
     private boolean validatePass() {
         String val = txtl_signup_Password.getEditText().getText().toString().trim();
         if (val.isEmpty()) {
@@ -147,11 +177,11 @@ public class RegisterActivity extends AppCompatActivity implements View.OnClickL
             return true;
         }
     }
-    //endregion
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu lại dữ liệu hiện thời khi ứng dụng thay đổi cấu hình phần cứng (xoay màn hình)
         String fullName = txtl_signup_FullName.getEditText() != null ? txtl_signup_FullName.getEditText().getText().toString() : "";
         String userName = txtl_signup_UserName.getEditText() != null ? txtl_signup_UserName.getEditText().getText().toString() : "";
         String email = txtl_signup_Email.getEditText() != null ? txtl_signup_Email.getEditText().getText().toString() : "";

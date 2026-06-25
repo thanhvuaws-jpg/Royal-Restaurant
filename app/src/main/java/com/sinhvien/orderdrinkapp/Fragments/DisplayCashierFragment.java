@@ -41,32 +41,57 @@ import com.google.android.material.tabs.TabLayout;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.CashierViewModel;
 
+/**
+ * DisplayCashierFragment - Màn hình Bảng điều khiển dành cho Thu ngân (Cashier).
+ * Quản lý giao diện tab:
+ * 1. Chờ thanh toán: Danh sách các đơn đặt món chờ Thu ngân xác nhận thu tiền.
+ * 2. Lịch sử hôm nay: Danh sách hóa đơn đã thu tiền thành công trong ngày.
+ * Hiển thị tổng doanh thu, doanh thu tiền mặt, doanh thu chuyển khoản của ngày hôm nay.
+ * Hỗ trợ Socket.io để tự động cập nhật ngay lập tức khi phục vụ gửi đơn hàng mới,
+ * kết hợp polling định kỳ làm dự phòng khi mạng mất kết nối socket.
+ */
 public class DisplayCashierFragment extends Fragment {
 
     private static final String TAG = "DisplayCashierFragment";
+    
+    // ViewModel quản lý dữ liệu thu ngân
     private CashierViewModel cashierViewModel;
 
+    // Danh sách RecyclerView hiển thị đơn hàng
     RecyclerView rv_cashier_OrderList;
+    // Danh sách đơn hàng chờ thanh toán
     List<DonDatDTO> donDatDTOList;
+    // Danh sách đơn hàng đã thanh toán hôm nay
     List<DonDatDTO> paidOrdersList;
+    // Adapter hiển thị thông tin hóa đơn/đơn đặt
     AdapterDisplayStatistic adapter;
     View view;
+    // Layout hiển thị trạng thái danh sách trống
     View layout_empty_state;
     TextView txt_empty_StateTitle, txt_empty_StateDesc;
 
+    // Các nhãn hiển thị doanh thu trong ngày
     TextView txt_cashier_TodayRevenue, txt_cashier_TodayCash, txt_cashier_TodayTransfer;
+    // TabLayout chuyển đổi giữa 2 tab: Chờ thanh toán & Lịch sử
     TabLayout tab_cashier_Toggle;
+    // Chỉ số tab hiện tại (0 = Chờ thanh toán, 1 = Lịch sử hôm nay)
     private int currentTab = 0;
 
+    // Cờ đánh dấu lần đầu tiên tải Fragment
     private boolean isFirstLoad = true;
+    // Hộp thoại xoay loading dữ liệu
     private androidx.appcompat.app.AlertDialog loadingDialog;
 
+    // Bộ xử lý polling (truy vấn định kỳ)
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
-    private static final int POLLING_INTERVAL = 5000; // 5 seconds
+    private static final int POLLING_INTERVAL = 5000; // 5 giây quét một lần
     private boolean isPolling = false;
 
+    // Socket.io quản lý kết nối thời gian thực
     private io.socket.client.Socket mSocket;
+    
+    // Sự kiện lắng nghe yêu cầu cập nhật từ Socket
     private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -86,6 +111,7 @@ public class DisplayCashierFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         view = inflater.inflate(R.layout.displaycashier_layout, container, false);
 
+        // Đổi tên tiêu đề trên ActionBar của HomeActivity
         if (getActivity() != null && ((HomeActivity) getActivity()).getSupportActionBar() != null) {
             ((HomeActivity) getActivity()).getSupportActionBar().setTitle("Bảng Điều Khiển Thu Ngân");
         }
@@ -101,12 +127,14 @@ public class DisplayCashierFragment extends Fragment {
         txt_cashier_TodayTransfer = view.findViewById(R.id.txt_cashier_TodayTransfer);
         tab_cashier_Toggle = view.findViewById(R.id.tab_cashier_Toggle);
 
+        // Khởi tạo các Tab
         tab_cashier_Toggle.addTab(tab_cashier_Toggle.newTab().setText("Chờ thanh toán (0)"));
         tab_cashier_Toggle.addTab(tab_cashier_Toggle.newTab().setText("Lịch sử hôm nay (0)"));
 
         donDatDTOList = new ArrayList<>();
         paidOrdersList = new ArrayList<>();
 
+        // Sự kiện khi người dùng click đổi tab
         tab_cashier_Toggle.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -121,6 +149,7 @@ public class DisplayCashierFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) {}
         });
 
+        // Thiết lập ViewModel và đăng ký lắng nghe thay đổi dữ liệu LiveData
         cashierViewModel = new ViewModelProvider(this).get(CashierViewModel.class);
         cashierViewModel.getPendingOrders().observe(getViewLifecycleOwner(), list -> {
             donDatDTOList.clear();
@@ -157,6 +186,7 @@ public class DisplayCashierFragment extends Fragment {
             }
         });
 
+        // Cập nhật các thông số doanh thu từ LiveData lên màn hình
         java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,###");
         cashierViewModel.getTodayRevenue().observe(getViewLifecycleOwner(), revenue -> {
             txt_cashier_TodayRevenue.setText(formatter.format(revenue) + "đ");
@@ -173,6 +203,12 @@ public class DisplayCashierFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Cập nhật danh sách RecyclerView theo tab hiện tại.
+     * Cài đặt sự kiện click vào dòng đơn hàng:
+     * - Tab Chờ thanh toán: Mở màn hình Xác nhận thanh toán (CashierConfirmActivity).
+     * - Tab Lịch sử hôm nay: Mở màn hình Chi tiết thống kê (DetailStatisticActivity).
+     */
     private void updateRecyclerView() {
         if (getActivity() == null) return;
         
@@ -212,6 +248,7 @@ public class DisplayCashierFragment extends Fragment {
             adapter.updateData(activeList);
         }
 
+        // Ẩn/hiển thị màn hình trống khi không có dữ liệu
         if (activeList.isEmpty()) {
             rv_cashier_OrderList.setVisibility(View.GONE);
             layout_empty_state.setVisibility(View.VISIBLE);
@@ -231,7 +268,7 @@ public class DisplayCashierFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Chỉ hiện loading dialog lần đầu tiên, khi list đang trống
+        // Hiển thị vòng xoay loading lần đầu tiên
         if (isFirstLoad && donDatDTOList.isEmpty()) {
             loadingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang tải dữ liệu...");
             if (loadingDialog != null) loadingDialog.show();
@@ -241,10 +278,10 @@ public class DisplayCashierFragment extends Fragment {
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null) {
             mSocket.on("refresh_orders", onRefreshOrders);
-            // Backup polling chạy mỗi 30s để dự phòng mất mạng đột ngột
+            // Backup polling chạy mỗi 30s đề phòng sự cố kết nối mạng
             startPolling(30000);
         } else {
-            // Không có socket -> polling 5s như cũ
+            // Không có kết nối socket -> gọi polling định kỳ 5s
             startPolling(5000);
         }
     }
@@ -258,6 +295,9 @@ public class DisplayCashierFragment extends Fragment {
         }
     }
 
+    /**
+     * Khởi động cơ chế Polling (gửi yêu cầu lấy danh sách định kỳ).
+     */
     private void startPolling(final int interval) {
         if (isPolling) {
             stopPolling();
@@ -273,6 +313,9 @@ public class DisplayCashierFragment extends Fragment {
         pollingHandler.postDelayed(pollingRunnable, interval);
     }
 
+    /**
+     * Dừng cơ chế Polling.
+     */
     private void stopPolling() {
         if (!isPolling) return;
         isPolling = false;
@@ -281,6 +324,9 @@ public class DisplayCashierFragment extends Fragment {
         }
     }
 
+    /**
+     * Truy vấn thông tin các đơn hàng chờ và đã thanh toán từ ViewModel.
+     */
     private void loadPendingOrders() {
         cashierViewModel.loadPendingOrders(isFirstLoad);
         if (isFirstLoad) {

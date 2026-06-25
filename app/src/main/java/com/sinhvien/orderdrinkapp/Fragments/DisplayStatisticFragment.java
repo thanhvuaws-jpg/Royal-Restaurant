@@ -48,27 +48,45 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * DisplayStatisticFragment - Màn hình Báo cáo Thống kê doanh thu (Statistic Dashboard).
+ * Dành riêng cho Admin/Quản lý để theo dõi tình hình kinh doanh của nhà hàng.
+ * - Hỗ trợ các bộ lọc nhanh (ChipGroup):
+ *   + Hôm nay
+ *   + 7 ngày gần đây
+ *   + 30 ngày gần đây
+ *   + Tất cả thời gian
+ * - Tích hợp thư viện MPAndroidChart vẽ biểu đồ cột (BarChart) doanh thu trực quan,
+ *   tự động quy đổi đơn vị hiển thị (ví dụ: tr cho triệu đồng, k cho nghìn đồng).
+ * - Hiển thị 3 thẻ tóm tắt doanh số: Tổng doanh thu, Số lượng đơn hàng, Giá trị trung bình/đơn.
+ * - Danh sách RecyclerView liệt kê chi tiết các hóa đơn thỏa mãn điều kiện lọc.
+ * - Sử dụng StatisticViewModel để nạp và cache dữ liệu từ API VPS/SQLite nội bộ.
+ */
 public class DisplayStatisticFragment extends Fragment {
 
-    // Views
+    // Các thành phần giao diện hiển thị báo cáo
     RecyclerView rv_statistic_OrderList;
     BarChart chart_statistic_Revenue;
     TextView txt_statistic_TotalRevenue, txt_statistic_OrderCount, txt_statistic_AvgOrder;
     ChipGroup chipGroup_statistic_Filter;
 
-    // Data
-    List<DonDatDTO> tatCaDonDat; // Toàn bộ đơn đã hoàn thành
+    // Danh sách lưu trữ hóa đơn thu thập được
+    List<DonDatDTO> tatCaDonDat; 
     AdapterDisplayStatistic adapterDisplayStatistic;
     View view;
+    // ViewModel xử lý số liệu thống kê
     private StatisticViewModel statisticViewModel;
+    // Dialog loading dữ liệu
     private androidx.appcompat.app.AlertDialog progressDialog;
 
+    // Các mốc bộ lọc thống kê thời gian
     private static final int FILTER_TODAY   = 0;
     private static final int FILTER_7DAYS   = 7;
     private static final int FILTER_30DAYS  = 30;
     private static final int FILTER_ALL     = -1;
     private int currentFilter = FILTER_7DAYS;
 
+    // Định dạng ngày lưu trữ trong Database
     private static final SimpleDateFormat DB_FORMAT =
             new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault());
 
@@ -83,7 +101,7 @@ public class DisplayStatisticFragment extends Fragment {
                     .setTitle(R.string.nav_statistic);
         }
 
-        // Bind views
+        // Ánh xạ các view từ XML layout
         rv_statistic_OrderList      = view.findViewById(R.id.rv_statistic_OrderList);
         rv_statistic_OrderList.setLayoutManager(new LinearLayoutManager(getActivity()));
         chart_statistic_Revenue     = view.findViewById(R.id.chart_statistic_Revenue);
@@ -92,8 +110,9 @@ public class DisplayStatisticFragment extends Fragment {
         txt_statistic_AvgOrder      = view.findViewById(R.id.txt_statistic_AvgOrder);
         chipGroup_statistic_Filter  = view.findViewById(R.id.chipGroup_statistic_Filter);
 
-        tatCaDonDat = new ArrayList<>(); // Khởi tạo trống để tránh crash khi chưa có dữ liệu
+        tatCaDonDat = new ArrayList<>(); 
 
+        // Khởi tạo ViewModel và đăng ký lắng nghe cập nhật LiveData
         statisticViewModel = new ViewModelProvider(this).get(StatisticViewModel.class);
         statisticViewModel.getStatisticOrders().observe(getViewLifecycleOwner(), list -> {
             tatCaDonDat.clear();
@@ -120,7 +139,7 @@ public class DisplayStatisticFragment extends Fragment {
             }
         });
 
-        // Chip filter listener
+        // Xử lý sự kiện chuyển mốc thời gian lọc (Chips)
         chipGroup_statistic_Filter.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.chip_filter_Today) {
                 currentFilter = FILTER_TODAY;
@@ -135,36 +154,36 @@ public class DisplayStatisticFragment extends Fragment {
             HienThiDSThongKe(true);
         });
 
-        // Mặc định chọn "7 ngày" - setChecked sẽ tự động trigger OnCheckedChangeListener nếu trạng thái thay đổi
+        // Mặc định chọn mốc lọc "7 ngày" lúc khởi chạy
         ((Chip) view.findViewById(R.id.chip_filter_7Days)).setChecked(true);
         
-        // [FIX] Gọi rõ ràng lệnh tải dữ liệu lần đầu (phòng trường hợp chip đã được check sẵn trong XML nên listener không tự kích hoạt)
         HienThiDSThongKe(false);
-
-        // Click vào đơn → xem chi tiết (sẽ được gán trong capNhatDashboard)
 
         return view;
     }
 
     public static void clearCache() {
-        // ViewModel handles lifecycle now
+        // ViewModel quản lý vòng đời dữ liệu nên không cần cache tĩnh
     }
 
     private void HienThiDSThongKe(){
         HienThiDSThongKe(false);
     }
 
+    /**
+     * Gọi ViewModel lấy danh sách hóa đơn theo mốc thời gian lọc.
+     */
     private void HienThiDSThongKe(boolean forceRefresh) {
         statisticViewModel.fetchPaidOrders(forceRefresh);
     }
 
-    // [FIX] Xóa hàm layDanhSachDaLoc() vì server đã lọc sẵn
-
-    /** Cập nhật toàn bộ dashboard: cards + chart + list */
+    /** 
+     * Tính toán tổng doanh thu, số đơn hàng, đơn giá trung bình và gán dữ liệu lên biểu đồ cột + RecyclerView.
+     */
     private void capNhatDashboard() {
-        List<DonDatDTO> filtered = tatCaDonDat; // Đã lọc từ server
+        List<DonDatDTO> filtered = tatCaDonDat; 
 
-        // === Summary cards ===
+        // Tính toán các thông số thống kê cơ bản
         long tongDoanhThu = 0;
         for (DonDatDTO don : filtered) {
             try {
@@ -178,6 +197,7 @@ public class DisplayStatisticFragment extends Fragment {
         int soDon = filtered.size();
         long trungBinh = soDon > 0 ? tongDoanhThu / soDon : 0;
 
+        // Gán văn bản hiển thị lên các CardView tổng quan
         txt_statistic_TotalRevenue.setText(
                 String.format("%,d", tongDoanhThu) + " " +
                         getString(R.string.currency_vnd));
@@ -186,11 +206,12 @@ public class DisplayStatisticFragment extends Fragment {
                 String.format("%,d", trungBinh) + " " +
                         getString(R.string.currency_vnd));
 
-        // === RecyclerView ===
+        // Cập nhật RecyclerView danh sách hóa đơn
         if (adapterDisplayStatistic == null) {
             adapterDisplayStatistic = new AdapterDisplayStatistic(getActivity(), filtered);
             rv_statistic_OrderList.setAdapter(adapterDisplayStatistic);
             
+            // Click chọn hóa đơn mở rộng xem thông tin chi tiết các món ăn đã gọi
             adapterDisplayStatistic.setOnItemClickListener(position -> {
                 List<DonDatDTO> currentFiltered = tatCaDonDat;
                 if (position >= currentFiltered.size()) return;
@@ -209,10 +230,13 @@ public class DisplayStatisticFragment extends Fragment {
             adapterDisplayStatistic.updateData(filtered);
         }
 
-        // === Bar chart ===
+        // Cập nhật dữ liệu và hiển thị BarChart
         setupBarChart(filtered);
     }
 
+    /**
+     * Cấu hình và vẽ biểu đồ cột doanh thu theo ngày bằng thư viện MPAndroidChart.
+     */
     private void setupBarChart(List<DonDatDTO> filtered) {
         if (filtered.isEmpty()) {
             chart_statistic_Revenue.clear();
@@ -223,28 +247,24 @@ public class DisplayStatisticFragment extends Fragment {
             return;
         }
 
-        // Gom doanh thu theo ngày (giữ thứ tự)
+        // Gom nhóm doanh thu theo ngày
         Map<String, Long> doanhThuTheoNgay = new LinkedHashMap<>();
-        // Lấy tối đa 10 ngày gần nhất để chart gọn
         int maxDays = (currentFilter == FILTER_ALL || currentFilter == FILTER_30DAYS) ? 10 : 7;
 
-        // Tạo danh sách ngày (từ xa đến gần)
+        // Khởi tạo trục thời gian từ xa đến gần
         Calendar cal = Calendar.getInstance();
         if (currentFilter == FILTER_ALL) {
-            // Lấy 10 ngày có đơn gần nhất
             for (DonDatDTO don : filtered) {
                 if (!doanhThuTheoNgay.containsKey(don.getNgayDat())) {
                     doanhThuTheoNgay.put(don.getNgayDat(), 0L);
                 }
             }
-            // Giới hạn 10 key cuối
             List<String> keys = new ArrayList<>(doanhThuTheoNgay.keySet());
             int start = Math.max(0, keys.size() - maxDays);
             Map<String, Long> limited = new LinkedHashMap<>();
             for (int i = start; i < keys.size(); i++) limited.put(keys.get(i), 0L);
             doanhThuTheoNgay = limited;
         } else {
-            // Tạo đủ ngày trong khoảng (kể cả ngày chưa có đơn → giá trị 0)
             int days = (currentFilter == FILTER_TODAY) ? 1 :
                        (currentFilter == FILTER_30DAYS) ? maxDays : maxDays;
             for (int i = days - 1; i >= 0; i--) {
@@ -254,7 +274,7 @@ public class DisplayStatisticFragment extends Fragment {
             }
         }
 
-        // Cộng doanh thu vào từng ngày
+        // Tính tổng tiền hóa đơn cho mỗi ngày tương ứng
         for (DonDatDTO don : filtered) {
             if (doanhThuTheoNgay.containsKey(don.getNgayDat())) {
                 try {
@@ -268,24 +288,25 @@ public class DisplayStatisticFragment extends Fragment {
             }
         }
 
-        // Tạo entries + nhãn ngày rút gọn (dd/MM)
+        // Chuẩn bị dữ liệu BarEntry và nhãn hiển thị trục X (Rút gọn về dd/MM)
         ArrayList<BarEntry> entries = new ArrayList<>();
         String[] labels = new String[doanhThuTheoNgay.size()];
         int idx = 0;
         for (Map.Entry<String, Long> e : doanhThuTheoNgay.entrySet()) {
             entries.add(new BarEntry(idx, e.getValue()));
-            // Chuyển "dd-MM-yyyy" → "dd/MM"
             String[] parts = e.getKey().split("-");
             labels[idx] = parts.length >= 2 ? parts[0] + "/" + parts[1] : e.getKey();
             idx++;
         }
 
-        // Dataset
+        // Định dạng màu sắc cột, màu chữ và nhãn cột biểu đồ
         int primaryColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.colorPrimary);
         BarDataSet dataSet = new BarDataSet(entries, getString(R.string.stat_chart_title));
         dataSet.setColor(primaryColor);
         dataSet.setValueTextColor(Color.DKGRAY);
         dataSet.setValueTextSize(9f);
+        
+        // Quy đổi giá trị hiển thị trên đỉnh cột gọn gàng (tr cho triệu, k cho nghìn)
         dataSet.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
@@ -302,7 +323,7 @@ public class DisplayStatisticFragment extends Fragment {
         BarData barData = new BarData(dataSet);
         barData.setBarWidth(0.6f);
 
-        // Cấu hình chart
+        // Thiết lập cấu hình tổng quan biểu đồ BarChart
         chart_statistic_Revenue.setData(barData);
         chart_statistic_Revenue.setDrawGridBackground(false);
         chart_statistic_Revenue.setDrawBorders(false);
@@ -311,7 +332,7 @@ public class DisplayStatisticFragment extends Fragment {
         chart_statistic_Revenue.setTouchEnabled(false);
         chart_statistic_Revenue.setExtraBottomOffset(8f);
 
-        // X-axis (trục ngang)
+        // Định dạng trục X (Trục Hoành)
         XAxis xAxis = chart_statistic_Revenue.getXAxis();
         xAxis.setValueFormatter(new IndexAxisValueFormatter(labels));
         xAxis.setPosition(XAxis.XAxisPosition.BOTTOM);
@@ -319,10 +340,10 @@ public class DisplayStatisticFragment extends Fragment {
         xAxis.setDrawGridLines(false);
         xAxis.setTextColor(Color.DKGRAY);
         xAxis.setTextSize(9f);
-        xAxis.setLabelRotationAngle(-45f); // Xoay nghiêng 45 độ cho dễ đọc
-        xAxis.setLabelCount(Math.min(labels.length, 7), false); // Chỉ hiện tối đa 7 nhãn để tránh dính nhau
+        xAxis.setLabelRotationAngle(-45f); // Xoay nghiêng 45 độ tránh đè nhãn lên nhau
+        xAxis.setLabelCount(Math.min(labels.length, 7), false); 
 
-        // Y-axis trái (ẩn)
+        // Định dạng trục Y bên trái
         YAxis leftAxis = chart_statistic_Revenue.getAxisLeft();
         leftAxis.setDrawGridLines(true);
         leftAxis.setGridColor(Color.LTGRAY);
@@ -330,9 +351,10 @@ public class DisplayStatisticFragment extends Fragment {
         leftAxis.setTextColor(Color.GRAY);
         leftAxis.setTextSize(9f);
 
-        // Y-axis phải (ẩn)
+        // Ẩn trục Y bên phải để biểu đồ gọn gàng hơn
         chart_statistic_Revenue.getAxisRight().setEnabled(false);
 
+        // Hiệu ứng hoạt hình vẽ biểu đồ chạy từ dưới lên trong 800ms
         chart_statistic_Revenue.animateY(800);
         chart_statistic_Revenue.invalidate();
     }

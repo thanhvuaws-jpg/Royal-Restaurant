@@ -24,16 +24,27 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CashierViewModel - Lớp ViewModel quản lý dữ liệu nghiệp vụ cho Thu ngân (Cashier).
+ * Quản lý danh sách đơn hàng chờ thanh toán, đơn hàng đã thanh toán trong ngày,
+ * và tính toán tổng doanh thu, doanh thu tiền mặt, chuyển khoản trong ngày hiện tại.
+ */
 public class CashierViewModel extends AndroidViewModel {
 
     private static final String TAG = "CashierViewModel";
 
+    // Danh sách đơn hàng đang chờ thanh toán
     private final MutableLiveData<List<DonDatDTO>> pendingOrdersLiveData = new MutableLiveData<>(new ArrayList<>());
+    // Danh sách các đơn hàng đã thanh toán thành công trong ngày
     private final MutableLiveData<List<DonDatDTO>> paidOrdersLiveData = new MutableLiveData<>(new ArrayList<>());
+    // Trạng thái đang tải dữ liệu
     private final MutableLiveData<Boolean> isLoadingLiveData = new MutableLiveData<>(false);
 
+    // Tổng doanh thu hôm nay
     private final MutableLiveData<Long> todayRevenueLiveData = new MutableLiveData<>(0L);
+    // Tổng doanh thu tiền mặt hôm nay
     private final MutableLiveData<Long> todayCashLiveData = new MutableLiveData<>(0L);
+    // Tổng doanh thu chuyển khoản hôm nay
     private final MutableLiveData<Long> todayTransferLiveData = new MutableLiveData<>(0L);
 
     public CashierViewModel(@NonNull Application application) {
@@ -64,6 +75,10 @@ public class CashierViewModel extends AndroidViewModel {
         return todayTransferLiveData;
     }
 
+    /**
+     * Tải danh sách đơn đặt món đang ở trạng thái chờ thanh toán từ API.
+     * @param showLoading Có hiển thị vòng xoay chờ đợi (ProgressBar) hay không.
+     */
     public void loadPendingOrders(boolean showLoading) {
         if (showLoading && (pendingOrdersLiveData.getValue() == null || pendingOrdersLiveData.getValue().isEmpty())) {
             isLoadingLiveData.setValue(true);
@@ -109,6 +124,10 @@ public class CashierViewModel extends AndroidViewModel {
         });
     }
 
+    /**
+     * Tải danh sách đơn hàng đã hoàn tất thanh toán trong ngày hôm nay.
+     * Tính toán tổng kết doanh thu theo các phương thức thanh toán.
+     */
     public void loadPaidOrdersToday() {
         SimpleDateFormat dateOnlyFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
         dateOnlyFormat.setTimeZone(TimeZone.getTimeZone("GMT+7"));

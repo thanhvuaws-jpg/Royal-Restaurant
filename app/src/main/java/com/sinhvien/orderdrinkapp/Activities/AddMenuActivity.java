@@ -42,10 +42,19 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+/**
+ * AddMenuActivity - Màn hình Thêm / Chỉnh sửa món ăn trong thực đơn (Menu).
+ * Chức năng chính:
+ * - Thu thập thông tin món ăn: Tên món, Giá tiền (tự động định dạng số 1.000đ khi nhập), Danh mục phân loại.
+ * - Chọn ảnh minh họa từ Gallery hoặc chụp trực tiếp qua Camera.
+ * - Cho phép bật/tắt tình trạng còn hàng (Tinhtrang: Còn món/Hết món).
+ * - Kết nối REST API lên VPS và phát tín hiệu thay đổi qua Socket.IO tới toàn bộ nhân viên khác để cập nhật thực đơn tức thời (real-time).
+ */
 public class AddMenuActivity extends AppCompatActivity implements View.OnClickListener{
 
     private static final String TAG = "AddMenuActivity";
 
+    // Khai báo các thành phần giao diện
     Button btn_add_DishCreate;
     LinearLayout layout_add_DishStatus;
     ImageView img_add_DishImage, img_add_DishBack;
@@ -53,13 +62,18 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
     TextInputLayout txtl_add_DishName, txtl_add_DishPrice, txtl_add_DishType;
     RadioGroup rg_add_DishStatus;
     RadioButton rd_add_DishAvailable, rd_add_DishUnavailable;
-    String tenloai, sTenMon,sGiaTien,sTinhTrang;
-    Bitmap bitmapold;
-    int maloai;
-    int mamon = 0;
-    private String selectedImageUriStr;
-    private String cloudImageUrl;
+    
+    // Lưu thông tin phục vụ xử lý
+    String tenloai, sTenMon, sGiaTien, sTinhTrang;
+    Bitmap bitmapold; // Ảnh mặc định để kiểm tra người dùng đã đổi ảnh chưa
+    int maloai; // Mã danh mục món ăn
+    int mamon = 0; // ID món ăn (nếu = 0 là Thêm mới, > 0 là sửa món)
+    private String selectedImageUriStr; // Lưu URI ảnh cục bộ
+    private String cloudImageUrl; // URL ảnh tải từ Cloud
 
+    /**
+     * Bộ chọn hình ảnh từ Thư viện (Gallery) hệ thống.
+     */
     ActivityResultLauncher<Intent> resultLauncherOpenIMG = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -78,6 +92,9 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 }
             });
 
+    /**
+     * Bộ chụp ảnh bằng Máy ảnh (Camera) của thiết bị.
+     */
     ActivityResultLauncher<Intent> resultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -93,13 +110,12 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 }
             });
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.addmenu_layout);
 
-        //region Lấy đối tượng view
+        // Ánh xạ thành phần UI
         img_add_DishImage = findViewById(R.id.img_add_DishImage);
         img_add_DishBack = findViewById(R.id.img_add_DishBack);
         txtl_add_DishName = findViewById(R.id.txtl_add_DishName);
@@ -111,8 +127,8 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         rg_add_DishStatus = findViewById(R.id.rg_add_DishStatus);
         rd_add_DishAvailable = findViewById(R.id.rd_add_DishAvailable);
         rd_add_DishUnavailable = findViewById(R.id.rd_add_DishUnavailable);
-        //endregion
 
+        // Nhận dữ liệu phân loại món từ màn hình danh sách gọi đến
         Intent intent = getIntent();
         maloai = intent.getIntExtra("maloai",-1);
         tenloai = intent.getStringExtra("tenloai");
@@ -121,12 +137,13 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         BitmapDrawable olddrawable = (BitmapDrawable)img_add_DishImage.getDrawable();
         bitmapold = olddrawable.getBitmap();
 
-        //region Hiển thị trang sửa nếu được chọn từ context menu sửa
-        // Lấy thông tin từ Cloud nếu là sửa
+        // Kiểm tra xem có nhận ID món ăn để chuyển chế độ sang Sửa hay không
         mamon = getIntent().getIntExtra("mamon",0);
         if(mamon != 0){
             txt_add_DishTitle.setText("Sửa thực đơn");
             btn_add_DishCreate.setText("Sửa món");
+            
+            // Tải thông tin món cần sửa từ Cloud về nếu không có dữ liệu khôi phục tạm thời
             if (savedInstanceState == null) {
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 apiService.getDishById(mamon).enqueue(new Callback<MonResponse>() {
@@ -135,12 +152,13 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                         if (isFinishing() || isDestroyed()) return;
                         if (response.isSuccessful() && response.body() != null) {
                             MonResponse res = response.body();
-                            maloai = res.getMaLoai(); // Cập nhật mã loại từ server
+                            maloai = res.getMaLoai();
                             Log.d(TAG, "Tải thông tin món thành công: mamon=" + mamon + ", tenmon=" + res.getTenMon());
                             
                             if(txtl_add_DishName.getEditText() != null) txtl_add_DishName.getEditText().setText(res.getTenMon());
                             if(txtl_add_DishPrice.getEditText() != null) {
                                 try {
+                                    // Định dạng lại giá tiền dạng nghìn đồng phân cách dấu chấm "." (ví dụ: 50.000)
                                     long price = Long.parseLong(res.getGiaTien());
                                     String formatted = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(price);
                                     txtl_add_DishPrice.getEditText().setText(formatted);
@@ -149,7 +167,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             }
 
-                            // Lấy tên loại món từ server để hiển thị
+                            // Tải chi tiết tên danh mục
                             apiService.getCategoryById(maloai).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>() {
                                 @Override
                                 public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> call, Response<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> response) {
@@ -163,6 +181,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                                 }
                             });
 
+                            // Load ảnh món ăn bằng Glide
                             if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
                                 String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(res.getHinhAnh());
                                 cloudImageUrl = imageUrl;
@@ -172,6 +191,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                                         .into(img_add_DishImage);
                             }
 
+                            // Cập nhật tình trạng hàng
                             layout_add_DishStatus.setVisibility(View.VISIBLE);
                             if("true".equals(res.getTinhTrang())){
                                 rd_add_DishAvailable.setChecked(true);
@@ -186,6 +206,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
             }
         }
 
+        // Khôi phục trạng thái nhập liệu tạm thời khi xoay màn hình thiết bị
         if (savedInstanceState != null) {
             selectedImageUriStr = savedInstanceState.getString("selected_image_uri");
             cloudImageUrl = savedInstanceState.getString("cloud_image_url");
@@ -210,9 +231,8 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                         .into(img_add_DishImage);
             }
         }
-        //endregion
 
-        //region Tự động format giá tiền khi nhập
+        // Tự động định dạng dấu phân cách phần nghìn theo chuẩn tiếng Đức (Ví dụ: 1.000.000) khi người dùng gõ
         if (txtl_add_DishPrice.getEditText() != null) {
             txtl_add_DishPrice.getEditText().addTextChangedListener(new android.text.TextWatcher() {
                 private String current = "";
@@ -224,13 +244,13 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 public void afterTextChanged(android.text.Editable s) {
                     if (!s.toString().equals(current)) {
                         txtl_add_DishPrice.getEditText().removeTextChangedListener(this);
-                        String cleanString = s.toString().replaceAll("[.,]", "");
+                        String cleanString = s.toString().replaceAll("[.,]", ""); // Bỏ dấu chấm cũ để phân tích
                         if (!cleanString.isEmpty()) {
                             double parsed = Double.parseDouble(cleanString);
                             String formatted = java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(parsed);
                             current = formatted;
                             txtl_add_DishPrice.getEditText().setText(formatted);
-                            txtl_add_DishPrice.getEditText().setSelection(formatted.length());
+                            txtl_add_DishPrice.getEditText().setSelection(formatted.length()); // Đưa con trỏ xuống cuối dòng
                         } else {
                             current = "";
                         }
@@ -239,8 +259,8 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                 }
             });
         }
-        //endregion
 
+        // Thiết lập sự kiện Click
         img_add_DishImage.setOnClickListener(this);
         btn_add_DishCreate.setOnClickListener(this);
         img_add_DishBack.setOnClickListener(this);
@@ -249,15 +269,15 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        boolean ktra;
-        String chucnang;
         if (id == R.id.img_add_DishImage) {
             hienThiDialogChonAnh();
         } else if (id == R.id.img_add_DishBack) {
             finish();
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         } else if (id == R.id.btn_add_DishCreate) {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; // Khóa nhấn nhiều lần liên tục
+            
+            // Xác thực thông tin biểu mẫu
             if (!validateImage() | !validateName() | !validatePrice()) {
                 return;
             }
@@ -265,20 +285,23 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
             if (txtl_add_DishName.getEditText() != null)
                 sTenMon = txtl_add_DishName.getEditText().getText().toString();
             if (txtl_add_DishPrice.getEditText() != null) {
+                // Loại bỏ hoàn toàn dấu phân cách khi lưu vào cơ sở dữ liệu (chỉ để lại các số)
                 sGiaTien = txtl_add_DishPrice.getEditText().getText().toString().replaceAll("[.,]", "");
             }
 
-            sTinhTrang = "true";
+            sTinhTrang = "true"; // Mặc định là còn hàng
             if (rg_add_DishStatus.getCheckedRadioButtonId() == R.id.rd_add_DishUnavailable) {
-                sTinhTrang = "false";
+                sTinhTrang = "false"; // Hết hàng
             }
 
             String actionMon = (mamon != 0) ? "edit" : "add";
-            String imageBase64Mon = imageToBase64(img_add_DishImage);
+            String imageBase64Mon = imageToBase64(img_add_DishImage); // Encode Base64 cho ảnh
 
+            // Loading dialog xử lý
             androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddMenuActivity.this, "Đang xử lý...");
             progressDialog.show();
 
+            // Gửi API yêu cầu cập nhật hoặc thêm mới món ăn
             ApiService apiServiceMon = ApiClient.getClient().create(ApiService.class);
             apiServiceMon.manageDish(actionMon, mamon, sTenMon, sGiaTien, maloai, sTinhTrang, imageBase64Mon).enqueue(new Callback<OrderResponse>() {
                 @Override
@@ -290,7 +313,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                         if ("success".equals(res.getStatus())) {
                             Log.d(TAG, "Quản lý món thành công: action=" + actionMon + ", mamon=" + mamon + ", tenmon=" + sTenMon);
 
-                            // Gửi socket để đồng bộ thực đơn real-time
+                            // Gửi tín hiệu WebSocket để cập nhật danh sách món tức thì (real-time) cho các máy phục vụ/thu ngân khác
                             io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                             if (socket != null && socket.connected()) {
                                 socket.emit("menu_changed");
@@ -323,6 +346,9 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Nén hình ảnh về kích thước tối đa 500 pixel và mã hóa sang chuỗi Base64.
+     */
     private String imageToBase64(ImageView imageView){
         try {
             android.graphics.drawable.Drawable drawable = imageView.getDrawable();
@@ -332,7 +358,6 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
             if (drawable instanceof BitmapDrawable) {
                 bitmap = ((BitmapDrawable)drawable).getBitmap();
             } else {
-                // Trường hợp ảnh từ Glide hoặc Resource, tạo bitmap mới từ drawable
                 bitmap = Bitmap.createBitmap(drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight(), Bitmap.Config.ARGB_8888);
                 android.graphics.Canvas canvas = new android.graphics.Canvas(bitmap);
                 drawable.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
@@ -350,6 +375,9 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Cân đối kích thước ảnh Bitmap.
+     */
     public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
         int width = image.getWidth();
         int height = image.getHeight();
@@ -365,24 +393,28 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
-    //region Validate field
+    /**
+     * Xác thực hình ảnh món ăn đã được cung cấp (Khi thêm mới bắt buộc phải chọn).
+     */
     private boolean validateImage(){
-        // Nếu là chế độ sửa (mamon != 0), cho phép không chọn ảnh mới
         if (mamon != 0) {
-            return true;
+            return true; // Nếu là sửa món thì cho phép bỏ qua không cần chọn lại ảnh mới
         }
 
         BitmapDrawable drawable = (BitmapDrawable)img_add_DishImage.getDrawable();
         Bitmap bitmap = drawable.getBitmap();
 
         if(bitmap == bitmapold){
-            Toast.makeText(getApplicationContext(),"Xin chọn hình ảnh",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
             return false;
         }else {
             return true;
         }
     }
 
+    /**
+     * Xác thực ô Tên món ăn.
+     */
     private boolean validateName(){
         String val = "";
         if(txtl_add_DishName.getEditText() != null) val = txtl_add_DishName.getEditText().getText().toString().trim();
@@ -396,10 +428,12 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Xác thực ô Giá món ăn.
+     */
     private boolean validatePrice(){
         String val = "";
         if(txtl_add_DishPrice.getEditText() != null) val = txtl_add_DishPrice.getEditText().getText().toString().trim();
-        // Xóa dấu chấm để validate số thuần túy
         String cleanVal = val.replaceAll("[.,]", "");
         if(val.isEmpty()){
             txtl_add_DishPrice.setError(getResources().getString(R.string.not_empty));
@@ -413,8 +447,10 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
             return true;
         }
     }
-    //endregion
 
+    /**
+     * Hiển thị Bottom Dialog chọn nguồn ảnh.
+     */
     private void hienThiDialogChonAnh() {
         String[] options = {"Chọn từ Thư viện", "Chụp ảnh mới"};
         new androidx.appcompat.app.AlertDialog.Builder(this)
@@ -442,5 +478,4 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         outState.putInt("maloai", maloai);
         outState.putInt("status_id", rg_add_DishStatus.getCheckedRadioButtonId());
     }
-
-}
+}

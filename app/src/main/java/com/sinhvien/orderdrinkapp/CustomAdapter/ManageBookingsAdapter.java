@@ -1,7 +1,6 @@
 package com.sinhvien.orderdrinkapp.CustomAdapter;
 
 import android.app.AlertDialog;
-
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -29,6 +28,19 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Log;
 
+/**
+ * ManageBookingsAdapter - Adapter xử lý và hiển thị danh sách yêu cầu đặt bàn của khách hàng từ góc nhìn Quản lý/Nhân viên.
+ * - Hỗ trợ phân tích trạng thái lịch đặt để đổi màu văn bản và ẩn/hiện động các nút thao tác nghiệp vụ:
+ *   + pending (Chờ duyệt - Màu cam): Hiện nút "Xác nhận duyệt" (btn_checkin_booking) và "Hủy đặt" (btn_cancel_booking).
+ *   + confirmed (Đã xác nhận - Màu xanh dương): Hiện nút "Khách đã đến nhận bàn" (btn_customer_arrived) và "Hủy đặt".
+ *   + checked_in (Đã nhận bàn - Màu xanh lá): Ẩn toàn bộ thanh công cụ thao tác vì quy trình đã chuyển sang phục vụ tại bàn.
+ *   + completed (Đã hoàn thành - Màu xanh dương): Ẩn toàn bộ thanh thao tác.
+ *   + overdue (Quá giờ hẹn - Màu đỏ): Hiện nút "Xác nhận duyệt" (dành cho trường hợp châm chước) và "Hủy đặt".
+ *   + cancelled (Đã hủy - Màu xám): Ẩn toàn bộ thanh thao tác.
+ * - Tránh lỗi nhấn đúp (Double-click spam) bằng cách sử dụng tiện ích ViewUtils.isFastDoubleClick().
+ * - Đồng bộ thời gian thực: Khi nhân viên thực hiện thao tác (Duyệt, Nhận bàn, Hủy), adapter tự động gọi API tương ứng,
+ *   phát tín hiệu Socket.io ("booking_status_updated", "refresh_orders") cập nhật tức thì đến toàn hệ thống và lưu cache SharedPreferences nội bộ.
+ */
 public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAdapter.ViewHolder> {
 
     private static final String TAG = "ManageBookingsAdapter";
@@ -37,6 +49,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
     private final List<BookingResponse> bookingList;
     private final OnBookingActionListener actionListener;
 
+    // Interface callback thông báo cập nhật dữ liệu thành công cho Fragment chủ quản
     public interface OnBookingActionListener {
         void onActionSuccess();
     }
@@ -62,45 +75,47 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         holder.txt_booking_customer.setText("Mã Khách hàng: #" + booking.getMaKH());
         holder.txt_booking_time.setText("Giờ hẹn: " + booking.getThoigianhen());
 
+        // Hiển thị số tiền đặt trước món ăn nếu có
         if (booking.getTongTien() != null && !booking.getTongTien().isEmpty() && !"0".equals(booking.getTongTien())) {
             holder.txt_booking_dishes.setText("Món đặt trước: " + booking.getTongTien() + " đ");
         } else {
             holder.txt_booking_dishes.setText("Món đặt trước: Không có");
         }
 
+        // Định dạng trạng thái và cập nhật hiển thị giao diện tương tác động
         String status = booking.getTinhtrang();
         if ("pending".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Chờ nhận bàn");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#FFAB40")); // Orange
+            holder.txt_booking_status.setTextColor(Color.parseColor("#FFAB40")); 
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             holder.btn_checkin_booking.setVisibility(View.VISIBLE);
             holder.btn_cancel_booking.setVisibility(View.VISIBLE);
             holder.btn_customer_arrived.setVisibility(View.GONE);
         } else if ("confirmed".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã xác nhận");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); // Blue
+            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); 
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             holder.btn_checkin_booking.setVisibility(View.GONE);
             holder.btn_cancel_booking.setVisibility(View.VISIBLE);
             holder.btn_customer_arrived.setVisibility(View.VISIBLE);
         } else if ("checked_in".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã nhận bàn");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#43A047")); // Green
+            holder.txt_booking_status.setTextColor(Color.parseColor("#43A047")); 
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else if ("completed".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã hoàn thành");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); // Blue
+            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); 
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else if ("overdue".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Quá giờ hẹn");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#E53935")); // Red
+            holder.txt_booking_status.setTextColor(Color.parseColor("#E53935")); 
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             holder.btn_checkin_booking.setVisibility(View.VISIBLE);
             holder.btn_cancel_booking.setVisibility(View.VISIBLE);
             holder.btn_customer_arrived.setVisibility(View.GONE);
         } else if ("cancelled".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã hủy");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#9E9E9E")); // Grey
+            holder.txt_booking_status.setTextColor(Color.parseColor("#9E9E9E")); 
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else {
             holder.txt_booking_status.setText(status);
@@ -108,20 +123,24 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             holder.layout_booking_actions.setVisibility(View.GONE);
         }
 
+        // Bắt sự kiện click các nút (có chống đúp click)
         holder.btn_checkin_booking.setOnClickListener(v -> {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; 
             performConfirmBooking(booking.getMaDatBan());
         });
         holder.btn_customer_arrived.setOnClickListener(v -> {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; 
             performCheckIn(booking);
         });
         holder.btn_cancel_booking.setOnClickListener(v -> {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; 
             promptCancelBooking(booking.getMaDatBan());
         });
     }
 
+    /**
+     * Xác nhận duyệt đơn đặt bàn của khách từ trạng thái Chờ duyệt -> Xác nhận.
+     */
     private void performConfirmBooking(int madatban) {
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(context, "Đang xác nhận đặt bàn...");
         progressDialog.show();
@@ -137,7 +156,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                     Log.d(TAG, "Xác nhận đặt bàn thành công: madatban=" + madatban);
                     Toast.makeText(context, "Đã xác nhận đặt bàn!", Toast.LENGTH_SHORT).show();
                     
-                    // Phát sự kiện Socket real-time để báo các bên cập nhật
+                    // Gửi Socket cập nhật real-time
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
                         socket.emit("booking_status_updated");
@@ -163,6 +182,10 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         });
     }
 
+    /**
+     * Xác nhận khách đã đến trực tiếp nhà hàng và mở khóa bàn phục vụ (Check-in).
+     * Hệ thống sẽ tự động chuyển trạng thái bàn sang "true" (Đang dùng) và tạo hóa đơn (Order).
+     */
     private void performCheckIn(BookingResponse booking) {
         int madatban = booking.getMaDatBan();
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(context, "Đang xử lý nhận bàn...");
@@ -179,14 +202,14 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                     Log.d(TAG, "Nhận bàn thành công: madatban=" + madatban);
                     Toast.makeText(context, "Nhận bàn thành công! Hóa đơn đã được tạo.", Toast.LENGTH_SHORT).show();
                     
-                    // Phát sự kiện Socket real-time để báo các bên cập nhật
+                    // Phát sự kiện Socket real-time
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
                         socket.emit("booking_status_updated");
                         socket.emit("refresh_orders");
                     }
 
-                    // [NEW] Cập nhật local cache để không bị báo Toast trùng
+                    // Lưu trạng thái vào SharedPreferences cục bộ nhằm tránh trùng thông báo Toast
                     try {
                         android.content.SharedPreferences prefs = context.getSharedPreferences("nv_booking_cache", android.content.Context.MODE_PRIVATE);
                         prefs.edit().putString("booking_" + booking.getMaDatBan(), "checked_in").apply();
@@ -213,6 +236,9 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         });
     }
 
+    /**
+     * Hiển thị AlertDialog yêu cầu xác nhận hủy lượt đặt bàn và gọi API hủy.
+     */
     private void promptCancelBooking(int madatban) {
         new AlertDialog.Builder(context)
                 .setTitle("Xác nhận hủy đặt")
@@ -230,7 +256,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                                 Log.d(TAG, "Hủy lịch đặt bàn thành công: madatban=" + madatban);
                                 Toast.makeText(context, "Đã hủy lịch hẹn đặt bàn!", Toast.LENGTH_SHORT).show();
                                 
-                                // Phát sự kiện Socket real-time
+                                // Phát Socket
                                 io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                                 if (socket != null && socket.connected()) {
                                     socket.emit("booking_status_updated");
@@ -263,6 +289,9 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         return bookingList.size();
     }
 
+    /**
+     * ViewHolder chứa cấu trúc hiển thị 1 thẻ quản lý đặt bàn.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txt_booking_table, txt_booking_status, txt_booking_customer, txt_booking_time, txt_booking_dishes;
         MaterialButton btn_checkin_booking, btn_cancel_booking, btn_customer_arrived;

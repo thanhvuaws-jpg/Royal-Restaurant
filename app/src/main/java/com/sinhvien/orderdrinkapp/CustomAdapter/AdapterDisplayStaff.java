@@ -16,12 +16,24 @@ import java.util.List;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
+/**
+ * AdapterDisplayStaff - Adapter quản lý hiển thị danh sách Nhân viên & Khách hàng.
+ * - Trình bày các thông tin cơ bản: Họ tên, Số điện thoại, Email, Chức vụ.
+ * - Ánh xạ mã quyền (MAQUYEN) sang văn bản hiển thị:
+ *   + 1: QUẢN LÝ
+ *   + 3: THU NGÂN
+ *   + 4: KHÁCH HÀNG
+ *   + Khác: NHÂN VIÊN (Phục vụ)
+ * - Tích hợp interface OnItemClickListener hỗ trợ:
+ *   + Click thường (chọn chỉnh sửa thông tin).
+ *   + Click giữ lâu (Long Click) để mở menu tùy chọn nâng cao như Xóa tài khoản.
+ */
 public class AdapterDisplayStaff extends RecyclerView.Adapter<AdapterDisplayStaff.ViewHolder> {
 
     private final Context context;
     private final List<NhanVienDTO> nhanVienDTOList;
 
-    // Interface để Fragment bắt sự kiện click/giữ
+    // Interface truyền sự kiện click và giữ lâu về cho Fragment
     public interface OnItemClickListener {
         void onItemClick(int position);
         void onItemLongClick(int position);
@@ -52,6 +64,8 @@ public class AdapterDisplayStaff extends RecyclerView.Adapter<AdapterDisplayStaf
         holder.txt_Name.setText(nv.getHOTENNV());
         holder.txt_Phone.setText(nv.getSDT());
         holder.txt_Email.setText(nv.getEMAIL());
+        
+        // Chuyển đổi mã quyền sang chuỗi chữ viết hoa hiển thị rõ chức năng
         if (nv.getMAQUYEN() == 1) {
             holder.txt_Role.setText("QUẢN LÝ");
         } else if (nv.getMAQUYEN() == 3) {
@@ -62,7 +76,7 @@ public class AdapterDisplayStaff extends RecyclerView.Adapter<AdapterDisplayStaf
             holder.txt_Role.setText("NHÂN VIÊN");
         }
 
-        // Xử lý click
+        // Đăng ký sự kiện tương tác
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(position);
         });
@@ -77,6 +91,9 @@ public class AdapterDisplayStaff extends RecyclerView.Adapter<AdapterDisplayStaf
         return nhanVienDTOList.size();
     }
 
+    /**
+     * ViewHolder chứa các view thành phần hiển thị thông tin nhân sự.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         CircleImageView img_Avatar;
         TextView txt_Name, txt_Role, txt_Phone, txt_Email;

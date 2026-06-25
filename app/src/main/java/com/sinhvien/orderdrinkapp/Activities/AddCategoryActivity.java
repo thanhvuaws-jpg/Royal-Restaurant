@@ -42,20 +42,32 @@ import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+/**
+ * AddCategoryActivity - Màn hình Thêm / Chỉnh sửa danh mục món ăn (Category).
+ * Chức năng chính:
+ * - Hỗ trợ nhập tên danh mục và lựa chọn hình ảnh đại diện từ Thư viện ảnh (Gallery) hoặc Chụp hình mới bằng Máy ảnh (Camera).
+ * - Sử dụng Glide để tải ảnh lưu trữ trên Cloud khi chỉnh sửa.
+ * - Mã hóa hình ảnh sang chuỗi Base64 và thực hiện nén ảnh để gửi qua API HTTP POST.
+ * - Trả về kết quả RESULT_OK về màn hình danh sách sau khi thao tác cơ sở dữ liệu hoàn tất.
+ */
 public class AddCategoryActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "AddCategoryActivity";
 
+    // Khai báo các thành phần giao diện
     Button BTN_addcategory_CreateCategory;
     ImageView IMG_addcategory_back, IMG_addcategory_AddImage;
     TextView TXT_addcategory_title;
     TextInputLayout TXTL_addcategory_CategoryName;
-    int maloai = 0;
-    Bitmap bitmapold;   //Bitmap dạng ảnh theo ma trận các pixel
-    private String selectedImageUriStr;
-    private String cloudImageUrl;
+    
+    int maloai = 0; // ID loại món ăn cần chỉnh sửa (nếu = 0 là chế độ Thêm mới)
+    Bitmap bitmapold; // Lưu giữ ảnh mặc định ban đầu để so sánh kiểm tra tính hợp lệ
+    private String selectedImageUriStr; // Đường dẫn URI của ảnh đã chọn từ bộ nhớ
+    private String cloudImageUrl; // URL ảnh đám mây tải từ Cloudinary về
 
-    //dùng result launcher do activityforresult ko dùng đc nữa
+    /**
+     * Bộ đăng ký kết quả Activity (ActivityResultLauncher) để mở và nhận ảnh chọn từ Thư viện thiết bị.
+     */
     ActivityResultLauncher<Intent> resultLauncherOpenIMG = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -74,6 +86,9 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 }
             });
 
+    /**
+     * Bộ đăng ký kết quả Activity để mở Máy ảnh hệ thống và nhận ảnh Bitmap chụp trực tiếp.
+     */
     ActivityResultLauncher<Intent> resultLauncherCamera = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -83,7 +98,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                         if (extras != null && extras.get("data") != null) {
                             Bitmap imageBitmap = (Bitmap) extras.get("data");
                             IMG_addcategory_AddImage.setImageBitmap(imageBitmap);
-                            selectedImageUriStr = null;
+                            selectedImageUriStr = null; // Đặt về null vì ảnh này là dữ liệu trực tiếp chứ không có URI cục bộ
                         }
                     }
                 }
@@ -94,23 +109,24 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         super.onCreate(savedInstanceState);
         setContentView(R.layout.addcategory_layout);
 
-        //region Lấy đối tượng view
+        // Ánh xạ các thành phần View
         BTN_addcategory_CreateCategory = (Button)findViewById(R.id.btn_addcategory_CreateCategory);
         TXTL_addcategory_CategoryName = (TextInputLayout)findViewById(R.id.txtl_addcategory_CategoryName);
         IMG_addcategory_back = (ImageView)findViewById(R.id.img_addcategory_back);
         IMG_addcategory_AddImage = (ImageView)findViewById(R.id.img_addcategory_AddImage);
         TXT_addcategory_title = (TextView)findViewById(R.id.txt_addcategory_title);
-        //endregion
 
+        // Lấy Bitmap hiện tại của ImageView làm mốc so sánh xem người dùng đã chọn ảnh mới hay chưa
         BitmapDrawable olddrawable = (BitmapDrawable)IMG_addcategory_AddImage.getDrawable();
         bitmapold = olddrawable.getBitmap();
 
-        //region Hiển thị trang sửa nếu được chọn từ context menu sửa
-        // Lấy thông tin từ Cloud nếu là sửa
-        maloai = getIntent().getIntExtra("maloai",0);
+        // Nhận diện mã loại món ăn được gửi qua Intent (chỉ có khi mở màn hình để Sửa)
+        maloai = getIntent().getIntExtra("maloai", 0);
         if(maloai != 0){
             TXT_addcategory_title.setText(getResources().getString(R.string.editcategory));
             BTN_addcategory_CreateCategory.setText("Sửa loại");
+            
+            // Nếu là lần đầu chạy (không phải phục hồi cấu hình do xoay màn hình), tải thông tin từ server
             if (savedInstanceState == null) {
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 apiService.getCategoryById(maloai).enqueue(new Callback<LoaiMonResponse>() {
@@ -120,6 +136,8 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                         if (response.isSuccessful() && response.body() != null) {
                             Log.d(TAG, "Tải thông tin loại thành công: maloai=" + maloai);
                             TXTL_addcategory_CategoryName.getEditText().setText(response.body().getTenLoai());
+                            
+                            // Lấy link ảnh từ Cloud và dùng Glide hiển thị lên ImageView
                             String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(response.body().getHinhAnh());
                             cloudImageUrl = imageUrl;
                             Glide.with(AddCategoryActivity.this)
@@ -136,6 +154,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
             }
         }
 
+        // Khôi phục lại trạng thái ảnh hiển thị khi Activity bị xoay màn hình
         if (savedInstanceState != null) {
             selectedImageUriStr = savedInstanceState.getString("selected_image_uri");
             cloudImageUrl = savedInstanceState.getString("cloud_image_url");
@@ -155,24 +174,29 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                         .into(IMG_addcategory_AddImage);
             }
         }
-        //endregion
 
+        // Thiết lập sự kiện click cho các thành phần
         IMG_addcategory_back.setOnClickListener(this);
         IMG_addcategory_AddImage.setOnClickListener(this);
         BTN_addcategory_CreateCategory.setOnClickListener(this);
     }
 
+    /**
+     * Hiển thị hộp thoại lựa chọn nguồn ảnh: Từ Thư viện hoặc chụp bằng Máy ảnh.
+     */
     private void hienThiDialogChonAnh() {
         String[] options = {"Chọn từ Thư viện", "Chụp ảnh mới"};
         new androidx.appcompat.app.AlertDialog.Builder(this)
                 .setTitle("Chọn hình ảnh")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
+                        // Intent lấy nội dung ảnh từ hệ thống
                         Intent iGetIMG = new Intent();
                         iGetIMG.setType("image/*");
                         iGetIMG.setAction(Intent.ACTION_GET_CONTENT);
                         resultLauncherOpenIMG.launch(Intent.createChooser(iGetIMG, getResources().getString(R.string.choseimg)));
                     } else {
+                        // Intent mở máy ảnh
                         Intent iCamera = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                         resultLauncherCamera.launch(iCamera);
                     }
@@ -184,6 +208,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu tạm đường dẫn ảnh để khôi phục khi màn hình bị xoay
         outState.putString("selected_image_uri", selectedImageUriStr);
         outState.putString("cloud_image_url", cloudImageUrl);
     }
@@ -191,26 +216,28 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
     @Override
     public void onClick(View v) {
         int id = v.getId();
-        boolean ktra;
-        String chucnang;
         if (id == R.id.img_addcategory_back) {
             finish();
-            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); //animation
+            overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right); // Hiệu ứng trượt lùi về sau
         } else if (id == R.id.img_addcategory_AddImage) {
             hienThiDialogChonAnh();
         } else if (id == R.id.btn_addcategory_CreateCategory) {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; // Khóa spam click đúp chuột liên tiếp
+            
+            // Xác thực dữ liệu hợp lệ: Phải có tên và ảnh
             if (!validateImage() | !validateName()) {
                 return;
             }
 
             String sTenLoai = TXTL_addcategory_CategoryName.getEditText().getText().toString();
-            String action = (maloai != 0) ? "edit" : "add";
-            String imageBase64 = imageToBase64(IMG_addcategory_AddImage);
+            String action = (maloai != 0) ? "edit" : "add"; // Xác định là sửa hay thêm
+            String imageBase64 = imageToBase64(IMG_addcategory_AddImage); // Mã hóa ảnh thành Base64
 
+            // Hiển thị vòng xoay xử lý
             androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddCategoryActivity.this, "Đang xử lý...");
             progressDialog.show();
 
+            // Gửi dữ liệu cập nhật danh mục lên API Server
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
             apiService.manageCategory(action, maloai, sTenLoai, imageBase64).enqueue(new Callback<OrderResponse>() {
                 @Override
@@ -222,7 +249,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                         Intent intent = new Intent();
                         intent.putExtra("ktra", true);
                         intent.putExtra("chucnang", (maloai != 0) ? "sualoai" : "themloai");
-                        setResult(RESULT_OK, intent);
+                        setResult(RESULT_OK, intent); // Gửi kết quả về cho Fragment gọi nó reload danh sách
                         finish();
                     }
                 }
@@ -239,18 +266,24 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         }
     }
 
-    // Chuyển ảnh sang Base64 để gửi lên VPS
+    /**
+     * Mã hóa hình ảnh trên ImageView thành chuỗi định dạng Base64.
+     * Để tránh lỗi tràn bộ nhớ (Out of Memory) hoặc quá tải băng thông mạng,
+     * ảnh được co nhỏ kích thước về tối đa 500 pixel và nén chất lượng JPEG xuống 70%.
+     */
     private String imageToBase64(ImageView imageView){
         Bitmap bitmap = ((BitmapDrawable)imageView.getDrawable()).getBitmap();
-        bitmap = getResizedBitmap(bitmap, 500); // Thu nhỏ để gửi nhanh hơn
+        bitmap = getResizedBitmap(bitmap, 500); // Thu nhỏ kích thước ảnh
         
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 70, stream); // Nén chất lượng ảnh về 70%
         byte[] byteArray = stream.toByteArray();
-        return Base64.encodeToString(byteArray, Base64.DEFAULT);
+        return Base64.encodeToString(byteArray, Base64.DEFAULT); // Chuyển sang Base64
     }
 
-    // Hàm thu nhỏ ảnh giữ nguyên tỷ lệ
+    /**
+     * Thu nhỏ hình ảnh Bitmap theo kích thước maxSize nhưng vẫn giữ nguyên tỉ lệ khung hình (Aspect Ratio).
+     */
     public Bitmap getResizedBitmap(Bitmap image, int maxSize) {
         int width = image.getWidth();
         int height = image.getHeight();
@@ -266,19 +299,24 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         return Bitmap.createScaledBitmap(image, width, height, true);
     }
 
-    //region validate fields
+    /**
+     * Xác thực xem người dùng đã chọn hình ảnh danh mục chưa.
+     */
     private boolean validateImage(){
         BitmapDrawable drawable = (BitmapDrawable)IMG_addcategory_AddImage.getDrawable();
         Bitmap bitmap = drawable.getBitmap();
 
         if(bitmap == bitmapold){
-            Toast.makeText(getApplicationContext(),"Xin chọn hình ảnh",Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
             return false;
         }else {
             return true;
         }
     }
 
+    /**
+     * Xác thực ô Tên loại/danh mục (không được để trống).
+     */
     private boolean validateName(){
         String val = TXTL_addcategory_CategoryName.getEditText().getText().toString().trim();
         if(val.isEmpty()){
@@ -290,6 +328,4 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
             return true;
         }
     }
-    //endregion
-
-}
+}

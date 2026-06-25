@@ -35,11 +35,25 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * AdapterDisplayMenuRecycler - Adapter quản lý hiển thị danh sách Món ăn (Dishes/Menu Items) dạng Grid.
+ * - Trình bày thông tin món ăn: Hình ảnh, tên món, giá tiền được định dạng tiền tệ Việt Nam (VNĐ).
+ * - Quản lý trạng thái Còn món / Hết món (Available/Unavailable):
+ *   + Hiển thị Badge màu sắc tương ứng.
+ *   + Đối với món hết hàng: Hiển thị một lớp phủ mờ (view_Overlay) và chặn người dùng chọn đặt.
+ * - Hỗ trợ SwitchMaterial cho phép Admin bật/tắt nhanh trạng thái Còn/Hết món trực tiếp từ giao diện,
+ *   tự động gọi API cập nhật trạng thái lên VPS và phát tín hiệu qua Socket.io ("refresh_orders", "menu_changed").
+ * - Phân quyền Admin:
+ *   + Hiển thị công cụ Sửa (mở AddMenuActivity) và Xóa (gọi API DELETE xóa món ăn).
+ * - Xử lý click chọn món: Nếu bàn ăn khác 0, mở màn hình chọn số lượng món (AmountMenuActivity).
+ */
 public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisplayMenuRecycler.ViewHolder> {
 
     private final Context context;
     private final List<MonDTO> monDTOList;
+    // Mã bàn ăn hiện hành đang thao tác gọi món
     private final int maban;
+    // Cờ kiểm tra tài khoản là Admin
     private final boolean isAdmin;
 
     public AdapterDisplayMenuRecycler(Context context, List<MonDTO> monDTOList, int maban) {
@@ -59,11 +73,12 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         MonDTO monDTO = monDTOList.get(position);
+        // Trạng thái còn món: true = còn món, false = hết món
         boolean coMon = "true".equals(monDTO.getTinhTrang());
 
         holder.txt_DishName.setText(monDTO.getTenMon());
 
-        // Format giá tiền
+        // Định dạng hiển thị giá tiền (ví dụ: 25.000 VNĐ)
         try {
             long gia = Long.parseLong(monDTO.getGiaTien().replace(",", "").replace(".", "").trim());
             holder.txt_DishPrice.setText(String.format("%,d VNĐ", gia).replace(",", "."));
@@ -71,21 +86,21 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             holder.txt_DishPrice.setText(monDTO.getGiaTien() + " VNĐ");
         }
 
-        // Badge trạng thái
+        // Tạo Background bo góc cho Badge trạng thái Còn/Hết món
         GradientDrawable badgeBg = (GradientDrawable)
                 androidx.core.content.ContextCompat.getDrawable(context, R.drawable.round_corner_textview).mutate();
         if (coMon) {
             holder.txt_DishStatus.setText(context.getString(R.string.status_available));
             badgeBg.setColor(context.getResources().getColor(R.color.status_available));
-            holder.view_Overlay.setVisibility(View.GONE);
+            holder.view_Overlay.setVisibility(View.GONE); // Ẩn lớp phủ mờ khi còn hàng
         } else {
             holder.txt_DishStatus.setText(context.getString(R.string.status_unavailable));
             badgeBg.setColor(context.getResources().getColor(R.color.status_unavailable));
-            holder.view_Overlay.setVisibility(View.VISIBLE);
+            holder.view_Overlay.setVisibility(View.VISIBLE); // Hiện lớp phủ mờ báo hết hàng
         }
         holder.txt_DishStatus.setBackground(badgeBg);
 
-        // Tải ảnh bằng Glide (vẫn dùng Glide để load ảnh)
+        // Nạp ảnh món ăn bằng Glide (hoặc giải mã mảng bytes dự phòng)
         if (monDTO.getHinhAnhUrl() != null && !monDTO.getHinhAnhUrl().isEmpty()) {
             String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(monDTO.getHinhAnhUrl());
             Glide.with(context)
@@ -101,12 +116,13 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             holder.img_DishImage.setImageResource(R.drawable.cafe_americano);
         }
 
-        // Toggle trạng thái
+        // Đăng ký sự kiện thay đổi trạng thái Còn/Hết món nhanh qua Switch (Dành cho Admin)
         holder.sw_ToggleStatus.setOnCheckedChangeListener(null);
         holder.sw_ToggleStatus.setChecked(coMon);
         holder.sw_ToggleStatus.setOnCheckedChangeListener((buttonView, isChecked) -> {
             String trangThaiMoi = isChecked ? "true" : "false";
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
+            // Gửi API cập nhật trạng thái món ăn
             apiService.updateDishStatus(monDTO.getMaMon(), trangThaiMoi).enqueue(new Callback<OrderResponse>() {
                 @Override
                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
@@ -115,6 +131,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                         int currentPos = monDTOList.indexOf(monDTO);
                         if (currentPos >= 0) notifyItemChanged(currentPos);
                         
+                        // Phát tín hiệu Socket.io thông báo cho các thiết bị nhân viên khác cập nhật
                         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                         if (socket != null && socket.connected()) {
                             socket.emit("refresh_orders");
@@ -134,11 +151,12 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             });
         });
 
-        // Nút Admin: Sửa / Xóa
+        // Bật/tắt thanh công cụ Admin
         if (isAdmin) {
             holder.sw_ToggleStatus.setVisibility(View.VISIBLE);
             holder.layout_AdminTools.setVisibility(View.VISIBLE);
             holder.img_Edit.setOnClickListener(v -> {
+                // Mở màn hình AddMenuActivity để sửa thông tin món ăn
                 Intent iEdit = new Intent(context, AddMenuActivity.class);
                 iEdit.putExtra("mamon", monDTO.getMaMon());
                 iEdit.putExtra("maLoai", monDTO.getMaLoai());
@@ -150,6 +168,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                         .setMessage("Bạn có chắc chắn muốn xóa món này?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
                             ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                            // Gọi API xóa món ăn
                             apiService.manageDish("delete", monDTO.getMaMon(), "", "", 0, "", "").enqueue(new Callback<OrderResponse>() {
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
@@ -184,10 +203,11 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             holder.layout_AdminTools.setVisibility(View.GONE);
         }
 
-        // Click chọn món để đặt bàn
+        // Bắt sự kiện click chọn món
         holder.itemView.setOnClickListener(v -> {
             if (maban != 0) {
                 if ("true".equals(monDTO.getTinhTrang())) {
+                    // Nếu còn món, chuyển sang màn hình AmountMenuActivity để chọn số lượng
                     Intent iAmount = new Intent(context, AmountMenuActivity.class);
                     iAmount.putExtra("maban", maban);
                     iAmount.putExtra("mamon", monDTO.getMaMon());
@@ -204,6 +224,9 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
         return monDTOList.size();
     }
 
+    /**
+     * ViewHolder nắm giữ cấu trúc hiển thị món ăn.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img_DishImage, img_Edit, img_Delete;
         TextView txt_DishName, txt_DishPrice, txt_DishStatus;

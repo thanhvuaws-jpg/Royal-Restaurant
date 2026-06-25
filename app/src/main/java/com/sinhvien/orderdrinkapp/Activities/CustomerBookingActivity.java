@@ -43,27 +43,40 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CustomerBookingActivity - Màn hình dành cho Khách hàng (Customer) thực hiện Đặt bàn và Gọi món ăn trước.
+ * Chức năng chính:
+ * - Khách hàng lựa chọn bàn trống từ Spinner (dữ liệu đồng bộ giữa SQLite cache và Server cloud).
+ * - Chọn thời gian hẹn trước thông qua DatePickerDialog & TimePickerDialog trực quan (kiểm duyệt giờ hẹn phải trong tương lai).
+ * - Xem danh sách món ăn khả dụng, chọn số lượng tương ứng để đặt trước, cập nhật hiển thị tổng tiền tự động.
+ * - Gửi yêu cầu đặt bàn và đặt món lên server thông qua API createBooking (mã món và số lượng được mã hóa JSON).
+ * - Tích hợp Socket.io: Phát tín hiệu real-time booking_status_updated và nhận phản hồi menu_changed để tải lại món ăn.
+ */
 public class CustomerBookingActivity extends AppCompatActivity {
 
     private static final String TAG = "CustomerBookingActivity";
 
+    // Khai báo View thành phần UI
     Spinner spinner_tables;
     Button btn_select_date, btn_select_time, btn_confirm_booking;
     TextView txt_selected_datetime, txt_total_preorder;
     RecyclerView rv_booking_dishes;
 
+    // Danh sách bàn ăn & adapter hiển thị trên Spinner
     List<TableResponse> tableList = new ArrayList<>();
     List<String> tableNames = new ArrayList<>();
     ArrayAdapter<String> tableAdapter;
 
+    // Cơ sở dữ liệu SQLite & Adapter danh sách món ăn
     LocalDatabaseHelper dbHelper;
     PreorderDishesAdapter dishesAdapter;
     List<MonDTO> dishList = new ArrayList<>();
 
+    // Các biến lưu trữ ngày giờ hẹn được chọn
     int selectedYear = -1, selectedMonth = -1, selectedDay = -1;
     int selectedHour = -1, selectedMinute = -1;
 
-    long totalPreorderPrice = 0;
+    long totalPreorderPrice = 0; // Tổng tiền tạm tính của các món đặt trước
 
     private io.socket.client.Socket mSocket;
     private io.socket.emitter.Emitter.Listener onMenuChanged;
@@ -74,6 +87,8 @@ public class CustomerBookingActivity extends AppCompatActivity {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        
+        // Khôi phục lại trạng thái biểu mẫu nếu Activity bị xoay chiều
         if (savedInstanceState != null) {
             selectedYear = savedInstanceState.getInt("selectedYear", -1);
             selectedMonth = savedInstanceState.getInt("selectedMonth", -1);
@@ -89,6 +104,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
         setContentView(R.layout.activity_customer_booking);
 
+        // Thiết lập Toolbar tiêu đề thanh tác vụ
         Toolbar toolbar = findViewById(R.id.booking_toolbar);
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
@@ -96,6 +112,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
+        // Ánh xạ View
         spinner_tables = findViewById(R.id.spinner_tables);
         btn_select_date = findViewById(R.id.btn_select_date);
         btn_select_time = findViewById(R.id.btn_select_time);
@@ -106,11 +123,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
         dbHelper = LocalDatabaseHelper.getInstance(this);
 
-        // Khởi tạo spinner bàn ăn
+        // Khởi tạo Spinner danh sách bàn ăn
         tableAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tableNames);
         tableAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_tables.setAdapter(tableAdapter);
 
+        // Nạp danh sách bàn ăn, đăng ký sự kiện picker và tải món ăn
         loadTables();
         setupDateTimePickers();
         loadDishes();
@@ -119,16 +137,18 @@ public class CustomerBookingActivity extends AppCompatActivity {
             updateDateTimeDisplay();
         }
 
+        // Đăng ký sự kiện click chuột xác nhận đặt bàn
         btn_confirm_booking.setOnClickListener(v -> {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; // Khóa double click liên tục
             submitBooking();
         });
 
+        // Kết nối Socket.io để lắng nghe sự thay đổi menu từ các máy khác real-time
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         onMenuChanged = args -> {
             runOnUiThread(() -> {
                 if (!isFinishing() && !isDestroyed()) {
-                    loadDishes();
+                    loadDishes(); // Cập nhật lại danh sách món ăn khi có thay đổi từ quản trị viên
                 }
             });
         };
@@ -137,8 +157,11 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Tải danh sách bàn ăn (Ưu tiên nạp bộ nhớ cache từ SQLite trước để tối ưu tốc độ, sau đó gọi mạng và đồng bộ).
+     */
     private void loadTables() {
-        // 1. Tải từ SQLite trước
+        // 1. Tải từ SQLite cache
         LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(this);
         LocalDatabaseHelper.getExecutor().execute(() -> {
             List<BanAnDTO> cachedList = dbHelper.getTables();
@@ -147,14 +170,14 @@ public class CustomerBookingActivity extends AppCompatActivity {
             });
         });
 
-        // 2. Đồng bộ từ network
+        // 2. Đồng bộ mới từ API Server
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getTables().enqueue(new Callback<List<TableResponse>>() {
             @Override
             public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncTables(response.body());
+                        dbHelper.syncTables(response.body()); // Lưu vào SQLite
                         List<BanAnDTO> updatedList = dbHelper.getTables();
                         new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
                             updateSpinnerWithTables(updatedList);
@@ -172,6 +195,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Cập nhật hiển thị danh sách bàn lên Spinner (chỉ lấy những bàn có tình trạng trống).
+     */
     private void updateSpinnerWithTables(List<BanAnDTO> list) {
         tableList.clear();
         tableNames.clear();
@@ -191,6 +217,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
         tableAdapter.notifyDataSetChanged();
 
+        // Khôi phục lại bàn được chọn trước đó
         if (savedTableId != -1) {
             for (int i = 0; i < tableList.size(); i++) {
                 if (tableList.get(i).getMaBan() == savedTableId) {
@@ -201,9 +228,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Khởi tạo và thiết lập các hộp thoại chọn Ngày (DatePickerDialog) và Giờ (TimePickerDialog).
+     */
     private void setupDateTimePickers() {
         Calendar calendar = Calendar.getInstance();
 
+        // Click để hiển thị hộp chọn Ngày
         btn_select_date.setOnClickListener(v -> {
             DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
                 selectedYear = year;
@@ -214,6 +245,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             datePickerDialog.show();
         });
 
+        // Click để hiển thị hộp chọn Giờ
         btn_select_time.setOnClickListener(v -> {
             TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minute) -> {
                 selectedHour = hourOfDay;
@@ -224,6 +256,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Cập nhật chuỗi hiển thị ngày giờ đã chọn lên giao diện người dùng.
+     */
     private void updateDateTimeDisplay() {
         if (selectedYear != -1 && selectedHour != -1) {
             String datetime = String.format("%04d-%02d-%02d %02d:%02d:00", selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute);
@@ -241,6 +276,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Tính toán tổng giá trị của các món ăn đặt trước và hiển thị lên giao diện.
+     */
     private void updateTotalPriceDisplay(Map<Integer, Integer> quantities) {
         totalPreorderPrice = 0;
         for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
@@ -259,11 +297,15 @@ public class CustomerBookingActivity extends AppCompatActivity {
         txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
     }
 
+    /**
+     * Tải danh sách món ăn từ SQLite cache lên giao diện, song song đồng bộ từ Server.
+     */
     private void loadDishes() {
         LocalDatabaseHelper.getExecutor().execute(() -> {
             List<MonDTO> allCached = dbHelper.getAllDishes();
             List<MonDTO> cachedList = new ArrayList<>();
             for (MonDTO dish : allCached) {
+                // Chỉ lấy món ăn ở trạng thái đang phục vụ (true)
                 if ("true".equalsIgnoreCase(dish.getTinhTrang())) {
                     cachedList.add(dish);
                 }
@@ -300,7 +342,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             });
         });
 
-        // Đồng bộ toàn bộ món ăn từ Server về SQLite
+        // Gọi API tải danh sách món ăn từ Server Cloud
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getDishes(0, 1, 1000, "").enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.DishPageResponse>() {
             @Override
@@ -357,6 +399,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Xác thực thông tin biểu mẫu hẹn và gửi yêu cầu đặt bàn lên Server.
+     */
     private void submitBooking() {
         if (tableList.isEmpty() || spinner_tables.getSelectedItemPosition() == -1) {
             Toast.makeText(this, "Không có bàn trống nào để đặt!", Toast.LENGTH_SHORT).show();
@@ -368,7 +413,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             return;
         }
 
-        // Kiểm tra lịch hẹn phải ở tương lai
+        // Đảm bảo giờ hẹn phải ở tương lai
         Calendar now = Calendar.getInstance();
         Calendar chosen = Calendar.getInstance();
         chosen.set(selectedYear, selectedMonth - 1, selectedDay, selectedHour, selectedMinute);
@@ -382,7 +427,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
         int makh = SessionManager.getMaNV(this);
         String datetime = String.format("%04d-%02d-%02d %02d:%02d:00", selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute);
 
-        // Chuẩn bị danh sách món ăn đặt trước thành chuỗi JSON
+        // Đóng gói danh sách món ăn chọn trước sang định dạng Json
         List<Map<String, Object>> preorderList = new ArrayList<>();
         Map<Integer, Integer> quantities = dishesAdapter.getSelectedQuantities();
         for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
@@ -393,9 +438,11 @@ public class CustomerBookingActivity extends AppCompatActivity {
         }
         String jsonPreorder = new Gson().toJson(preorderList);
 
+        // Hiển thị loading
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang xử lý đặt bàn...");
         progressDialog.show();
 
+        // Gọi API đặt bàn
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.createBooking(makh, maban, datetime, jsonPreorder).enqueue(new Callback<BookingResponse>() {
             @Override
@@ -403,7 +450,8 @@ public class CustomerBookingActivity extends AppCompatActivity {
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Đặt bàn thành công: maban=" + maban + ", datetime=" + datetime);
-                    // Emit socket để cashier web biết có booking mới
+                    
+                    // Phát tín hiệu Socket thông báo máy phục vụ / thu ngân tải lại trạng thái
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
                         socket.emit("booking_status_updated");
@@ -438,6 +486,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu trữ các trạng thái nhập biểu mẫu khi Activity thay đổi
         outState.putInt("selectedYear", selectedYear);
         outState.putInt("selectedMonth", selectedMonth);
         outState.putInt("selectedDay", selectedDay);
@@ -457,8 +506,10 @@ public class CustomerBookingActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        // Hủy đăng ký lắng nghe sự kiện để tránh rò rỉ bộ nhớ
         if (mSocket != null && onMenuChanged != null) {
             mSocket.off("menu_changed", onMenuChanged);
         }
     }
 }
+

@@ -20,13 +20,19 @@ import com.sinhvien.orderdrinkapp.R;
 
 import java.util.List;
 
+/**
+ * AdapterRecycleViewCategory - Adapter phụ hiển thị danh mục món ăn (dành riêng cho các màn hình phụ hoặc danh sách nhỏ gọn).
+ * - Tương tự như AdapterDisplayCategory nhưng được tối giản hóa, hỗ trợ nạp một layout động truyền vào từ constructor (layout).
+ * - Hiển thị: Tên loại thực đơn, hình ảnh tải từ URL VPS qua Glide, hoặc giải mã mảng bytes ảnh từ SQLite dự phòng.
+ */
 public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecycleViewCategory.ViewHolder>{
 
     Context context;
+    // Resource ID của file Layout XML tùy biến
     int layout;
     List<LoaiMonDTO> loaiMonDTOList;
 
-    public AdapterRecycleViewCategory(Context context,int layout, List<LoaiMonDTO> loaiMonDTOList){
+    public AdapterRecycleViewCategory(Context context, int layout, List<LoaiMonDTO> loaiMonDTOList){
         this.context = context;
         this.layout = layout;
         this.loaiMonDTOList = loaiMonDTOList;
@@ -34,7 +40,7 @@ public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecy
 
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(layout,parent,false);
+        View view = LayoutInflater.from(context).inflate(layout, parent, false);
         return new ViewHolder(view);
     }
 
@@ -43,6 +49,7 @@ public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecy
         LoaiMonDTO loaiMonDTO = loaiMonDTOList.get(position);
         holder.txt_customcategory_CategoryName.setText(loaiMonDTO.getTenLoai());
         
+        // Tải ảnh đại diện cho danh mục thực đơn
         if (loaiMonDTO.getHinhAnhPath() != null && !loaiMonDTO.getHinhAnhPath().isEmpty()) {
             String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(loaiMonDTO.getHinhAnhPath());
             Glide.with(context)
@@ -53,7 +60,7 @@ public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecy
                     .into(holder.img_customcategory_CategoryImage);
         } else if (loaiMonDTO.getHinhAnh() != null) {
             byte[] categoryimage = loaiMonDTO.getHinhAnh();
-            Bitmap bitmap = BitmapFactory.decodeByteArray(categoryimage,0,categoryimage.length);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(categoryimage, 0, categoryimage.length);
             holder.img_customcategory_CategoryImage.setImageBitmap(bitmap);
         } else {
             holder.img_customcategory_CategoryImage.setImageResource(R.drawable.ic_dash_menu);
@@ -65,6 +72,9 @@ public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecy
         return loaiMonDTOList.size();
     }
 
+    /**
+     * ViewHolder lưu giữ các view thành phần danh mục.
+     */
     public class ViewHolder extends RecyclerView.ViewHolder{
 
         TextView txt_customcategory_CategoryName;

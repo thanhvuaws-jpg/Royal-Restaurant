@@ -37,11 +37,25 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * AdapterDisplayTable - Adapter quản lý hiển thị trạng thái bàn ăn (Table Status) trên lưới RecyclerView.
+ * - Xác định và hiển thị trạng thái bàn ăn qua 3 màu sắc/nội dung badge trực quan:
+ *   1. Đang dùng (Màu đỏ - R.color.status_occupied): Bàn đang có khách ngồi ăn/uống và có hóa đơn đang phục vụ.
+ *   2. Đã đặt trước (Màu cam - #FFAB40): Bàn đã được khách đặt giữ lịch qua ứng dụng, có giờ hẹn cụ thể.
+ *   3. Trống (Màu xanh - R.color.status_available): Bàn sẵn sàng đón tiếp khách mới.
+ * - Thay đổi hình ảnh icon ghế ngồi/bàn ăn tùy thuộc trạng thái để tăng tính trực quan.
+ * - Phân quyền Admin: Cho phép hiển thị nút Xóa bàn ăn trống (chặn xóa bàn đang dùng). Gọi API DELETE và cập nhật giao diện lập tức.
+ * - Xử lý click chọn bàn:
+ *   + Nếu bàn trống: Chuyển hướng sang màn hình gọi món (DisplayCategoryFragment) đính kèm mã bàn.
+ *   + Nếu bàn đang dùng: Gọi API lấy mã đơn đặt (Order) gắn liền với bàn, chuyển sang PaymentActivity để xem chi tiết hoặc thanh toán.
+ *   + Nếu bàn đã đặt trước: Hiển thị cảnh báo chờ khách check-in.
+ */
 public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTable.ViewHolder> {
 
     private final Context context;
     private final List<BanAnDTO> banAnDTOList;
     private final boolean isAdmin;
+    // Danh sách lưu trữ thông tin các bàn đã được đặt lịch hẹn từ server
     private List<com.sinhvien.orderdrinkapp.Api.TableResponse> reservedTables;
 
     public AdapterDisplayTable(Context context, List<BanAnDTO> banAnDTOList) {
@@ -50,6 +64,9 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         this.isAdmin = SessionManager.isAdmin(context);
     }
 
+    /**
+     * Nạp danh sách các bàn đặt lịch hẹn và thực hiện vẽ lại giao diện.
+     */
     public void setReservedTables(List<com.sinhvien.orderdrinkapp.Api.TableResponse> reservedTables) {
         this.reservedTables = reservedTables;
         notifyDataSetChanged();
@@ -69,6 +86,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
 
         holder.txt_TableName.setText(ban.getTenBan());
 
+        // Kiểm tra xem bàn này có nằm trong danh sách đặt lịch hẹn không
         com.sinhvien.orderdrinkapp.Api.TableResponse reservedInfo = null;
         if (reservedTables != null) {
             for (com.sinhvien.orderdrinkapp.Api.TableResponse r : reservedTables) {
@@ -80,9 +98,10 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         }
         boolean isReserved = reservedInfo != null;
 
+        // Thay đổi icon bàn ăn theo trạng thái
         holder.img_TableImage.setImageResource(dangDung
-                ? R.drawable.ic_baseline_event_seat_40
-                : R.drawable.ic_baseline_airline_seat_legroom_normal_40);
+                ? R.drawable.ic_baseline_event_seat_40                  // Icon ghế đã có người ngồi
+                : R.drawable.ic_baseline_airline_seat_legroom_normal_40); // Icon ghế trống
 
         GradientDrawable badge = (GradientDrawable) ContextCompat
                 .getDrawable(context, R.drawable.round_corner_textview).mutate();
@@ -92,12 +111,12 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             holder.txt_ActionHint.setText("Nhấn để xem đơn & thanh toán");
         } else if (isReserved) {
             holder.txt_Status.setText("Đã đặt");
-            badge.setColor(android.graphics.Color.parseColor("#FFAB40")); // Orange/yellow
+            badge.setColor(android.graphics.Color.parseColor("#FFAB40")); 
             String timeStr = reservedInfo.getThoigianhen();
             if (timeStr != null && timeStr.contains(" ")) {
                 String[] parts = timeStr.split(" ");
                 if (parts.length > 1) {
-                    timeStr = parts[1].substring(0, 5); // HH:mm
+                    timeStr = parts[1].substring(0, 5); // Cắt lấy định dạng HH:mm
                 }
             }
             holder.txt_ActionHint.setText("Giờ hẹn: " + timeStr);
@@ -108,7 +127,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         }
         holder.txt_Status.setBackground(badge);
 
-        // Nút xóa bàn (chỉ Admin)
+        // Bật/tắt nút xóa bàn dành cho Admin
         if (isAdmin) {
             holder.img_Delete.setVisibility(View.VISIBLE);
             holder.img_Delete.setOnClickListener(v -> {
@@ -121,6 +140,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                         .setMessage("Bạn có chắc chắn muốn xóa bàn này?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
                             ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                            // Gọi API xóa bàn ăn khỏi hệ thống
                             apiService.deleteTable(ban.getMaBan()).enqueue(new Callback<OrderResponse>() {
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
@@ -144,9 +164,13 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             holder.img_Delete.setVisibility(View.GONE);
         }
 
+        // Đăng ký click sự kiện chọn bàn ăn
         holder.itemView.setOnClickListener(v -> xuLyClickBan(position));
     }
 
+    /**
+     * Điều hướng thông minh dựa trên trạng thái hiện tại của bàn ăn.
+     */
     private void xuLyClickBan(int position) {
         BanAnDTO ban = banAnDTOList.get(position);
         int maban = ban.getMaBan();
@@ -155,7 +179,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         String ngaydat = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
                 .format(Calendar.getInstance().getTime());
 
-        // Kiểm tra xem bàn có đang được đặt trước không
+        // Kiểm tra xem bàn có đang bị khóa giữ trước không
         boolean isReserved = false;
         if (reservedTables != null) {
             for (com.sinhvien.orderdrinkapp.Api.TableResponse r : reservedTables) {
@@ -172,6 +196,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         }
 
         if (dangDung) {
+            // Nếu bàn đang dùng -> lấy thông tin hóa đơn và chuyển sang màn hình Thanh toán/Xem hóa đơn
             ApiService apiService = ApiClient.getClient().create(ApiService.class);
             apiService.getOrderByTable(maban).enqueue(new Callback<OrderResponse>() {
                 @Override
@@ -194,6 +219,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                 }
             });
         } else {
+            // Bàn đang trống -> Chuyển sang màn hình chọn loại món ăn để bắt đầu đặt đơn
             DisplayCategoryFragment fragment = new DisplayCategoryFragment();
             Bundle bundle = new Bundle();
             bundle.putInt("maban", maban);
@@ -206,6 +232,9 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
     @Override
     public int getItemCount() { return banAnDTOList.size(); }
 
+    /**
+     * ViewHolder chứa cấu trúc hiển thị 1 ô bàn ăn.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img_TableImage, img_Delete;
         TextView txt_TableName, txt_Status, txt_ActionHint;

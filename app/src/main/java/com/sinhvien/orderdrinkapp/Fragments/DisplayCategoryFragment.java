@@ -49,19 +49,34 @@ import android.util.Log;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.CategoryViewModel;
 
+/**
+ * DisplayCategoryFragment - Màn hình danh mục Nhóm món ăn (Category).
+ * Hiển thị danh sách các phân loại món ăn (Ví dụ: Khai vị, Món chính, Tráng miệng, Nước uống).
+ * - Sử dụng SwipeRefreshLayout để vuốt làm mới danh mục đồng bộ từ VPS.
+ * - Sử dụng CategoryViewModel kết hợp LiveData + DiffUtil giúp cập nhật danh sách mượt mà.
+ * - Lắng nghe thay đổi thực đơn từ Socket.io ("menu_changed") để tự động cập nhật danh mục của các thiết bị khác.
+ * - Hỗ trợ nút thêm danh mục (Floating Action Button / Options Menu) dành riêng cho quản trị viên (Admin).
+ */
 public class DisplayCategoryFragment extends Fragment {
 
     private static final String TAG = "DisplayCategoryFragment";
 
+    // RecyclerView hiển thị các phân loại món ăn
     RecyclerView rv_category_CategoryList;
+    // Danh sách lưu trữ các loại món
     List<LoaiMonDTO> loaiMonDTOList = new ArrayList<>();
+    // Adapter phục vụ hiển thị danh mục
     AdapterDisplayCategory adapter;
     FragmentManager fragmentManager;
+    // Lưu trữ mã bàn ăn đang thao tác chọn món
     int maban;
     View view;
+    // ViewModel quản lý dữ liệu danh mục món ăn
     CategoryViewModel categoryViewModel;
 
     private Socket mSocket;
+    
+    // Callback cập nhật danh sách khi nhận được tín hiệu làm mới đơn hàng từ Socket
     private final Emitter.Listener onRefreshOrders = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -71,6 +86,7 @@ public class DisplayCategoryFragment extends Fragment {
         }
     };
 
+    // Callback cập nhật danh sách khi menu thực đơn thay đổi (thêm/sửa/xóa món ăn hoặc loại món từ Admin)
     private final Emitter.Listener onMenuChanged = new Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -80,6 +96,7 @@ public class DisplayCategoryFragment extends Fragment {
         }
     };
 
+    // Launcher nhận kết quả trả về sau khi thêm mới hoặc sửa đổi danh mục
     ActivityResultLauncher<Intent> resultLauncherCategory = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -112,17 +129,21 @@ public class DisplayCategoryFragment extends Fragment {
 
         fragmentManager = getActivity().getSupportFragmentManager();
 
+        // Nhận mã bàn ăn truyền qua từ màn hình bàn ăn
         Bundle bDataCategory = getArguments();
         if (bDataCategory != null) {
             maban = bDataCategory.getInt("maban");
         }
 
+        // Thiết lập Adapter và chính sách phục hồi trạng thái cuộn
         adapter = new AdapterDisplayCategory(getActivity(), loaiMonDTOList);
         adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rv_category_CategoryList.setAdapter(adapter);
 
+        // Khởi tạo ViewModel và quan sát LiveData thay đổi danh mục món ăn
         categoryViewModel = new ViewModelProvider(this).get(CategoryViewModel.class);
         categoryViewModel.getCategories().observe(getViewLifecycleOwner(), categories -> {
+            // Áp dụng DiffUtil tối ưu hóa hiệu năng cập nhật danh sách
             androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
                     androidx.recyclerview.widget.DiffUtil.calculateDiff(new CategoryDiffCallback(loaiMonDTOList, categories));
             loaiMonDTOList.clear();
@@ -131,7 +152,7 @@ public class DisplayCategoryFragment extends Fragment {
             capNhatTrangThai();
         });
 
-        // Click item → chuyển sang màn hình món ăn
+        // Xử lý sự kiện click chọn danh mục để xem danh sách món ăn thuộc danh mục đó
         adapter.setOnItemClickListener(position -> {
             int maloai = loaiMonDTOList.get(position).getMaLoai();
             String tenloai = loaiMonDTOList.get(position).getTenLoai();
@@ -146,20 +167,26 @@ public class DisplayCategoryFragment extends Fragment {
             ((HomeActivity) getActivity()).navigateToSubFragment(displayMenuFragment, "hienthiloai");
         });
 
-        // FAB thêm loại
+        // Floating Action Button cho phép Admin mở màn hình thêm danh mục
         view.findViewById(R.id.fab_add_category).setOnClickListener(v -> {
             resultLauncherCategory.launch(new Intent(getActivity(), AddCategoryActivity.class));
         });
 
+        // Cài đặt SwipeRefreshLayout để vuốt xuống làm mới danh sách
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
             HienThiDSLoai(swipeRefreshLayout, true);
         });
 
+        // Tải danh sách danh mục lần đầu tiên
         HienThiDSLoai(savedInstanceState == null);
         return view;
     }
 
+    /**
+     * Khởi tạo trình chọn menu trên ActionBar.
+     * Chỉ hiển thị nút Thêm Danh Mục nếu tài khoản đăng nhập là Admin.
+     */
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -187,6 +214,9 @@ public class DisplayCategoryFragment extends Fragment {
         HienThiDSLoai(null, fetchApi);
     }
 
+    /**
+     * Tải danh mục loại món ăn từ SQLite và gọi API đồng bộ.
+     */
     private void HienThiDSLoai(SwipeRefreshLayout swipeRefresh, boolean fetchApi) {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
@@ -227,6 +257,9 @@ public class DisplayCategoryFragment extends Fragment {
         });
     }
 
+    /**
+     * Cập nhật hiển thị giao diện trạng thái trống (Empty State) khi danh mục rỗng.
+     */
     private void capNhatTrangThai() {
         View layout_empty_state = view.findViewById(R.id.layout_empty_state);
         if (!loaiMonDTOList.isEmpty()) {
@@ -241,6 +274,10 @@ public class DisplayCategoryFragment extends Fragment {
             }
         }
     }
+
+    /**
+     * Lấy lại dữ liệu danh mục thầm lặng (không hiển thị loading dialog/progressBar).
+     */
     private void refreshCategoriesInPlace() {
         categoryViewModel.syncCategoriesFromServer(null);
     }
@@ -264,6 +301,9 @@ public class DisplayCategoryFragment extends Fragment {
         }
     }
 
+    /**
+     * Lớp CategoryDiffCallback hỗ trợ so sánh khác biệt danh mục món ăn giúp tối ưu làm mới RecyclerView.
+     */
     private static class CategoryDiffCallback extends androidx.recyclerview.widget.DiffUtil.Callback {
         private final List<LoaiMonDTO> oldList;
         private final List<LoaiMonDTO> newList;

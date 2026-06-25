@@ -35,7 +35,7 @@ import com.sinhvien.orderdrinkapp.Fragments.DisplayTableFragment;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 
-// [FIX BUG 3] Imports
+// Nhập thư viện bổ sung cho SharedPreferences và xử lý phản hồi đặt bàn
 import android.content.SharedPreferences;
 import java.util.List;
 import com.sinhvien.orderdrinkapp.Api.BookingResponse;
@@ -44,8 +44,21 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * HomeActivity - Màn hình chính điều phối (Dashboard) dành cho Quản trị viên (Admin), Phục vụ (Waiter) và Thu ngân (Cashier).
+ * Chức năng chính:
+ * - Phân quyền giao diện người dùng dựa trên MaQuyen:
+ *   + Thu ngân: chỉ truy cập bảng điều khiển thu ngân (DisplayCashierFragment), ẩn các mục bàn ăn, nhân viên, thực đơn.
+ *   + Phục vụ (Waiter): ẩn quản lý nhân viên và báo cáo thống kê doanh thu.
+ *   + Quản trị viên (Admin): Toàn quyền truy cập tất cả các tính năng.
+ * - Hỗ trợ thiết kế Thích ứng (Adaptive Layout): Chuyển đổi linh hoạt giữa Bottom Navigation View và Navigation Drawer.
+ * - Thiết lập kết nối Socket.io để nhận và gửi sự kiện real-time phù hợp theo quyền hạn (join_cashier hoặc join_admin).
+ * - Quản lý chu trình chạy ngầm kiểm tra Session (startSessionCheck): Cứ sau mỗi 10 giây sẽ kiểm tra token của người dùng xem có đăng nhập ở thiết bị khác không. Nếu không hợp lệ sẽ đăng xuất và chuyển về LoginActivity.
+ * - Quét các thông báo đặt bàn bị lỡ (checkMissedBookingNotifications) từ Server để cảnh báo phục vụ chuẩn bị bàn kịp thời.
+ */
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    // Khai báo các thuộc tính điều hướng giao diện
     DrawerLayout drawerLayout;
     NavigationView navigationView;
     Toolbar toolbar;
@@ -56,14 +69,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private BottomNavigationView bottomNav;
     private ImageView btnToggleNav;
     private boolean useBottomNav;
-    private boolean bypassMoreSheet = false;
-    private boolean isSyncingNav = false;
+    private boolean bypassMoreSheet = false; // Bỏ qua hiển thị bottom sheet khi chọn menu phụ
+    private boolean isSyncingNav = false; // Tránh vòng lặp chọn item khi đồng bộ thanh menu
     private BottomSheetDialog moreBottomSheet;
     private Fragment currentFragment;
 
+    // Các thành phần xử lý kiểm tra phiên đăng nhập ngầm
     private Handler sessionHandler;
     private Runnable sessionRunnable;
-    private static final int SESSION_CHECK_INTERVAL = 10000; // 10s
+    private static final int SESSION_CHECK_INTERVAL = 10000; // Khoảng thời gian kiểm tra session: 10 giây
     private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
     private io.socket.emitter.Emitter.Listener connectListener;
 
@@ -72,10 +86,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         super.onCreate(savedInstanceState);
         setContentView(R.layout.home_layout);
 
+        // Ánh xạ các View cơ bản
         drawerLayout = findViewById(R.id.drawer_layout);
         navigationView = findViewById(R.id.navigation_view_trangchu);
         toolbar = findViewById(R.id.toolbar);
 
+        // Cài đặt Action Bar
         setSupportActionBar(toolbar);
         if(getSupportActionBar() != null){
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -84,8 +100,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         bottomNav = findViewById(R.id.bottom_nav);
         btnToggleNav = findViewById(R.id.btn_toggle_nav);
 
-        drawerToggle = new ActionBarDrawerToggle(this,drawerLayout,toolbar
-                ,R.string.open,R.string.close){
+        // Thiết lập sự kiện kéo mở ngăn kéo thanh menu bên hông
+        drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar
+                , R.string.open, R.string.close){
             @Override
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
@@ -102,10 +119,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         navigationView.setNavigationItemSelectedListener(this);
 
+        // Lấy tên hiển thị từ SharedPreferences Session để điền lên thanh tiêu đề menu bên hông
         View headerView = navigationView.getHeaderView(0);
         txt_menu_tennv = headerView.findViewById(R.id.txt_menu_tennv);
 
-        // Lấy tên hiển thị từ Session thay vì Intent để hỗ trợ Auto-login
         String hoten = SessionManager.getFullName(this);
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
@@ -119,7 +136,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 if (SessionManager.isCashier(HomeActivity.this)) {
                     socket.emit("join_cashier");
                 } else {
-                    // [FIX] Admin (1) và NV (2) đều join admin_room
+                    // Cả quản trị viên và phục vụ đều tham gia phòng admin
                     socket.emit("join_admin");
                 }
                 
@@ -129,27 +146,25 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             };
             socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
 
-            // [FIX BUG 1] Socket đã connected sẵn → join room ngay
+            // Phòng trường hợp Socket đã kết nối sẵn -> gửi tín hiệu tham gia phòng ngay
             if (socket.connected()) {
                 if (SessionManager.isCashier(HomeActivity.this)) {
                     socket.emit("join_cashier");
                 } else {
-                    // [FIX] Admin (1) và NV (2) đều join admin_room
                     socket.emit("join_admin");
                 }
             }
         }
 
-        // Khởi động kiểm tra session sẽ được tự động chạy trong onResume()
+        // Lắng nghe sự kiện đặt bàn để báo rung chuông
         if (SessionManager.isAdmin(this) || SessionManager.isCashier(this)
                 || SessionManager.getMaQuyen(this) == 2) {
-            // [FIX] Thêm NV (maquyen=2) để nhận notify_prepare_table
             bookingAlertManager = new com.sinhvien.orderdrinkapp.Utils.BookingAlertManager(this);
         }
 
         fragmentManager = getSupportFragmentManager();
 
-        // Setup Bottom Nav and Toggle
+        // Thiết lập bố cục thanh điều hướng (Bottom Nav hoặc Side Drawer)
         useBottomNav = SessionManager.isUseBottomNav(this);
         applyNavMode(useBottomNav);
 
@@ -159,7 +174,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             applyNavMode(useBottomNav);
         });
 
-         bottomNav.setOnItemSelectedListener(item -> {
+        // Đăng ký các sự kiện chọn trang trên thanh điều hướng dưới
+        bottomNav.setOnItemSelectedListener(item -> {
             if (isSyncingNav) {
                 return true;
             }
@@ -186,7 +202,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             return true;
         });
 
-        // Phân quyền menu
+        // Thực thi phân quyền giao diện (Ẩn bớt các mục menu không được quyền truy cập)
         if (SessionManager.isCashier(this)) {
             // Thu ngân
             navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
@@ -201,10 +217,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 navigationView.setCheckedItem(R.id.nav_cashier);
             }
         } else {
-            // Admin hoặc Nhân viên
+            // Admin hoặc Nhân viên Phục vụ
             navigationView.getMenu().findItem(R.id.nav_cashier).setVisible(false);
             if (!SessionManager.isAdmin(this)) {
-                // Nhân viên
+                // Nhân viên phục vụ
                 navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
                 navigationView.getMenu().findItem(R.id.nav_statistic).setVisible(false);
                 
@@ -217,6 +233,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
+        // Khôi phục lại trạng thái Fragment khi cấu hình thay đổi
         if (savedInstanceState != null) {
             for (Fragment f : fragmentManager.getFragments()) {
                 if (f != null && f.isAdded() && !f.isHidden()) {
@@ -230,8 +247,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
         }
 
+        // Lắng nghe thay đổi Back Stack để cập nhật lại tiêu đề và trạng thái các nút quay lại
         fragmentManager.addOnBackStackChangedListener(() -> {
-            // Find the visible fragment to update currentFragment
             for (Fragment f : fragmentManager.getFragments()) {
                 if (f != null && f.isVisible()) {
                     currentFragment = f;
@@ -245,7 +262,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 toolbar.setNavigationIcon(R.drawable.ic_baseline_arrow_back_24);
                 toolbar.setNavigationOnClickListener(v -> onBackPressed());
             } else {
-                // Backstack trống → sync lại currentFragment và UI
                 getSupportActionBar().setDisplayHomeAsUpEnabled(false);
                 if (useBottomNav) {
                     drawerToggle.setDrawerIndicatorEnabled(false);
@@ -256,15 +272,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     toolbar.setNavigationOnClickListener(v ->
                         drawerLayout.openDrawer(androidx.core.view.GravityCompat.START));
                 }
-                // Sync BottomNav với currentFragment
                 syncNavSelection();
             }
             if (currentFragment != null) {
                 updateToolbarTitle(currentFragment);
             }
         });
-
-        // Removed default home fragment load to prevent overriding the role-based logic above
     }
 
     @Override
@@ -276,6 +289,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         return super.onSupportNavigateUp();
     }
 
+    /**
+     * Đồng bộ chế độ hiển thị Drawer Menu hoặc Bottom Nav.
+     */
     private void applyNavMode(boolean useBottom) {
         if (useBottom) {
             drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -295,6 +311,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Điều hướng chuyển đổi các Fragment cơ bản (Ẩn các fragment không chọn và nạp fragment chọn).
+     */
     private void navigateTo(Fragment newFragment, String tag) {
         if (currentFragment != null && tag.equals(currentFragment.getTag())) {
             return;
@@ -325,6 +344,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         updateToolbarTitle(currentFragment);
     }
 
+    /**
+     * Điều hướng và thêm vào ngăn xếp quay lại (BackStack) dành cho các Fragment con.
+     */
     public void navigateToSubFragment(Fragment fragment, String tag) {
         FragmentTransaction tx = getSupportFragmentManager().beginTransaction();
         tx.setCustomAnimations(R.anim.slide_in_right, R.anim.slide_out_left,
@@ -339,6 +361,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         updateToolbarTitle(currentFragment);
     }
 
+    /**
+     * Cập nhật tiêu đề Toolbar tương ứng với Fragment đang được hiển thị.
+     */
     private void updateToolbarTitle(Fragment fragment) {
         if (getSupportActionBar() == null) return;
         if (fragment instanceof DisplayHomeFragment) {
@@ -358,6 +383,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Đồng bộ đánh dấu Menu được chọn khi chuyển đổi Fragment.
+     */
     private void syncNavSelection() {
         isSyncingNav = true;
         try {
@@ -387,6 +415,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Nhận sự kiện chọn menu từ màn hình con để chuyển đổi menu điều hướng chính xác.
+     */
     public void selectBottomNavItem(int menuId) {
         if (useBottomNav && bottomNav != null) {
             if (menuId == R.id.nav_staff) {
@@ -430,6 +461,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    /**
+     * Hiển thị bảng Bottom Sheet mở rộng khi chọn nút "Xem thêm" trên Bottom Navigation.
+     */
     private void showMoreBottomSheet() {
         if (moreBottomSheet == null) {
             moreBottomSheet = new BottomSheetDialog(this);
@@ -439,6 +473,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             View itemStaff = view.findViewById(R.id.item_staff);
             View itemLogout = view.findViewById(R.id.item_logout);
 
+            // Phân quyền cho bottom sheet
             if (SessionManager.isCashier(this)) {
                 itemManageBookings.setVisibility(View.GONE);
                 itemStaff.setVisibility(View.GONE);
@@ -463,6 +498,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         moreBottomSheet.show();
     }
 
+    /**
+     * Xóa session, tắt kiểm tra phiên đăng nhập và định hướng người dùng về màn hình LoginActivity.
+     */
     private void logout() {
         stopSessionCheck();
         com.sinhvien.orderdrinkapp.Fragments.DisplayHomeFragment.clearCache();
@@ -523,11 +561,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     @Override
     protected void onResume() {
         super.onResume();
-        startSessionCheck();
+        startSessionCheck(); // Khởi chạy tiến trình vòng lặp ngầm kiểm tra token hoạt động
         if (bookingAlertManager != null) {
             bookingAlertManager.startChecking();
         }
-        checkMissedBookingNotifications(); // [FIX BUG 3]
+        checkMissedBookingNotifications(); // Quét các sự kiện đổi trạng thái đặt bàn bị nhỡ khi người dùng bật lại app
     }
 
     @Override
@@ -544,11 +582,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         super.onDestroy();
         stopSessionCheck();
         
-        // [FIX] Hủy listener notify_prepare_table hoàn toàn khi thoát app
+        // Hủy liên kết booking alert manager hoàn toàn
         if (bookingAlertManager != null) {
             bookingAlertManager.destroy();
         }
 
+        // Hủy lắng nghe Socket để tránh rò rỉ bộ nhớ
         io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (socket != null && connectListener != null) {
             socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
@@ -556,6 +595,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
     }
 
+    /**
+     * Kiểm tra trạng thái Session định kỳ.
+     * Cứ sau mỗi 10 giây (SESSION_CHECK_INTERVAL) gửi HTTP request checkSession để xác thực xem tài khoản có bị đăng nhập từ thiết bị khác không.
+     */
     private void startSessionCheck() {
         final int manv = SessionManager.getMaNV(this);
         final String token = SessionManager.getToken(this);
@@ -579,6 +622,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                             }
                         }
                         
+                        // Nếu session không hợp lệ (Bị đăng nhập nơi khác) -> buộc đăng xuất
                         if (!isSessionValid) {
                             stopSessionCheck();
                             SessionManager.clearSession(HomeActivity.this);
@@ -589,6 +633,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                             startActivity(intent);
                             finish();
                         } else {
+                            // Phiên vẫn hợp lệ -> Lập lịch chạy lại sau 10 giây
                             if (sessionHandler != null && sessionRunnable != null) {
                                 sessionHandler.postDelayed(sessionRunnable, SESSION_CHECK_INTERVAL);
                             }
@@ -598,6 +643,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
                         if (isFinishing() || isDestroyed()) return;
+                        // Gặp lỗi mạng tạm thời -> Vẫn giữ đăng nhập và chạy lại sau 10 giây
                         if (sessionHandler != null && sessionRunnable != null) {
                             sessionHandler.postDelayed(sessionRunnable, SESSION_CHECK_INTERVAL);
                         }
@@ -608,6 +654,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         sessionHandler.post(sessionRunnable);
     }
 
+    /**
+     * Dừng luồng kiểm tra session ngầm.
+     */
     private void stopSessionCheck() {
         if (sessionHandler != null && sessionRunnable != null) {
             sessionHandler.removeCallbacks(sessionRunnable);
@@ -616,10 +665,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-    // [FIX BUG 3] Hàm backup kiểm tra thông báo đặt bàn bị nhỡ
+    /**
+     * Phương thức backup để chủ động quét các thông báo đặt bàn bị nhỡ khi app ở trạng thái ngủ.
+     * Dành riêng cho tài khoản có quyền Admin hoặc Nhân Viên Phục vụ (quyền 2).
+     */
     private void checkMissedBookingNotifications() {
         if (!SessionManager.isAdmin(this) && SessionManager.getMaQuyen(this) != 2) {
-            return; // Chỉ chạy cho Admin và Nhân Viên
+            return; // Chỉ thực thi quét thông báo cho Quản trị viên và Nhân Viên
         }
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -637,6 +689,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                             String oldStatus = prefs.getString(key, "");
                             String newStatus = booking.getTinhtrang() != null ? booking.getTinhtrang() : "";
 
+                            // So sánh trạng thái để đưa ra thông báo dạng Toast tương thích
                             if (!oldStatus.isEmpty() && !oldStatus.equalsIgnoreCase(newStatus)) {
                                 String tenban = booking.getTenBan() != null ? booking.getTenBan() : "";
                                 String thoigianhen = booking.getThoigianhen() != null ? booking.getThoigianhen() : "";
@@ -660,7 +713,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
             @Override
             public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
-                // Ignore failure
+                // Bỏ qua lỗi kết nối
             }
         });
     }

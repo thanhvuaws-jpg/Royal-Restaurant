@@ -30,27 +30,37 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CashierConfirmActivity - Màn hình Xác nhận Thanh toán dành cho Thu ngân (Cashier).
+ * Chức năng chính:
+ * - Hiển thị chi tiết hóa đơn cần thanh toán của bàn bao gồm: Tên bàn, Nhân viên lập hóa đơn, Ngày đặt, Tổng tiền, và danh sách các món ăn đã dùng.
+ * - Cho phép Thu ngân lựa chọn phương thức thanh toán thực tế (Tiền mặt hoặc Chuyển khoản).
+ * - Kết nối HTTP API (confirmPayment) gửi yêu cầu xác nhận kết thúc đơn hàng lên VPS.
+ * - Phát tín hiệu qua Socket.io (booking_status_updated, refresh_orders) thông báo cập nhật trạng thái bàn real-time cho các thiết bị khác trong hệ thống.
+ */
 public class CashierConfirmActivity extends AppCompatActivity {
 
     private static final String TAG = "CashierConfirmActivity";
 
+    // Khai báo các thành phần UI hiển thị
     ImageView img_cashier_BackBtn;
     TextView txt_cashier_TableName, txt_cashier_StaffName, txt_cashier_OrderDate, txt_cashier_TotalAmount, txt_cashier_ProposedMethod;
     RecyclerView rv_cashier_DishList;
     Button btn_cashier_Cash, btn_cashier_Bank;
 
+    // Các biến lưu trữ thông tin đơn hàng nhận được từ màn hình trước
     int madon, manv, maban;
     String ngaydat, tongtien, tenNv, tenBan, phuongthuc;
     List<ThanhToanDTO> thanhToanDTOList;
     AdapterDisplayPayment adapterDisplayPayment;
-    private android.os.Parcelable savedLayoutState;
+    private android.os.Parcelable savedLayoutState; // Lưu trạng thái cuộn của RecyclerView
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.cashier_confirm_layout);
 
-        // Bind Views
+        // Ánh xạ các View giao diện
         img_cashier_BackBtn = findViewById(R.id.img_cashier_BackBtn);
         txt_cashier_TableName = findViewById(R.id.txt_cashier_TableName);
         txt_cashier_StaffName = findViewById(R.id.txt_cashier_StaffName);
@@ -62,11 +72,12 @@ public class CashierConfirmActivity extends AppCompatActivity {
         btn_cashier_Cash = findViewById(R.id.btn_cashier_Cash);
         btn_cashier_Bank = findViewById(R.id.btn_cashier_Bank);
 
+        // Khôi phục lại trạng thái RecyclerView khi xoay màn hình
         if (savedInstanceState != null) {
             savedLayoutState = savedInstanceState.getParcelable("list_state");
         }
 
-        // Get Data
+        // Đọc dữ liệu từ Intent gửi tới
         Intent intent = getIntent();
         madon = intent.getIntExtra("madon", 0);
         manv = intent.getIntExtra("manv", 0);
@@ -84,23 +95,29 @@ public class CashierConfirmActivity extends AppCompatActivity {
             txt_cashier_ProposedMethod.setText(phuongthuc != null && !phuongthuc.isEmpty() ? phuongthuc : "Không rõ");
             
             try {
+                // Định dạng tiền tệ hiển thị ngăn cách phần nghìn
                 long total = (long) Double.parseDouble(tongtien);
                 txt_cashier_TotalAmount.setText(String.format("%,d", total) + " VNĐ");
             } catch (Exception e) {
                 txt_cashier_TotalAmount.setText(tongtien + " VNĐ");
             }
 
+            // Gọi hàm tải danh sách chi tiết các món ăn trong hóa đơn
             loadOrderDetails();
         }
 
+        // Quay lại màn hình trước
         img_cashier_BackBtn.setOnClickListener(v -> finish());
 
+        // Xử lý sự kiện xác nhận Thanh toán tiền mặt
         btn_cashier_Cash.setOnClickListener(v -> {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; // Khóa spam click chuột
             confirmPayment("Tiền mặt");
         });
+        
+        // Xử lý sự kiện xác nhận Thanh toán chuyển khoản ngân hàng
         btn_cashier_Bank.setOnClickListener(v -> {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; // Khóa spam click chuột
             confirmPayment("Chuyển khoản");
         });
     }
@@ -108,11 +125,15 @@ public class CashierConfirmActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu giữ trạng thái cuộn của danh sách món ăn
         if (rv_cashier_DishList != null && rv_cashier_DishList.getLayoutManager() != null) {
             outState.putParcelable("list_state", rv_cashier_DishList.getLayoutManager().onSaveInstanceState());
         }
     }
 
+    /**
+     * Tải chi tiết các món ăn thuộc đơn đặt hàng thông qua REST API getOrderDetails.
+     */
     private void loadOrderDetails() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getOrderDetails(madon).enqueue(new Callback<List<OrderDetailResponse>>() {
@@ -121,6 +142,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null) {
                     thanhToanDTOList = new ArrayList<>();
+                    // Duyệt danh sách nhận từ Server và gán vào list hiển thị
                     for (OrderDetailResponse res : response.body()) {
                         ThanhToanDTO dto = new ThanhToanDTO();
                         dto.setTenMon(res.getTenMon());
@@ -132,6 +154,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                     adapterDisplayPayment = new AdapterDisplayPayment(CashierConfirmActivity.this, thanhToanDTOList);
                     rv_cashier_DishList.setAdapter(adapterDisplayPayment);
 
+                    // Phục hồi lại vị trí cuộn cũ nếu có
                     if (savedLayoutState != null && rv_cashier_DishList.getLayoutManager() != null) {
                         rv_cashier_DishList.getLayoutManager().onRestoreInstanceState(savedLayoutState);
                         savedLayoutState = null;
@@ -148,6 +171,9 @@ public class CashierConfirmActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Gửi yêu cầu xác thực thanh toán thành công lên VPS qua API confirmPayment với phương thức thanh toán tương ứng.
+     */
     private void confirmPayment(String method) {
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang xử lý xác nhận...");
         progressDialog.show();
@@ -162,14 +188,14 @@ public class CashierConfirmActivity extends AppCompatActivity {
                     Log.d(TAG, "Xác nhận thanh toán thành công: madon=" + madon + ", method=" + method);
                     Toast.makeText(CashierConfirmActivity.this, "Xác nhận thành công!", Toast.LENGTH_SHORT).show();
                     
-                    // Phát sự kiện Socket real-time để báo các bên cập nhật
+                    // Phát tín hiệu Socket real-time đồng bộ cập nhật giao diện trạng thái bàn ở các máy phục vụ
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
                         socket.emit("booking_status_updated");
                         socket.emit("refresh_orders");
                     }
 
-                    finish(); // Quay lại trang danh sách chờ
+                    finish(); // Quay lại trang danh sách chờ thanh toán
                 } else {
                     Toast.makeText(CashierConfirmActivity.this, "Lỗi xác nhận", Toast.LENGTH_SHORT).show();
                 }
@@ -186,3 +212,4 @@ public class CashierConfirmActivity extends AppCompatActivity {
         });
     }
 }
+

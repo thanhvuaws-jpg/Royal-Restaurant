@@ -31,15 +31,29 @@ import retrofit2.Response;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.BookingViewModel;
 
+/**
+ * CustomerBookingFragment - Màn hình quản lý Lịch đặt bàn của Khách hàng.
+ * Hiển thị danh sách lịch sử đặt bàn và cho phép đặt bàn mới.
+ * Tự động đồng bộ trạng thái đặt bàn thông qua kết nối Socket.io và LiveData.
+ */
 public class CustomerBookingFragment extends Fragment {
 
+    // ViewModel quản lý dữ liệu lịch đặt bàn
     private BookingViewModel bookingViewModel;
+    // Nút nhấn để mở màn hình Đặt bàn mới
     MaterialButton btn_new_booking;
+    // Danh sách RecyclerView hiển thị lịch đặt bàn
     RecyclerView rv_active_bookings;
+    // Adapter ánh xạ danh sách lịch đặt bàn
     BookingHistoryAdapter adapter;
+    // Danh sách lưu trữ các lịch đặt bàn nhận từ ViewModel/Server
     List<BookingResponse> bookingList = new ArrayList<>();
+    // ScrollView bao bọc giao diện
     private androidx.core.widget.NestedScrollView nsv_customer_booking;
+    // Lưu trữ vị trí cuộn trang để phục hồi khi cấu hình thiết bị thay đổi (xoay màn hình)
     private int savedScrollY = -1;
+    // Đối tượng Socket.io lắng nghe sự kiện thay đổi trạng thái đặt bàn
+    private io.socket.client.Socket mSocket;
 
     @Nullable
     @Override
@@ -50,6 +64,7 @@ public class CustomerBookingFragment extends Fragment {
         rv_active_bookings = view.findViewById(R.id.rv_active_bookings);
         nsv_customer_booking = view.findViewById(R.id.nsv_customer_booking);
 
+        // Khôi phục trạng thái danh sách và vị trí cuộn nếu có savedInstanceState
         if (savedInstanceState != null) {
             String json = savedInstanceState.getString("saved_bookings");
             if (json != null && !json.isEmpty()) {
@@ -63,10 +78,12 @@ public class CustomerBookingFragment extends Fragment {
             savedScrollY = savedInstanceState.getInt("saved_scroll_y", -1);
         }
 
+        // Thiết lập RecyclerView và Adapter
         rv_active_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookingHistoryAdapter(getContext(), bookingList);
         rv_active_bookings.setAdapter(adapter);
 
+        // Phục hồi vị trí cuộn màn hình
         if (savedScrollY != -1 && nsv_customer_booking != null) {
             final int y = savedScrollY;
             nsv_customer_booking.post(new Runnable() {
@@ -77,16 +94,20 @@ public class CustomerBookingFragment extends Fragment {
             });
         }
 
+        // Click mở màn hình tạo lịch đặt bàn mới
         btn_new_booking.setOnClickListener(v -> {
             Intent intent = new Intent(getActivity(), CustomerBookingActivity.class);
             startActivity(intent);
         });
 
+        // Liên kết và quan sát LiveData thay đổi từ BookingViewModel
         bookingViewModel = new ViewModelProvider(this).get(BookingViewModel.class);
         bookingViewModel.getCustomerBookings().observe(getViewLifecycleOwner(), list -> {
             bookingList.clear();
             bookingList.addAll(list);
             adapter.notifyDataSetChanged();
+            
+            // Cuộn về vị trí trước đó nếu có cấu hình khôi phục cuộn
             if (savedScrollY != -1 && nsv_customer_booking != null) {
                 final int y = savedScrollY;
                 nsv_customer_booking.post(new Runnable() {
@@ -102,6 +123,9 @@ public class CustomerBookingFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Lưu trạng thái hiện thời của Fragment khi bị hủy tạm thời (VD: xoay màn hình, chạy ngầm).
+     */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -114,8 +138,6 @@ public class CustomerBookingFragment extends Fragment {
         }
     }
 
-    private io.socket.client.Socket mSocket;
-
     @Override
     public void onResume() {
         super.onResume();
@@ -126,11 +148,15 @@ public class CustomerBookingFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        // Hủy lắng nghe socket tránh rò rỉ bộ nhớ và nhận thông báo thừa khi ẩn màn hình
         if (mSocket != null) {
             mSocket.off("booking_status_updated");
         }
     }
 
+    /**
+     * Thiết lập Socket.io lắng nghe sự thay đổi trạng thái đặt bàn của mình từ server.
+     */
     private void setupSocketListener() {
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null) {
@@ -145,6 +171,9 @@ public class CustomerBookingFragment extends Fragment {
         }
     }
 
+    /**
+     * Thực hiện tải danh sách đặt bàn của khách hàng từ server.
+     */
     private void loadBookings() {
         int makh = SessionManager.getMaNV(getContext());
         bookingViewModel.fetchBookingsForCustomer(makh, false);

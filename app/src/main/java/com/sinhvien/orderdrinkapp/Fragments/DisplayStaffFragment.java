@@ -44,16 +44,32 @@ import retrofit2.Response;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.StaffViewModel;
 
+/**
+ * DisplayStaffFragment - Màn hình Quản lý Danh sách Nhân viên và Khách hàng (Staff & Customer Management).
+ * - Sử dụng TabLayout phân tách 2 danh sách:
+ *   1. Nhân viên (Quyền hạn 1, 2, 3: Quản lý, Phục vụ, Thu ngân).
+ *   2. Khách hàng (Quyền hạn 4: Khách hàng thành viên đăng ký ứng dụng).
+ * - Cho phép Admin (Quản trị viên) tạo mới nhân viên (AddStaffActivity), cập nhật thông tin.
+ * - Cho phép giữ lâu (Long click) để mở Dialog xóa tài khoản (đồng bộ gọi API RESTful).
+ * - Sử dụng StaffViewModel kết hợp LiveData phục vụ hiển thị mượt mà.
+ */
 public class DisplayStaffFragment extends Fragment {
 
+    // RecyclerView hiển thị danh sách người dùng
     RecyclerView rvStaff;
+    // TabLayout chuyển đổi giữa danh sách Nhân viên & Khách hàng
     TabLayout tabLayoutStaff;
+    // Danh sách hiển thị hiện thời trên RecyclerView (đã qua lọc)
     List<NhanVienDTO> nhanVienDTOS = new ArrayList<>();
+    // Danh sách tổng hợp toàn bộ dữ liệu tải về từ SQLite/Server
     List<NhanVienDTO> allStaffList = new ArrayList<>();
+    // Adapter hiển thị thông tin nhân viên
     AdapterDisplayStaff adapterDisplayStaff;
     View view;
+    // ViewModel quản lý nhân viên
     private StaffViewModel staffViewModel;
 
+    // Trình launcher đón nhận kết quả trả về khi thêm/sửa nhân viên thành công
     ActivityResultLauncher<Intent> resultLauncherAdd = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -85,6 +101,7 @@ public class DisplayStaffFragment extends Fragment {
         rvStaff = view.findViewById(R.id.rvStaff);
         rvStaff.setLayoutManager(new LinearLayoutManager(getActivity()));
 
+        // Thiết lập hai tab: Nhân viên & Khách hàng
         tabLayoutStaff = view.findViewById(R.id.tabLayoutStaff);
         if (tabLayoutStaff.getTabCount() == 0) {
             tabLayoutStaff.addTab(tabLayoutStaff.newTab().setText("Nhân viên"));
@@ -103,15 +120,16 @@ public class DisplayStaffFragment extends Fragment {
             public void onTabReselected(TabLayout.Tab tab) {}
         });
 
+        // Khởi tạo Adapter
         adapterDisplayStaff = new AdapterDisplayStaff(getActivity(), nhanVienDTOS);
         adapterDisplayStaff.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rvStaff.setAdapter(adapterDisplayStaff);
 
-        // Xử lý click (chọn nhân viên) và long-click (Sửa/Xóa)
+        // Thiết lập sự kiện click và giữ lâu trên RecyclerView
         adapterDisplayStaff.setOnItemClickListener(new AdapterDisplayStaff.OnItemClickListener() {
             @Override
             public void onItemClick(int position) {
-                // Click thường: mở màn hình sửa
+                // Click thường: Mở màn hình chỉnh sửa nhân viên
                 Intent iEdit = new Intent(getActivity(), AddStaffActivity.class);
                 iEdit.putExtra("manv", nhanVienDTOS.get(position).getMANV());
                 resultLauncherAdd.launch(iEdit);
@@ -119,18 +137,20 @@ public class DisplayStaffFragment extends Fragment {
 
             @Override
             public void onItemLongClick(int position) {
-                // Giữ lâu: hiện hộp thoại Sửa/Xóa
+                // Click giữ lâu: Hiển thị Menu lựa chọn Sửa hoặc Xóa nhân viên
                 int manv = nhanVienDTOS.get(position).getMANV();
                 String tenNV = nhanVienDTOS.get(position).getHOTENNV();
                 hienThiMenuTuyChon(manv, tenNV, position);
             }
         });
 
+        // SwipeRefreshLayout vuốt để đồng bộ lại từ server
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
             HienThiDSNV(swipeRefreshLayout, true);
         });
 
+        // Đăng ký quan sát dữ liệu danh sách nhân viên từ ViewModel
         staffViewModel = new ViewModelProvider(this).get(StaffViewModel.class);
         staffViewModel.getStaff().observe(getViewLifecycleOwner(), list -> {
             allStaffList.clear();
@@ -138,29 +158,33 @@ public class DisplayStaffFragment extends Fragment {
             applyFilter();
         });
 
+        // Tải danh sách nhân viên lúc khởi chạy màn hình
         HienThiDSNV(savedInstanceState == null);
         return view;
     }
 
-    // Hiện hộp thoại tùy chọn Sửa/Xóa
+    /**
+     * Hiển thị danh mục tùy chọn (Sửa/Xóa) khi quản trị viên click giữ lâu thông tin nhân viên.
+     */
     private void hienThiMenuTuyChon(int manv, String tenNV, int position) {
         String[] options = {"✏️ Sửa thông tin", "🗑️ Xóa nhân viên"};
         new AlertDialog.Builder(getActivity())
                 .setTitle(tenNV)
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
-                        // Sửa
                         Intent iEdit = new Intent(getActivity(), AddStaffActivity.class);
                         iEdit.putExtra("manv", manv);
                         resultLauncherAdd.launch(iEdit);
                     } else {
-                        // Xóa
                         xoaNhanVien(manv, position);
                     }
                 })
                 .show();
     }
 
+    /**
+     * Thực hiện gửi yêu cầu xóa tài khoản người dùng lên Server và cập nhật cục bộ.
+     */
     private void xoaNhanVien(int manv, int position) {
         new AlertDialog.Builder(getActivity())
                 .setTitle("Xóa nhân viên")
@@ -170,6 +194,7 @@ public class DisplayStaffFragment extends Fragment {
                     progressDialog.show();
 
                     ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                    // Gọi API DELETE quản lý nhân viên
                     apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<OrderResponse>() {
                         @Override
                         public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
@@ -184,6 +209,7 @@ public class DisplayStaffFragment extends Fragment {
                                     int currentPos = nhanVienDTOS.indexOf(toRemove);
                                     allStaffList.remove(toRemove);
                                     nhanVienDTOS.remove(toRemove);
+                                    // Hiệu ứng mượt mà khi xóa dòng trong danh sách RecyclerView
                                     adapterDisplayStaff.notifyItemRemoved(currentPos);
                                     adapterDisplayStaff.notifyItemRangeChanged(currentPos, nhanVienDTOS.size());
                                 }
@@ -205,6 +231,9 @@ public class DisplayStaffFragment extends Fragment {
                 .show();
     }
 
+    /**
+     * Khởi tạo Menu Thêm nhân viên trên thanh ActionBar.
+     */
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -230,6 +259,9 @@ public class DisplayStaffFragment extends Fragment {
         HienThiDSNV(null, fetchApi);
     }
 
+    /**
+     * Tải dữ liệu danh sách người dùng từ SQLite nội bộ và đồng bộ API.
+     */
     private void HienThiDSNV(SwipeRefreshLayout swipeRefresh, boolean fetchApi) {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
@@ -270,22 +302,24 @@ public class DisplayStaffFragment extends Fragment {
         });
     }
 
+    /**
+     * Lọc danh sách nhân viên theo Tab đang được chọn.
+     * - Tab 0: Nhân viên (Quyền 1, 2, 3 - Quản lý, Phục vụ, Thu ngân).
+     * - Tab 1: Khách hàng (Quyền 4 - Khách hàng thành viên đăng ký app).
+     */
     private void applyFilter() {
         nhanVienDTOS.clear();
         if (tabLayoutStaff == null) {
-            // Trường hợp chưa init tabLayoutStaff
             capNhatTrangThai();
             return;
         }
         int selectedTab = tabLayoutStaff.getSelectedTabPosition();
         for (NhanVienDTO nv : allStaffList) {
             if (selectedTab == 0) {
-                // Nhân viên (Quyền 1, 2, 3)
                 if (nv.getMAQUYEN() != 4) {
                     nhanVienDTOS.add(nv);
                 }
             } else {
-                // Khách hàng (Quyền 4)
                 if (nv.getMAQUYEN() == 4) {
                     nhanVienDTOS.add(nv);
                 }
@@ -295,6 +329,9 @@ public class DisplayStaffFragment extends Fragment {
         capNhatTrangThai();
     }
 
+    /**
+     * Hiển thị trạng thái giao diện báo danh sách trống (Empty State).
+     */
     private void capNhatTrangThai() {
         View layout_empty_state = view.findViewById(R.id.layout_empty_state);
         int selectedTab = tabLayoutStaff != null ? tabLayoutStaff.getSelectedTabPosition() : 0;

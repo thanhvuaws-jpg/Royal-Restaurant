@@ -44,18 +44,38 @@ import android.util.Log;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.TableViewModel;
 
+/**
+ * DisplayTableFragment - Màn hình Quản lý Danh sách Bàn ăn (Table Dashboard).
+ * - Sử dụng TabLayout phân tách danh sách:
+ *   1. Ngồi tại bàn: Hiển thị các bàn ăn vật lý bố trí tại nhà hàng.
+ *   2. Mang đi: Hiển thị các hóa đơn mang đi (Takeaway/Mang đi).
+ * - Sử dụng RecyclerView với GridLayoutManager (lưới 2 cột) hiển thị các ô bàn ăn kèm trạng thái:
+ *   + Bàn trống (Màu xanh/Xám).
+ *   + Đang có khách/Đang gọi món (Màu đỏ/Vàng).
+ *   + Đã được đặt trước (Reserved).
+ * - Vuốt làm mới (SwipeRefreshLayout) để đồng bộ lại dữ liệu bàn ăn và đơn đặt từ Server VPS.
+ * - Tự động đồng bộ bằng kết nối thời gian thực qua Socket.io khi có nhân viên khác đổi trạng thái bàn/gọi món.
+ * - Cho phép thêm bàn mới (AddTableActivity) dành riêng cho người dùng quản lý.
+ */
 public class DisplayTableFragment extends Fragment {
 
     private static final String TAG = "DisplayTableFragment";
 
+    // RecyclerView hiển thị danh sách các ô bàn
     RecyclerView rvDisplayTable;
+    // TabLayout phân loại Ngồi tại bàn vs Mang đi
     TabLayout tabLayoutTable;
+    // Danh sách gốc chứa toàn bộ thông tin bàn ăn tải về
     List<BanAnDTO> banAnDTOList = new ArrayList<>();
+    // Danh sách đã qua bộ lọc loại hình (Ngồi tại bàn / Mang đi)
     List<BanAnDTO> filteredList = new ArrayList<>();
+    // Adapter phục vụ hiển thị bàn ăn
     AdapterDisplayTable adapterDisplayTable;
     View view;
+    // ViewModel quản lý bàn ăn
     private TableViewModel tableViewModel;
 
+    // Đón nhận kết quả trả về khi thêm bàn ăn thành công
     ActivityResultLauncher<Intent> resultLauncherAdd = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -67,6 +87,7 @@ public class DisplayTableFragment extends Fragment {
                 }
             });
 
+    // Cờ đánh dấu fragment được tái tạo lại
     private boolean isRecreated = false;
 
     @Override
@@ -79,6 +100,7 @@ public class DisplayTableFragment extends Fragment {
             isRecreated = true;
         }
 
+        // Thiết lập hai tab phân loại hình thức gọi món
         tabLayoutTable = view.findViewById(R.id.tabLayoutTable);
         tabLayoutTable.addTab(tabLayoutTable.newTab().setText("Ngồi tại bàn"));
         tabLayoutTable.addTab(tabLayoutTable.newTab().setText("Mang đi"));
@@ -97,27 +119,31 @@ public class DisplayTableFragment extends Fragment {
         });
 
         rvDisplayTable = view.findViewById(R.id.rvDisplayTable);
-        // Lưới 2 cột như GridView cũ
+        // Bố trí dạng lưới 2 cột
         rvDisplayTable.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
         adapterDisplayTable = new AdapterDisplayTable(getActivity(), filteredList);
         adapterDisplayTable.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rvDisplayTable.setAdapter(adapterDisplayTable);
 
+        // Vuốt làm mới đồng bộ dữ liệu
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);
         swipeRefreshLayout.setOnRefreshListener(() -> {
             HienThiDSBan(swipeRefreshLayout, true);
         });
 
+        // FAB thêm bàn mới dành cho Admin/Nhân viên
         view.findViewById(R.id.fab_add_table).setOnClickListener(v ->
                 resultLauncherAdd.launch(new Intent(getActivity(), AddTableActivity.class)));
 
+        // Khởi tạo ViewModel bàn ăn và đăng ký lắng nghe thay đổi
         tableViewModel = new ViewModelProvider(this).get(TableViewModel.class);
         tableViewModel.getTables().observe(getViewLifecycleOwner(), list -> {
             banAnDTOList.clear();
             banAnDTOList.addAll(list);
             filterTables(tabLayoutTable != null ? tabLayoutTable.getSelectedTabPosition() : 0);
         });
+        // Đăng ký quan sát danh sách bàn đã được đặt trước (booking)
         tableViewModel.getReservedTables().observe(getViewLifecycleOwner(), reservedList -> {
             adapterDisplayTable.setReservedTables(reservedList);
         });
@@ -126,6 +152,8 @@ public class DisplayTableFragment extends Fragment {
     }
 
     private io.socket.client.Socket mSocket;
+    
+    // Tự động làm mới danh sách bàn khi có bất kỳ thay đổi nào từ Socket.io
     private io.socket.emitter.Emitter.Listener onRefreshOrders = new io.socket.emitter.Emitter.Listener() {
         @Override
         public void call(Object... args) {
@@ -164,6 +192,9 @@ public class DisplayTableFragment extends Fragment {
         }
     }
 
+    /**
+     * Khởi tạo Actionbar Menu Thêm bàn ăn.
+     */
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
@@ -181,6 +212,11 @@ public class DisplayTableFragment extends Fragment {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * Lọc danh sách bàn ăn dựa trên Tab được chọn.
+     * - Tab 0: Ngồi tại bàn (Không chứa các cụm từ "mang đi", "takeaway").
+     * - Tab 1: Mang đi (Có chứa các cụm từ "mang đi", "takeaway").
+     */
     private void filterTables(int tabIndex) {
         filteredList.clear();
         for (BanAnDTO ban : banAnDTOList) {
@@ -211,6 +247,9 @@ public class DisplayTableFragment extends Fragment {
         HienThiDSBan(null, fetchApi);
     }
 
+    /**
+     * Thực hiện tải dữ liệu bàn ăn từ SQLite và gọi API đồng bộ hóa từ máy chủ VPS.
+     */
     private void HienThiDSBan(SwipeRefreshLayout swipeRefresh, boolean fetchApi) {
         if (swipeRefresh != null) {
             swipeRefresh.setRefreshing(true);
@@ -256,6 +295,9 @@ public class DisplayTableFragment extends Fragment {
         tableViewModel.fetchReservedTables();
     }
 
+    /**
+     * Hiển thị thông báo trạng thái rỗng khi danh sách bàn lọc ra bị trống.
+     */
     private void capNhatTrangThai() {
         View layout_empty_state = view.findViewById(R.id.layout_empty_state);
         if (!filteredList.isEmpty()) {

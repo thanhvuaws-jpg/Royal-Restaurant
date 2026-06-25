@@ -16,11 +16,18 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * CustomerProfileViewModel - Lớp ViewModel quản lý thông tin hồ sơ Khách hàng (Customer Profile).
+ * Truy vấn thông tin chi tiết của khách hàng bao gồm mức chi tiêu, xếp hạng thành viên,
+ * các thông tin liên lạc và lịch sử đặt bàn để cập nhật lên UI khách hàng.
+ */
 public class CustomerProfileViewModel extends AndroidViewModel {
 
     private static final String TAG = "CustomerProfileViewModel";
 
+    // LiveData lưu thông tin hồ sơ của khách hàng
     private final MutableLiveData<CustomerProfileResponse> profileLiveData = new MutableLiveData<>();
+    // LiveData lưu trạng thái tải dữ liệu
     private final MutableLiveData<Boolean> isLoadingLiveData = new MutableLiveData<>(false);
 
     public CustomerProfileViewModel(@NonNull Application application) {
@@ -35,6 +42,11 @@ public class CustomerProfileViewModel extends AndroidViewModel {
         return isLoadingLiveData;
     }
 
+    /**
+     * Tải thông tin hồ sơ cá nhân của khách hàng từ server.
+     * @param makh ID khách hàng thành viên.
+     * @param forceRefresh Ép buộc tải lại dữ liệu mới từ server, bỏ qua cache.
+     */
     public void fetchCustomerProfile(int makh, boolean forceRefresh) {
         if (!forceRefresh && profileLiveData.getValue() != null) {
             return;

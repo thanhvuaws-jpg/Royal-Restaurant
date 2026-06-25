@@ -33,15 +33,27 @@ import retrofit2.Response;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.CustomerProfileViewModel;
 
+/**
+ * CustomerProfileFragment - Màn hình Hồ sơ Khách hàng.
+ * Hiển thị thông tin cá nhân của khách hàng: họ tên, số điện thoại, tổng mức chi tiêu tích lũy,
+ * thẻ hạng thành viên (Đồng/Bạc/Vàng) dựa trên mức chi tiêu, và lịch sử các lần đặt bàn trước đây.
+ */
 public class CustomerProfileFragment extends Fragment {
 
+    // ViewModel quản lý thông tin hồ sơ của khách hàng
     private CustomerProfileViewModel customerProfileViewModel;
 
+    // Các thành phần giao diện hiển thị thông tin
     TextView txt_profile_name, txt_profile_phone, txt_profile_spending, txt_profile_badge;
+    // RecyclerView hiển thị danh sách lịch sử đặt bàn
     RecyclerView rv_history_bookings;
+    // Adapter phục vụ hiển thị lịch sử đặt bàn
     BookingHistoryAdapter adapter;
+    // Danh sách lịch đặt bàn
     List<BookingResponse> bookingList = new ArrayList<>();
+    // ScrollView điều khiển cuộn
     private androidx.core.widget.NestedScrollView nsv_customer_profile;
+    // Lưu trữ vị trí cuộn khi Fragment tái tạo (VD: xoay màn hình)
     private int savedScrollY = -1;
 
     @Nullable
@@ -56,6 +68,7 @@ public class CustomerProfileFragment extends Fragment {
         rv_history_bookings = view.findViewById(R.id.rv_history_bookings);
         nsv_customer_profile = view.findViewById(R.id.nsv_customer_profile);
 
+        // Khôi phục trạng thái giao diện đã lưu
         if (savedInstanceState != null) {
             String json = savedInstanceState.getString("saved_bookings");
             if (json != null && !json.isEmpty()) {
@@ -72,9 +85,9 @@ public class CustomerProfileFragment extends Fragment {
             String badgeText = savedInstanceState.getString("saved_badge", "");
             txt_profile_badge.setText(badgeText);
             if (!badgeText.isEmpty()) {
-                String badgeColor = "#CD7F32";
-                if (badgeText.contains("Vàng")) badgeColor = "#FFD700";
-                else if (badgeText.contains("Bạc")) badgeColor = "#C0C0C0";
+                String badgeColor = "#CD7F32"; // Đồng
+                if (badgeText.contains("Vàng")) badgeColor = "#FFD700"; // Vàng
+                else if (badgeText.contains("Bạc")) badgeColor = "#C0C0C0"; // Bạc
                 GradientDrawable drawable = (GradientDrawable) txt_profile_badge.getBackground();
                 if (drawable != null) {
                     drawable.setColor(Color.parseColor(badgeColor));
@@ -83,12 +96,15 @@ public class CustomerProfileFragment extends Fragment {
             savedScrollY = savedInstanceState.getInt("saved_scroll_y", -1);
         }
 
+        // Thiết lập RecyclerView hiển thị lịch sử đặt bàn
         rv_history_bookings.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new BookingHistoryAdapter(getContext(), bookingList);
         rv_history_bookings.setAdapter(adapter);
 
+        // Hiển thị họ tên lấy trực tiếp từ Session đã lưu
         txt_profile_name.setText(SessionManager.getFullName(getContext()));
 
+        // Khôi phục vị trí cuộn trang
         if (savedScrollY != -1 && nsv_customer_profile != null) {
             final int y = savedScrollY;
             nsv_customer_profile.post(new Runnable() {
@@ -99,6 +115,7 @@ public class CustomerProfileFragment extends Fragment {
             });
         }
 
+        // Đăng ký quan sát dữ liệu LiveData từ CustomerProfileViewModel
         customerProfileViewModel = new ViewModelProvider(this).get(CustomerProfileViewModel.class);
         customerProfileViewModel.getProfile().observe(getViewLifecycleOwner(), profile -> {
             if (profile == null) return;
@@ -112,16 +129,21 @@ public class CustomerProfileFragment extends Fragment {
                 }
             } catch (NumberFormatException ignored) {}
 
+            // Định dạng hiển thị tiền tệ VNĐ (ví dụ: 1,500,000 đ)
             DecimalFormat formatter = new DecimalFormat("#,###");
             txt_profile_spending.setText(formatter.format(totalSpent) + " đ");
 
+            // Cập nhật nhãn phân hạng thành viên
             updateLoyaltyBadge(totalSpent);
 
+            // Cập nhật danh sách lịch sử đặt bàn
             bookingList.clear();
             if (profile.getBookings() != null) {
                 bookingList.addAll(profile.getBookings());
             }
             adapter.notifyDataSetChanged();
+            
+            // Khôi phục vị trí cuộn sau khi cập nhật dữ liệu
             if (savedScrollY != -1 && nsv_customer_profile != null) {
                 final int y = savedScrollY;
                 nsv_customer_profile.post(new Runnable() {
@@ -134,11 +156,15 @@ public class CustomerProfileFragment extends Fragment {
             }
         });
 
+        // Tải dữ liệu từ server
         loadCustomerSpendingAndHistory();
 
         return view;
     }
 
+    /**
+     * Lưu trạng thái giao diện Fragment trước khi bị tạm dừng/hủy.
+     */
     @Override
     public void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
@@ -154,11 +180,20 @@ public class CustomerProfileFragment extends Fragment {
         }
     }
 
+    /**
+     * Thực hiện yêu cầu ViewModel tải thông tin hồ sơ của khách hàng từ server.
+     */
     private void loadCustomerSpendingAndHistory() {
         int makh = SessionManager.getMaNV(getContext());
         customerProfileViewModel.fetchCustomerProfile(makh, false);
     }
 
+    /**
+     * Phân cấp và cập nhật giao diện hạng thành viên dựa trên tổng mức chi tiêu.
+     * - Hạng Vàng: Chi tiêu >= 1.000.000 VNĐ
+     * - Hạng Bạc: Chi tiêu >= 500.000 VNĐ
+     * - Hạng Đồng: Chi tiêu < 500.000 VNĐ
+     */
     private void updateLoyaltyBadge(long spending) {
         String badgeText;
         String badgeColor;

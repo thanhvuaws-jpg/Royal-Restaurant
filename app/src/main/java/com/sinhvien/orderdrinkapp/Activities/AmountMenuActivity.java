@@ -22,26 +22,37 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * AmountMenuActivity - Màn hình chọn Số lượng và Ghi chú khi gọi món cho một bàn cụ thể.
+ * Chức năng chính:
+ * - Khi click vào món ăn trong danh sách, màn hình này xuất hiện để chọn số lượng món cần đặt.
+ * - Tự động liên hệ API Server để tìm Đơn đặt bàn hiện tại (OrderByTable). Nếu chưa có đơn hàng, hệ thống tự động khởi tạo đơn mới (createOrder).
+ * - Lưu chi tiết món ăn (mã món, số lượng) vào cơ sở dữ liệu cloud qua API (addOrderDetail).
+ */
 public class AmountMenuActivity extends AppCompatActivity {
 
     private static final String TAG = "AmountMenuActivity";
 
+    // Khai báo View
     TextInputLayout txtl_amount_Quantity, txtl_amount_Note;
     Button btn_amount_Confirm;
     ImageView img_amount_Back;
-    int maban, mamon, madondatCloud = 0;
+    
+    int maban, mamon; // ID bàn và ID món ăn
+    int madondatCloud = 0; // ID đơn đặt hàng lưu trên Cloud
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.amount_menu_layout);
 
-        // Bind views
+        // Ánh xạ View
         txtl_amount_Quantity = findViewById(R.id.txtl_amount_Quantity);
         txtl_amount_Note = findViewById(R.id.txtl_amount_Note);
         btn_amount_Confirm = findViewById(R.id.btn_amount_Confirm);
         img_amount_Back = findViewById(R.id.img_amount_Back);
 
+        // Lắng nghe sự kiện click nút Back
         img_amount_Back.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -49,23 +60,26 @@ public class AmountMenuActivity extends AppCompatActivity {
             }
         });
 
-        // Lấy thông tin từ bàn được chọn
+        // Nhận dữ liệu bàn và món ăn được chọn từ Intent
         Intent intent = getIntent();
         maban = intent.getIntExtra("maban", 0);
         mamon = intent.getIntExtra("mamon", 0);
 
-        // Lấy mã đơn hàng từ Cloud
+        // Khôi phục mã đơn đặt hàng nếu có cấu hình xoay màn hình
         if (savedInstanceState != null) {
             madondatCloud = savedInstanceState.getInt("madondat_cloud", 0);
         }
         if (madondatCloud == 0) {
-            layMaDonHangTuCloud();
+            layMaDonHangTuCloud(); // Lấy mã đơn hàng từ Cloud tương ứng với bàn hiện tại
         }
 
+        // Lắng nghe sự kiện click nút Xác nhận số lượng
         btn_amount_Confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+                if (ViewUtils.isFastDoubleClick()) return; // Khóa nhấn double click quá nhanh
+                
+                // Xác thực số lượng nhập vào
                 if (!validateAmount()) {
                     return;
                 }
@@ -77,10 +91,11 @@ public class AmountMenuActivity extends AppCompatActivity {
 
                 int sluong = Integer.parseInt(txtl_amount_Quantity.getEditText().getText().toString());
                 
+                // Hiển thị tiến trình loading
                 androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AmountMenuActivity.this, "Đang thêm món...");
                 progressDialog.show();
 
-                // Gửi món ăn lên Cloud
+                // Gửi thông tin chi tiết món ăn vừa gọi lên Cloud
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 apiService.addOrderDetail(madondatCloud, mamon, sluong).enqueue(new Callback<OrderResponse>() {
                     @Override
@@ -109,6 +124,9 @@ public class AmountMenuActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Gửi yêu cầu lên server VPS lấy thông tin Đơn đặt hàng hiện tại đang phục vụ cho bàn ăn.
+     */
     private void layMaDonHangTuCloud() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getOrderByTable(maban).enqueue(new Callback<OrderResponse>() {
@@ -116,9 +134,9 @@ public class AmountMenuActivity extends AppCompatActivity {
             public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    madondatCloud = response.body().getMaDonDat();
+                    madondatCloud = response.body().getMaDonDat(); // Nhận mã đơn hiện tại
                 } else {
-                    // Nếu chưa có đơn, tạo đơn mới ngay
+                    // Nếu bàn chưa được mở đơn, tạo mới một đơn hàng tức thì
                     taoDonHangMoi();
                 }
             }
@@ -132,6 +150,9 @@ public class AmountMenuActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Khởi tạo một đơn hàng mới gắn với nhân viên phục vụ hiện tại và bàn ăn được chọn.
+     */
     private void taoDonHangMoi() {
         int manv = SessionManager.getMaNV(this);
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
@@ -140,7 +161,7 @@ public class AmountMenuActivity extends AppCompatActivity {
             public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    madondatCloud = response.body().getMaDonDat();
+                    madondatCloud = response.body().getMaDonDat(); // Nhận ID đơn mới tạo
                 }
             }
 
@@ -153,6 +174,9 @@ public class AmountMenuActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Kiểm duyệt định dạng số lượng món gọi (Không rỗng, là ký số hợp lệ).
+     */
     private boolean validateAmount() {
         if (txtl_amount_Quantity.getEditText() == null) return false;
         String val = txtl_amount_Quantity.getEditText().getText().toString().trim();
@@ -172,6 +196,7 @@ public class AmountMenuActivity extends AppCompatActivity {
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu trữ mã đơn đặt hàng để tránh bị mất khi Activity thay đổi vòng đời (config changes)
         outState.putInt("madondat_cloud", madondatCloud);
     }
 }

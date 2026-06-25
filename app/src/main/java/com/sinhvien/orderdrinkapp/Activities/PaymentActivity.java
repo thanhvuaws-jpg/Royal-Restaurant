@@ -37,10 +37,22 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * PaymentActivity - Màn hình thanh toán hóa đơn tạm tính của Bàn ăn (Dành cho nhân viên phục vụ / Khách hàng).
+ * Chức năng chính:
+ * - Hiển thị danh sách món ăn, số lượng và tổng số tiền của đơn hàng thuộc bàn ăn được chọn.
+ * - Cung cấp 2 hình thức thanh toán chính:
+ *   + Tiền mặt: Gửi yêu cầu thanh toán trực tiếp lên máy thu ngân.
+ *   + Chuyển khoản (VietQR): Tạo mã VietQR động theo tiêu chuẩn VietQR.io (chứa số tiền, nội dung thanh toán và thông tin ngân hàng thụ hưởng cấu hình tại ApiClient), hiển thị hình ảnh QR bằng Glide.
+ * - Đồng bộ thời gian thực bằng Socket.io (kênh refresh_orders): Khi phát sinh thanh toán, phát tín hiệu lên server để thông báo cho máy thu ngân. Đồng thời lắng nghe phản hồi của Thu ngân duyệt đơn để kết thúc quá trình.
+ * - Cơ chế Polling dự phòng (3s/5s): Chủ động gọi API checkOrderStatus liên tục để kiểm tra trạng thái thanh toán đã được thu ngân duyệt thành công chưa.
+ * - Xuất và chia sẻ hóa đơn (HienThiHoaDon): Tạo ảnh chụp bitmap biên lai hóa đơn để chia sẻ hoặc lưu trữ dưới dạng ảnh.
+ */
 public class PaymentActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final String TAG = "PaymentActivity";
 
+    // Khai báo các đối tượng giao diện XML
     ImageView img_payment_BackBtn;
     TextView txt_payment_TableName, txt_payment_OrderDate, txt_payment_TotalAmount;
     RecyclerView rv_payment_DishList;
@@ -51,10 +63,10 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     int maban, madondat;
     String tenban, ngaydat;
 
-    // Polling & Socket tools
+    // Các biến phục vụ việc Polling & Socket đồng bộ
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
-    private androidx.appcompat.app.AlertDialog waitingDialog;
+    private androidx.appcompat.app.AlertDialog waitingDialog; // Dialog hiển thị chờ thu ngân duyệt
     private boolean isPolling = false;
     private boolean isReceiptShowing = false;
     private boolean shouldShowReceipt = false;
@@ -67,7 +79,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    checkApprovalStatus();
+                    checkApprovalStatus(); // Kiểm tra trạng thái hóa đơn khi nhận được tin nhắn socket
                 }
             });
         }
@@ -78,7 +90,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         super.onCreate(savedInstanceState);
         setContentView(R.layout.payment_layout);
 
-        //region Bind views
+        // Ánh xạ các View XML
         img_payment_BackBtn    = findViewById(R.id.img_payment_BackBtn);
         txt_payment_TableName  = findViewById(R.id.txt_payment_TableName);
         txt_payment_OrderDate  = findViewById(R.id.txt_payment_OrderDate);
@@ -86,8 +98,8 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         rv_payment_DishList    = findViewById(R.id.rv_payment_DishList);
         rv_payment_DishList.setLayoutManager(new LinearLayoutManager(this));
         btn_payment_Pay        = findViewById(R.id.btn_payment_Pay);
-        //endregion
 
+        // Khôi phục trạng thái cũ (nếu có) khi quay màn hình
         boolean wasPolling = false;
         if (savedInstanceState != null) {
             savedLayoutState = savedInstanceState.getParcelable("list_state");
@@ -95,6 +107,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             shouldShowReceipt = savedInstanceState.getBoolean("is_receipt_showing", false);
         }
 
+        // Nhận dữ liệu truyền sang từ màn hình chính
         maban   = getIntent().getIntExtra("maban", 0);
         tenban  = getIntent().getStringExtra("tenban");
         ngaydat = getIntent().getStringExtra("ngaydat");
@@ -103,6 +116,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         txt_payment_TableName.setText(tenban);
         txt_payment_OrderDate.setText(ngaydat);
 
+        // Hiển thị danh sách các món ăn cần thanh toán
         HienThiDSMonThanhToan();
 
         if (wasPolling) {
@@ -113,6 +127,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         btn_payment_Pay.setOnClickListener(this);
     }
 
+    /**
+     * Tải thông tin chi tiết các món ăn thuộc đơn hàng từ Server API.
+     */
     private void HienThiDSMonThanhToan() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getOrderDetails(madondat).enqueue(new Callback<List<OrderDetailResponse>>() {
@@ -143,6 +160,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         });
     }
 
+    /**
+     * Đồng bộ nạp danh sách món ăn lên RecyclerView và tính tổng số tiền.
+     */
     private void capNhatGiaoDien() {
         adapterDisplayPayment = new AdapterDisplayPayment(this, thanhToanDTOList);
         rv_payment_DishList.setAdapter(adapterDisplayPayment);
@@ -166,13 +186,16 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_payment_Pay) {
-            if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+            if (ViewUtils.isFastDoubleClick()) return; // Khóa double click
             hienThiDialogChonPhuongThuc();
         } else if (id == R.id.img_payment_BackBtn) {
             finish();
         }
     }
 
+    /**
+     * Mở Dialog lựa chọn phương thức thanh toán.
+     */
     private void hienThiDialogChonPhuongThuc() {
         String[] options = {"Tiền mặt", "Chuyển khoản (VietQR)"};
         new androidx.appcompat.app.AlertDialog.Builder(this)
@@ -188,6 +211,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 .show();
     }
 
+    /**
+     * Mở Dialog chứa mã QR chuyển khoản động (sử dụng VietQR API).
+     */
     private void hienThiDialogVietQR() {
         View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_vietqr, null);
         ImageView imgQR = dialogView.findViewById(R.id.img_dialogqr_QR);
@@ -198,6 +224,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         Button btnConfirm = dialogView.findViewById(R.id.btn_dialogqr_Confirm);
         Button btnCancel = dialogView.findViewById(R.id.btn_dialogqr_Cancel);
 
+        // Tạo nội dung chuyển khoản động
         String message = "Thanh toan Ban " + tenban + " Don " + madondat;
         String qrUrl = "";
         try {
@@ -218,6 +245,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         txtAmount.setText(String.format("%,d", tongtien) + " VNĐ");
         txtMessage.setText(message);
 
+        // Nạp ảnh QR trực tuyến bằng Glide
         com.bumptech.glide.Glide.with(this)
                 .load(qrUrl)
                 .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
@@ -232,7 +260,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         btnConfirm.setOnClickListener(v -> {
             com.bumptech.glide.Glide.with(this).clear(imgQR);
             dialog.dismiss();
-            thucHienThanhToan("Chuyển khoản");
+            thucHienThanhToan("Chuyển khoản"); // Gửi yêu cầu chuyển khoản lên thu ngân duyệt
         });
 
         btnCancel.setOnClickListener(v -> {
@@ -243,6 +271,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         dialog.show();
     }
 
+    /**
+     * Gọi API yêu cầu thanh toán (checkoutOrder) gửi lên phía thu ngân phê duyệt.
+     */
     private void thucHienThanhToan(String phuongthuc) {
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang gửi yêu cầu thanh toán...");
         progressDialog.show();
@@ -255,11 +286,13 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Gửi yêu cầu thanh toán thành công: madon=" + madondat + ", phuongthuc=" + phuongthuc);
+                    
+                    // Phát sự kiện Socket real-time thông báo Thu Ngân
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
                         socket.emit("refresh_orders");
                     }
-                    startPollingForApproval();
+                    startPollingForApproval(); // Chuyển sang chế độ chờ thu ngân duyệt đơn
                 } else {
                     Toast.makeText(PaymentActivity.this, "Lỗi gửi yêu cầu", Toast.LENGTH_SHORT).show();
                 }
@@ -275,6 +308,11 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             }
         });
     }
+
+    /**
+     * Bật cơ chế lắng nghe thu ngân xác nhận duyệt đơn.
+     * Sử dụng kết hợp Socket.io và cơ chế Polling (gọi lại định kỳ) để đảm bảo không bị mất gói tin.
+     */
     private void startPollingForApproval() {
         waitingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang chờ Thu ngân xác nhận...");
         waitingDialog.show();
@@ -282,7 +320,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket != null && mSocket.connected()) {
             mSocket.on("refresh_orders", onRefreshOrders);
-            // Backup polling chạy mỗi 5s
+            // Polling dự phòng chạy mỗi 5s
             isPolling = true;
             pollingRunnable = new Runnable() {
                 @Override
@@ -295,7 +333,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             };
             pollingHandler.postDelayed(pollingRunnable, 5000);
         } else {
-            // Không có socket -> Polling 3s như cũ
+            // Không có kết nối Socket -> Chạy Polling định kỳ mỗi 3s
             isPolling = true;
             pollingRunnable = new Runnable() {
                 @Override
@@ -310,6 +348,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Dừng lắng nghe duyệt đơn và đóng các hộp thoại chờ.
+     */
     private void stopPolling() {
         isPolling = false;
         if (pollingRunnable != null) {
@@ -323,6 +364,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         }
     }
 
+    /**
+     * Gọi API checkOrderStatus để kiểm tra xem đơn hàng đã được Thu ngân chuyển trạng thái sang đã thanh toán (tinhTrang = true) chưa.
+     */
     private void checkApprovalStatus() {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.checkOrderStatus(madondat).enqueue(new Callback<OrderResponse>() {
@@ -330,15 +374,15 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
                     String status = response.body().getTinhTrang();
-                    if ("true".equals(status)) { // Đã xác nhận
+                    if ("true".equals(status)) { // Đã được thu ngân xác nhận duyệt
                         stopPolling();
-                        HienThiHoaDon();
+                        HienThiHoaDon(); // Xuất hóa đơn cho khách
                     }
                 }
             }
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
-                // Ignore failure during polling
+                // Bỏ qua lỗi trong lúc polling chờ
             }
         });
     }
@@ -346,6 +390,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu giữ trạng thái màn hình
         outState.putBoolean("is_polling", isPolling);
         outState.putBoolean("is_receipt_showing", isReceiptShowing);
         if (rv_payment_DishList != null && rv_payment_DishList.getLayoutManager() != null) {
@@ -360,15 +405,14 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /**
-     * Hiển thị dialog hóa đơn dạng AlertDialog sau khi thanh toán thành công.
-     * Người dùng có thể chia sẻ hoặc đóng hóa đơn.
+     * Hiển thị biên lai Hóa đơn (Receipt Layout) và hỗ trợ chia sẻ thông qua ReceiptHelper.
      */
     private void HienThiHoaDon() {
         isReceiptShowing = true;
         View receiptView = LayoutInflater.from(this)
                 .inflate(R.layout.receipt_layout, null);
 
-        // Bind views trong receipt
+        // Ánh xạ các View con trong hóa đơn
         TextView txt_receipt_TableName = receiptView.findViewById(R.id.txt_receipt_TableName);
         TextView txt_receipt_Date      = receiptView.findViewById(R.id.txt_receipt_Date);
         TextView txt_receipt_Total     = receiptView.findViewById(R.id.txt_receipt_Total);
@@ -376,7 +420,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         Button btn_receipt_Share       = receiptView.findViewById(R.id.btn_receipt_Share);
         Button btn_receipt_Close       = receiptView.findViewById(R.id.btn_receipt_Close);
 
-        // Điền thông tin
+        // Gán thông tin hóa đơn
         txt_receipt_TableName.setText(
                 getString(R.string.receipt_table) + tenban);
         txt_receipt_Date.setText(
@@ -385,7 +429,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 String.format("%,d", tongtien) + " " +
                         getString(R.string.currency_vnd));
 
-        // Thêm từng dòng món vào danh sách
+        // Nạp động danh sách món ăn vào Layout hóa đơn
         LayoutInflater inflater = LayoutInflater.from(this);
         for (ThanhToanDTO item : thanhToanDTOList) {
             View rowView = inflater.inflate(
@@ -402,15 +446,15 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             layout_receipt_ItemList.addView(rowView);
         }
 
-        // Tạo AlertDialog
+        // Tạo và mở hộp thoại AlertDialog hiển thị biên lai
         AlertDialog dialog = new AlertDialog.Builder(this)
                 .setView(receiptView)
                 .setCancelable(false)
                 .create();
 
-        // Nút chia sẻ
+        // Nút chia sẻ hóa đơn (Chụp màn hình layout và chia sẻ)
         btn_receipt_Share.setOnClickListener(v -> {
-            // Render layout hóa đơn (ẩn nút trước khi chụp)
+            // Tạm thời ẩn các nút bấm để bức ảnh chụp biên lai sạch đẹp hơn
             btn_receipt_Share.setVisibility(View.GONE);
             btn_receipt_Close.setVisibility(View.GONE);
 
@@ -425,15 +469,16 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                     contentOnly.getMeasuredWidth(),
                     contentOnly.getMeasuredHeight());
 
+            // Chụp view thành ảnh Bitmap và gọi Intent chia sẻ hệ thống
             Bitmap bitmap = ReceiptHelper.captureView(contentOnly);
             ReceiptHelper.shareBitmap(this, bitmap);
 
-            // Hiện lại nút
+            // Hiện lại các nút sau khi chụp xong
             btn_receipt_Share.setVisibility(View.VISIBLE);
             btn_receipt_Close.setVisibility(View.VISIBLE);
         });
 
-        // Nút đóng → về màn hình chính
+        // Nút đóng hộp thoại -> hoàn thành và đóng Activity thanh toán
         btn_receipt_Close.setOnClickListener(v -> {
             isReceiptShowing = false;
             dialog.dismiss();

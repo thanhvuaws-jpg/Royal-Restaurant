@@ -24,12 +24,21 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * HomeViewModel - Lớp ViewModel phục vụ màn hình chính (Home Fragment/Activity).
+ * Quản lý danh sách đơn hàng đã hoàn tất thanh toán trong ngày hôm nay để hiển thị
+ * biểu đồ hoặc danh sách đơn hàng gần đây trên bảng điều khiển (Dashboard).
+ * Có cơ chế tự động giới hạn tần suất gọi API (cooldown 30 giây) tránh spam request.
+ */
 public class HomeViewModel extends AndroidViewModel {
 
     private static final String TAG = "HomeViewModel";
 
+    // Danh sách đơn hàng trong ngày hôm nay
     private final MutableLiveData<List<DonDatDTO>> todayOrdersLiveData = new MutableLiveData<>(new ArrayList<>());
+    // Trạng thái đang tải dữ liệu từ server
     private final MutableLiveData<Boolean> isLoadingLiveData = new MutableLiveData<>(false);
+    // Thời điểm cuối cùng thực hiện tải dữ liệu (đơn vị: ms)
     private long lastLoadTime = 0;
 
     public HomeViewModel(@NonNull Application application) {
@@ -44,8 +53,13 @@ public class HomeViewModel extends AndroidViewModel {
         return isLoadingLiveData;
     }
 
+    /**
+     * Tải danh sách đơn hàng đã thanh toán trong ngày hôm nay.
+     * @param forceRefresh Ép buộc tải lại dữ liệu mà không quan tâm đến cooldown 30 giây.
+     */
     public void fetchTodayOrders(boolean forceRefresh) {
         long currentTime = System.currentTimeMillis();
+        // Áp dụng cơ chế cooldown 30 giây để tránh việc gửi yêu cầu API dồn dập
         if (!forceRefresh && (currentTime - lastLoadTime < 30000) && todayOrdersLiveData.getValue() != null && !todayOrdersLiveData.getValue().isEmpty()) {
             return;
         }
@@ -75,6 +89,7 @@ public class HomeViewModel extends AndroidViewModel {
                             orderDateStr = dateFormat.format(d);
                         } catch (Exception ignored) {}
 
+                        // Lọc các đơn hàng đúng trong ngày hôm nay
                         if (ngaydat.equals(orderDateStr)) {
                             DonDatDTO dto = new DonDatDTO();
                             dto.setMaDonDat(res.getMaDonDat());

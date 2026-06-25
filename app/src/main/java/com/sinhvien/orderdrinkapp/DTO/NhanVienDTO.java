@@ -1,9 +1,15 @@
 package com.sinhvien.orderdrinkapp.DTO;
 
+/**
+ * NhanVienDTO - Lớp truyền tải dữ liệu Nhân viên hoặc Khách hàng thành viên (Staff/Customer).
+ * Chứa các thông tin cơ bản: Mã, Tên, Tên đăng nhập, Mật khẩu, Email, SĐT, Giới tính, Ngày sinh và Quyền hạn.
+ */
 public class NhanVienDTO {
 
-    String HOTENNV,TENDN,MATKHAU,EMAIL,SDT,GIOITINH,NGAYSINH;
-    int MANV,MAQUYEN;
+    // Các trường thông tin cá nhân của nhân viên
+    String HOTENNV, TENDN, MATKHAU, EMAIL, SDT, GIOITINH, NGAYSINH;
+    // Mã nhân viên (MANV) và mã quyền hạn (MAQUYEN)
+    int MANV, MAQUYEN;
 
     public int getMAQUYEN() {
         return MAQUYEN;
@@ -76,6 +82,4 @@ public class NhanVienDTO {
     public void setNGAYSINH(String NGAYSINH) {
         this.NGAYSINH = NGAYSINH;
     }
-
-
 }

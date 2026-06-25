@@ -23,13 +23,24 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * PreorderDishesAdapter - Adapter quản lý và hiển thị danh sách Món ăn đặt trước (Pre-order Dishes) khi khách hàng đặt bàn.
+ * - Cho phép khách hàng xem ảnh món ăn, tên món, đơn giá món ăn được định dạng tiền tệ đẹp mắt.
+ * - Tăng giảm số lượng trực tiếp bằng nút Cộng/Trừ (Plus/Minus):
+ *   + Nhấn nút Cộng (+): Tăng số lượng món ăn đặt trước lên 1 và thông báo callback về tổng giá trị hóa đơn.
+ *   + Nhấn nút Trừ (-): Giảm số lượng xuống tối thiểu bằng 0 (khi bằng 0 sẽ loại món ăn ra khỏi Map lưu trữ số lượng).
+ * - Lưu trữ trạng thái số lượng món qua Map `quantityMap` (Key: MaMon, Value: SoLuong).
+ * - Gửi callback thông báo thay đổi số lượng món ăn (`OnPreorderQuantityChanged`) lên màn hình đặt bàn nhằm cập nhật tức thời tổng tiền tạm tính.
+ */
 public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAdapter.ViewHolder> {
 
     private Context context;
     private List<MonDTO> dishList;
-    private Map<Integer, Integer> quantityMap = new HashMap<>(); // Key: MaMon, Value: SoLuong
+    // Map lưu mã món ăn đi kèm số lượng khách hàng đã chọn đặt trước
+    private Map<Integer, Integer> quantityMap = new HashMap<>(); 
     private OnPreorderQuantityChanged listener;
 
+    // Interface callback lắng nghe thay đổi số lượng
     public interface OnPreorderQuantityChanged {
         void onQuantityChanged(Map<Integer, Integer> quantities);
     }
@@ -40,6 +51,9 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
         this.listener = listener;
     }
 
+    /**
+     * Trả về danh sách mã món ăn kèm số lượng khách đặt trước đã lựa chọn.
+     */
     public Map<Integer, Integer> getSelectedQuantities() {
         return quantityMap;
     }
@@ -57,6 +71,7 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
 
         holder.txt_dish_name.setText(dish.getTenMon());
         
+        // Định dạng đơn giá món ăn sang chuỗi hiển thị có phân cách hàng nghìn
         long price = 0;
         try {
             price = Long.parseLong(dish.getGiaTien());
@@ -64,7 +79,7 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
         DecimalFormat formatter = new DecimalFormat("#,###");
         holder.txt_dish_price.setText(formatter.format(price) + " đ");
 
-        // Load image
+        // Nạp ảnh bằng Glide (hoặc SQLite bytes làm phương án dự phòng)
         if (dish.getHinhAnhUrl() != null && !dish.getHinhAnhUrl().isEmpty()) {
             String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(dish.getHinhAnhUrl());
             Glide.with(context)
@@ -80,10 +95,11 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
             holder.img_dish.setImageResource(R.drawable.cafe_americano);
         }
 
-        // Qty
+        // Lấy số lượng đã chọn từ map
         int qty = quantityMap.containsKey(dish.getMaMon()) ? quantityMap.get(dish.getMaMon()) : 0;
         holder.txt_qty.setText(String.valueOf(qty));
 
+        // Sự kiện click nút cộng tăng số lượng món
         holder.img_plus.setOnClickListener(v -> {
             int newQty = (quantityMap.containsKey(dish.getMaMon()) ? quantityMap.get(dish.getMaMon()) : 0) + 1;
             quantityMap.put(dish.getMaMon(), newQty);
@@ -93,6 +109,7 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
             }
         });
 
+        // Sự kiện click nút trừ giảm số lượng món
         holder.img_minus.setOnClickListener(v -> {
             int currentQty = quantityMap.containsKey(dish.getMaMon()) ? quantityMap.get(dish.getMaMon()) : 0;
             if (currentQty > 0) {
@@ -115,6 +132,9 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
         return dishList.size();
     }
 
+    /**
+     * ViewHolder nắm giữ cấu trúc hiển thị 1 món ăn đặt trước.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img_dish, img_minus, img_plus;
         TextView txt_dish_name, txt_dish_price, txt_qty;

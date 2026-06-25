@@ -28,25 +28,40 @@ import com.sinhvien.orderdrinkapp.R;
 import java.io.File;
 import java.io.FileOutputStream;
 
+/**
+ * CustomerContactFragment - Màn hình Liên hệ của Khách hàng.
+ * Hỗ trợ khách hàng liên hệ trực tiếp với nhà hàng thông qua:
+ * - Gọi điện thoại hoặc nhắn tin Zalo (Hotline).
+ * - Mở bản đồ định vị Google Maps dẫn đường đến nhà hàng.
+ * - Gửi Email góp ý đính kèm ảnh (chụp từ Camera hoặc chọn từ Thư viện).
+ */
 public class CustomerContactFragment extends Fragment {
 
+    // Số điện thoại hotline hỗ trợ
     private final String HOTLINE_NUMBER = "0856761038";
+    // Địa chỉ Email tiếp nhận góp ý chất lượng dịch vụ
     private final String RESTAURANT_EMAIL = "2431540219@vaa.edu.vn";
-    private final String RESTAURANT_LAT = "10.7952"; // Landmark 81, HCM
+    // Tọa độ vĩ độ của nhà hàng
+    private final String RESTAURANT_LAT = "10.7952"; 
+    // Tọa độ kinh độ của nhà hàng
     private final String RESTAURANT_LNG = "106.7218";
+    // Tên hiển thị trên bản đồ
     private final String RESTAURANT_NAME = "Royal Restaurant";
 
+    // Trình phóng Camera để chụp ảnh góp ý
     private ActivityResultLauncher<Intent> cameraLauncher;
+    // Trình phóng Thư viện ảnh chọn ảnh góp ý
     private ActivityResultLauncher<Intent> galleryLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         
-        // Bỏ qua lỗi FileUriExposedException để gửi file đính kèm dễ dàng
+        // Bỏ qua chính sách kiểm soát URI tệp tin (FileUriExposedException) để dễ dàng chia sẻ File đính kèm qua intent
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
 
+        // Đăng ký Callback xử lý kết quả trả về khi chụp ảnh từ camera
         cameraLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
                     @Override
@@ -61,6 +76,7 @@ public class CustomerContactFragment extends Fragment {
                     }
                 });
 
+        // Đăng ký Callback xử lý kết quả khi chọn ảnh từ thư viện
         galleryLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(),
                 new ActivityResultCallback<ActivityResult>() {
                     @Override
@@ -84,6 +100,7 @@ public class CustomerContactFragment extends Fragment {
         CardView cardContactLocation = view.findViewById(R.id.card_contact_location);
         CardView cardContactEmail = view.findViewById(R.id.card_contact_email);
 
+        // Thiết lập sự kiện nhấn vào các thẻ liên hệ
         cardContactHotline.setOnClickListener(v -> showContactOptionsDialog());
         cardContactLocation.setOnClickListener(v -> openMap());
         cardContactEmail.setOnClickListener(v -> showEmailOptionsDialog());
@@ -91,22 +108,26 @@ public class CustomerContactFragment extends Fragment {
         return view;
     }
 
+    /**
+     * Mở Google Maps hoặc các ứng dụng bản đồ khác định vị tọa độ nhà hàng.
+     * Hỗ trợ tự động chuyển hướng sang Trình duyệt Web nếu thiết bị không cài app bản đồ.
+     */
     private void openMap() {
         try {
-            // Thử mở bằng app Bản đồ với geo URI
+            // Thiết lập chuỗi địa chỉ định vị tọa độ địa lý (geo URI) kèm nhãn tên nhà hàng
             String uri = "geo:" + RESTAURANT_LAT + "," + RESTAURANT_LNG + "?q=" + RESTAURANT_LAT + "," + RESTAURANT_LNG + "(" + Uri.encode(RESTAURANT_NAME) + ")";
             Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
-            mapIntent.setPackage("com.google.android.apps.maps"); // Ưu tiên mở bằng Google Maps
+            mapIntent.setPackage("com.google.android.apps.maps"); // Ưu tiên hàng đầu mở bằng ứng dụng Google Maps
             
             if (mapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
                 startActivity(mapIntent);
             } else {
-                // Nếu không có Google Maps thì thử mở map mặc định khác của máy
+                // Thử mở bằng ứng dụng bản đồ hệ thống thay thế
                 Intent defaultMapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                 if (defaultMapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
                     startActivity(defaultMapIntent);
                 } else {
-                    // Cú chót: Nếu máy hoàn toàn không có app Bản đồ nào -> Mở bằng Trình duyệt Web (Google Chrome)
+                    // Nếu thiết bị không có bất kỳ app bản đồ nào, mở thông tin định vị qua đường link Web trên browser
                     String webUri = "https://www.google.com/maps/search/?api=1&query=" + RESTAURANT_LAT + "," + RESTAURANT_LNG;
                     Intent webIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(webUri));
                     startActivity(webIntent);
@@ -118,6 +139,9 @@ public class CustomerContactFragment extends Fragment {
         }
     }
 
+    /**
+     * Hiển thị hộp thoại chọn hình thức gửi mail góp ý (có đính kèm ảnh hoặc không).
+     */
     private void showEmailOptionsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Góp ý & Phản hồi qua Email");
@@ -144,9 +168,11 @@ public class CustomerContactFragment extends Fragment {
         builder.show();
     }
 
+    /**
+     * Lưu ảnh vừa chụp tạm thời vào vùng nhớ cache của ứng dụng, sau đó chuyển hướng gửi email.
+     */
     private void sendEmailWithBitmap(Bitmap bitmap) {
         try {
-            // Lưu bitmap ra file tạm
             File cachePath = new File(requireContext().getExternalCacheDir(), "feedback_images");
             cachePath.mkdirs();
             File file = new File(cachePath, "feedback_image.jpg");
@@ -162,21 +188,22 @@ public class CustomerContactFragment extends Fragment {
         }
     }
 
+    /**
+     * Thực hiện tạo ý định (Intent) gửi email đính kèm tệp tin đến hòm thư hỗ trợ của nhà hàng.
+     */
     private void sendEmailWithUri(Uri attachmentUri) {
         try {
-            Intent intent = new Intent(Intent.ACTION_SENDTO); // Chỉ định gửi email
-            intent.setData(Uri.parse("mailto:")); // chỉ mở các app gửi mail
+            Intent intent = new Intent(Intent.ACTION_SENDTO); 
+            intent.setData(Uri.parse("mailto:")); // lọc các ứng dụng thư điện tử
             intent.putExtra(Intent.EXTRA_EMAIL, new String[]{RESTAURANT_EMAIL});
             intent.putExtra(Intent.EXTRA_SUBJECT, "Góp ý chất lượng nhà hàng");
             
-            // Text mặc định
             String defaultText = "Chào ban quản lý nhà hàng,\n\nTôi muốn góp ý về vấn đề:\n";
             intent.putExtra(Intent.EXTRA_TEXT, defaultText);
 
             if (attachmentUri != null) {
-                // Phải đổi sang ACTION_SEND để đính kèm được
                 intent.setAction(Intent.ACTION_SEND);
-                intent.setType("message/rfc822"); // format để ép mở email client thay vì app message
+                intent.setType("message/rfc822"); // đảm bảo mở email thay vì ứng dụng nhắn tin sms thông thường
                 intent.putExtra(Intent.EXTRA_STREAM, attachmentUri);
                 intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             }
@@ -188,6 +215,9 @@ public class CustomerContactFragment extends Fragment {
         }
     }
 
+    /**
+     * Hiển thị hộp thoại lựa chọn liên hệ trực tiếp qua số Hotline.
+     */
     private void showContactOptionsDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
         builder.setTitle("Chọn phương thức liên hệ");
@@ -209,6 +239,9 @@ public class CustomerContactFragment extends Fragment {
         builder.show();
     }
 
+    /**
+     * Mở ứng dụng Zalo để gửi tin nhắn đến số điện thoại Hotline.
+     */
     private void openZalo() {
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://zalo.me/" + HOTLINE_NUMBER));
@@ -218,6 +251,9 @@ public class CustomerContactFragment extends Fragment {
         }
     }
 
+    /**
+     * Mở trình gọi điện của hệ thống nạp sẵn số điện thoại Hotline của nhà hàng.
+     */
     private void makePhoneCall() {
         try {
             Intent intent = new Intent(Intent.ACTION_DIAL, Uri.parse("tel:" + HOTLINE_NUMBER));

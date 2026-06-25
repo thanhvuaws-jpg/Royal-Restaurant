@@ -32,12 +32,24 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * AdapterDisplayCategory - Adapter quản lý hiển thị danh mục món ăn (Category) trong RecyclerView.
+ * - Hỗ trợ nạp ảnh bất đồng bộ từ URL VPS bằng thư viện Glide kết hợp cache thông minh.
+ * - Hỗ trợ nạp ảnh cục bộ từ mảng bytes lưu trong SQLite (dùng làm phương án dự phòng khi offline).
+ * - Tích hợp phân quyền Admin:
+ *   + Hiển thị các công cụ quản trị (Sửa danh mục, Xóa danh mục).
+ *   + Khi click Sửa: Chuyển hướng đến màn hình AddCategoryActivity cùng với mã loại.
+ *   + Khi click Xóa: Hiển thị Dialog cảnh báo xóa toàn bộ món ăn bên trong, gọi API xóa trên Server và cập nhật nhanh danh sách giao diện.
+ * - Cung cấp interface OnItemClickListener để bắt sự kiện click xem chi tiết món ăn trong danh mục.
+ */
 public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayCategory.ViewHolder> {
 
     private final Context context;
     private final List<LoaiMonDTO> loaiMonDTOList;
+    // Cờ đánh dấu tài khoản đăng nhập có quyền Admin hay không
     private final boolean isAdmin;
 
+    // Giao diện callback để đón nhận sự kiện click chọn item danh mục
     public interface OnItemClickListener {
         void onItemClick(int position);
     }
@@ -66,24 +78,26 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
         LoaiMonDTO loaiMonDTO = loaiMonDTOList.get(position);
         holder.txt_CategoryName.setText(loaiMonDTO.getTenLoai());
 
-        // Tải ảnh bằng Glide
+        // Ưu tiên tải ảnh từ URL máy chủ bằng thư viện Glide
         if (loaiMonDTO.getHinhAnhPath() != null && !loaiMonDTO.getHinhAnhPath().isEmpty()) {
             String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(loaiMonDTO.getHinhAnhPath());
             Glide.with(context)
                     .load(url)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.ic_dash_menu)
-                    .error(R.drawable.ic_dash_menu)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL) // Lưu cache toàn bộ kích thước ảnh để tối ưu tốc độ load lại
+                    .placeholder(R.drawable.ic_dash_menu)     // Ảnh hiển thị tạm thời khi đang tải
+                    .error(R.drawable.ic_dash_menu)           // Ảnh hiển thị khi gặp lỗi tải
                     .into(holder.img_CategoryImage);
         } else if (loaiMonDTO.getHinhAnh() != null) {
+            // Trường hợp không có URL -> giải mã mảng bytes ảnh lưu ở SQLite
             Bitmap bitmap = BitmapFactory.decodeByteArray(loaiMonDTO.getHinhAnh(), 0, loaiMonDTO.getHinhAnh().length);
             holder.img_CategoryImage.setImageBitmap(bitmap);
         }
 
-        // Admin tools
+        // Bật/tắt thanh công cụ dành riêng cho Admin (Sửa/Xóa danh mục)
         if (isAdmin) {
             holder.layout_AdminTools.setVisibility(View.VISIBLE);
             holder.img_Edit.setOnClickListener(v -> {
+                // Mở màn hình AddCategoryActivity chế độ Chỉnh sửa
                 Intent iEdit = new Intent(context, AddCategoryActivity.class);
                 iEdit.putExtra("maloai", loaiMonDTO.getMaLoai());
                 context.startActivity(iEdit);
@@ -94,6 +108,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                         .setMessage("Xóa loại thực đơn này sẽ xóa tất cả món ăn bên trong. Bạn chắc chứ?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
                             ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                            // Gọi API xóa danh mục
                             apiService.manageCategory("delete", loaiMonDTO.getMaLoai(), "", "").enqueue(new Callback<OrderResponse>() {
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
@@ -101,6 +116,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                                         int currentPos = loaiMonDTOList.indexOf(loaiMonDTO);
                                         if (currentPos >= 0) {
                                             loaiMonDTOList.remove(currentPos);
+                                            // Cập nhật mượt mà danh sách
                                             notifyItemRemoved(currentPos);
                                             notifyItemRangeChanged(currentPos, loaiMonDTOList.size());
                                         }
@@ -122,7 +138,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
             holder.layout_AdminTools.setVisibility(View.GONE);
         }
 
-        // Click item để chuyển sang danh sách món
+        // Trả sự kiện click dòng danh mục về cho Activity/Fragment xử lý điều hướng
         holder.itemView.setOnClickListener(v -> {
             if (listener != null) listener.onItemClick(position);
         });
@@ -131,6 +147,9 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
     @Override
     public int getItemCount() { return loaiMonDTOList.size(); }
 
+    /**
+     * ViewHolder nắm giữ và tái sử dụng các View thành phần.
+     */
     public static class ViewHolder extends RecyclerView.ViewHolder {
         TextView txt_CategoryName;
         ImageView img_CategoryImage, img_Edit, img_Delete;

@@ -26,6 +26,16 @@ public class ViewUtils {
         return false;
     }
 
+    /**
+     * Chuyển đổi đường dẫn hình ảnh thô (raw path) từ Database hoặc API thành URL đầy đủ để tải ảnh.
+     * Hỗ trợ tự động phân tích:
+     * - Nếu đường dẫn trống hoặc null: Trả về chuỗi rỗng.
+     * - Nếu đường dẫn bắt đầu bằng http:// hoặc https://: Trả về chính đường dẫn đó.
+     * - Nếu là đường dẫn tương đối (relative path): Ghép nối với URL gốc của API Client (ApiClient.getBaseUrl()) để tạo URL hoàn chỉnh.
+     *
+     * @param rawPath Đường dẫn hình ảnh thô từ máy chủ hoặc dữ liệu cục bộ.
+     * @return URL hình ảnh đầy đủ để hiển thị thông qua thư viện tải ảnh (Glide, Picasso,...).
+     */
     public static String getImageUrl(String rawPath) {
         if (rawPath == null || rawPath.isEmpty()) {
             return "";

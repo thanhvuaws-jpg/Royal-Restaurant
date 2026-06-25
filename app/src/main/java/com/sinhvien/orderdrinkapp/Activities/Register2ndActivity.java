@@ -24,28 +24,39 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+/**
+ * Register2ndActivity - Màn hình Đăng ký tài khoản (Bước 2/2).
+ * Nhiệm vụ:
+ * - Tiếp nhận dữ liệu đăng ký bước 1 từ Bundle.
+ * - Thu thập thêm thông tin cá nhân bổ sung: Giới tính (RadioGroup), Ngày sinh (DatePicker).
+ * - Kiểm định điều kiện tuổi tác (Yêu cầu tối thiểu 10 tuổi).
+ * - Kết nối API `addStaff` lên Cloud Server để tạo tài khoản mới với mã quyền mặc định là 4 (Khách hàng).
+ */
 public class Register2ndActivity extends AppCompatActivity {
 
     private static final String TAG = "Register2ndActivity";
 
+    // Khai báo các thành phần giao diện
     RadioGroup RG_signup2nd_Gender;
     DatePicker DT_signup2nd_DOB;
     Button BTN_signup2nd_Complete;
     ImageView IMG_signup2nd_BackBtn;
-    String hoTen,tenDN,eMail,sDT,matKhau,gioiTinh;
+    
+    // Các chuỗi lưu trữ dữ liệu truyền từ bước 1
+    String hoTen, tenDN, eMail, sDT, matKhau, gioiTinh;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.register2nd_layout);
 
-        //lấy đối tượng view
+        // Ánh xạ các thành phần View từ tệp XML
         RG_signup2nd_Gender = findViewById(R.id.rg_signup2nd_Gender);
         DT_signup2nd_DOB = findViewById(R.id.dt_signup2nd_DOB);
         BTN_signup2nd_Complete = findViewById(R.id.btn_signup2nd_Complete);
         IMG_signup2nd_BackBtn = findViewById(R.id.img_signup2nd_BackBtn);
 
-        //lấy dữ liệu từ bundle của register1
+        // Nhận gói dữ liệu Bundle được truyền từ RegisterActivity (Bước 1)
         Bundle bundle = getIntent().getBundleExtra(RegisterActivity.BUNDLE);
         if(bundle != null) {
              hoTen = bundle.getString("hoten");
@@ -55,6 +66,7 @@ public class Register2ndActivity extends AppCompatActivity {
              matKhau = bundle.getString("matkhau");
         }
 
+        // Khôi phục lại trạng thái giao diện đã chọn trước đó nếu có sự kiện xoay màn hình
         if (savedInstanceState != null) {
             int genderId = savedInstanceState.getInt("gender_id", -1);
             if (genderId != -1) {
@@ -68,15 +80,18 @@ public class Register2ndActivity extends AppCompatActivity {
             }
         }
 
+        // Sự kiện click nút "Hoàn tất đăng ký"
         BTN_signup2nd_Complete.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ViewUtils.isFastDoubleClick()) return; // Chống double click
+                if (ViewUtils.isFastDoubleClick()) return; // Chống spam click chuột quá nhanh
+                
+                // Xác thực độ tuổi và giới tính đã chọn
                 if(!validateAge() | !validateGender()){
                     return;
                 }
 
-                //lấy các thông tin còn lại
+                // Nhận diện giới tính từ Radio Button được chọn
                 int genderId = RG_signup2nd_Gender.getCheckedRadioButtonId();
                 if (genderId == R.id.rd_signup2nd_Male) {
                     gioiTinh = "Nam";
@@ -85,13 +100,16 @@ public class Register2ndActivity extends AppCompatActivity {
                 } else if (genderId == R.id.rd_signup2nd_Other) {
                     gioiTinh = "Khác";
                 }
+                
+                // Chuẩn hóa định dạng ngày sinh: YYYY-MM-DD
                 String ngaySinh = DT_signup2nd_DOB.getYear() + "-" + (DT_signup2nd_DOB.getMonth() + 1)
                         + "-" + DT_signup2nd_DOB.getDayOfMonth();
 
+                // Hiện màn hình chờ "Đang xử lý..."
                 androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(Register2ndActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
-                // Gửi dữ liệu đăng ký lên Cloud (maquyen = 4 đại diện cho Khách hàng thành viên)
+                // Gọi API tạo tài khoản trên Cloud (Gán mặc định mã quyền = 4: Khách hàng)
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
                 Call<StaffResponse> apiStaffResponseCall = apiService.addStaff(hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, 4);
                 apiStaffResponseCall.enqueue(new Callback<StaffResponse>() {
@@ -99,10 +117,12 @@ public class Register2ndActivity extends AppCompatActivity {
                     public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         if (isFinishing() || isDestroyed()) return;
+                        
+                        // Nếu đăng ký thành công
                         if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                             Log.d(TAG, "Đăng ký thành công: username=" + tenDN);
                             Toast.makeText(Register2ndActivity.this, "Đăng ký thành công lên Cloud!", Toast.LENGTH_SHORT).show();
-                            callLoginFromRegister();
+                            callLoginFromRegister(); // Điều hướng người dùng về trang Welcome/Đăng nhập
                         } else {
                             String msg = response.body() != null ? response.body().getMessage() : "Lỗi đăng ký";
                             Log.w(TAG, "Đăng ký thất bại: " + msg);
@@ -122,20 +142,21 @@ public class Register2ndActivity extends AppCompatActivity {
             }
         });
 
+        // Sự kiện click nút quay lại bước 1
         IMG_signup2nd_BackBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(),RegisterActivity.class);
+                Intent intent = new Intent(getApplicationContext(), RegisterActivity.class);
                 startActivity(intent);
                 finish();
             }
         });
-
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
+        // Lưu tạm trạng thái form khi cấu hình ứng dụng bị thay đổi đột ngột
         outState.putInt("gender_id", RG_signup2nd_Gender.getCheckedRadioButtonId());
         outState.putInt("dob_year", DT_signup2nd_DOB.getYear());
         outState.putInt("dob_month", DT_signup2nd_DOB.getMonth());
@@ -145,37 +166,44 @@ public class Register2ndActivity extends AppCompatActivity {
     @Override
     public void finish() {
         super.finish();
-        overridePendingTransition(R.anim.slide_in_left,R.anim.slide_out_right);
+        // Áp dụng hiệu ứng dịch màn hình từ trái qua phải khi đóng Activity
+        overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
     }
 
-    //Hàm chuyển màn hình khi hoàn thành
+    /**
+     * Điều hướng người dùng quay lại màn hình WelcomeActivity sau khi đăng ký thành công.
+     */
     public void callLoginFromRegister(){
         Intent intent = new Intent(getApplicationContext(), WelcomeActivity.class);
         startActivity(intent);
         overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
     }
 
-    //region Validate field
+    /**
+     * Xác thực xem người dùng đã lựa chọn giới tính chưa.
+     */
     private boolean validateGender(){
         if(RG_signup2nd_Gender.getCheckedRadioButtonId() == -1){
-            Toast.makeText(this,"Hãy chọn giới tính",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Hãy chọn giới tính", Toast.LENGTH_SHORT).show();
             return false;
         }else {
             return true;
         }
     }
 
+    /**
+     * Xác thực độ tuổi người dùng (yêu cầu tối thiểu là 10 tuổi).
+     */
     private boolean validateAge(){
         int currentYear = Calendar.getInstance().get(Calendar.YEAR);
         int userAge = DT_signup2nd_DOB.getYear();
         int isAgeValid = currentYear - userAge;
 
         if(isAgeValid < 10){
-            Toast.makeText(this,"Bạn không đủ tuổi đăng ký!",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Bạn không đủ tuổi đăng ký!", Toast.LENGTH_SHORT).show();
             return false;
         }else {
             return true;
         }
     }
-    //endregion
 }

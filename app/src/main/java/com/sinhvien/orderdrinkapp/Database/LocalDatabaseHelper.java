@@ -17,18 +17,34 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+/**
+ * LocalDatabaseHelper - Lớp quản lý cơ sở dữ liệu SQLite cục bộ của ứng dụng.
+ * Kế thừa SQLiteOpenHelper để thực hiện tạo bảng, nâng cấp phiên bản dữ liệu và đồng bộ hóa ngoại tuyến.
+ * Sử dụng ExecutorService để thực hiện các thao tác ghi dữ liệu bất đồng bộ dưới nền, tránh chặn luồng chính (Main Thread).
+ */
 public class LocalDatabaseHelper extends SQLiteOpenHelper {
 
+    // Tên tệp cơ sở dữ liệu lưu dưới dạng SQLite cục bộ
     private static final String DATABASE_NAME = "ql_nhahang_local.db";
+    // Phiên bản cơ sở dữ liệu (tăng dần khi thay đổi cấu trúc bảng/schema)
     private static final int DATABASE_VERSION = 1;
 
+    // Singleton instance duy nhất trong vòng đời ứng dụng để tránh rò rỉ bộ nhớ
     private static LocalDatabaseHelper instance;
+    // Executor luồng đơn (Single Thread Executor) dùng chuyên biệt cho việc chạy ngầm các tác vụ SQLite
     private static final ExecutorService dbExecutor = Executors.newSingleThreadExecutor();
 
+    /**
+     * Lấy Executor Service chạy ngầm phục vụ ghi/đọc SQLite.
+     */
     public static ExecutorService getExecutor() {
         return dbExecutor;
     }
 
+    /**
+     * Lấy instance duy nhất (Singleton Pattern) của lớp LocalDatabaseHelper.
+     * Sử dụng từ khóa synchronized để đảm bảo an toàn đa luồng (Thread-safe).
+     */
     public static synchronized LocalDatabaseHelper getInstance(Context context) {
         if (instance == null) {
             instance = new LocalDatabaseHelper(context.getApplicationContext());
@@ -36,27 +52,28 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         return instance;
     }
 
+    // Constructor ở chế độ private để chặn khởi tạo trực tiếp từ ngoài lớp
     private LocalDatabaseHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        // Table BAN
+        // Tạo bảng BAN (Quản lý danh sách bàn ăn)
         db.execSQL("CREATE TABLE BAN (" +
                 "MABAN INTEGER PRIMARY KEY, " +
                 "TENBAN TEXT NOT NULL, " +
                 "TINHTRANG TEXT DEFAULT 'false'" +
                 ");");
 
-        // Table LOAIMON
+        // Tạo bảng LOAIMON (Quản lý các danh mục món ăn/thức uống)
         db.execSQL("CREATE TABLE LOAIMON (" +
                 "MALOAI INTEGER PRIMARY KEY, " +
                 "TENLOAI TEXT NOT NULL, " +
                 "HINHANH TEXT" +
                 ");");
 
-        // Table MON
+        // Tạo bảng MON (Quản lý thông tin chi tiết từng món ăn)
         db.execSQL("CREATE TABLE MON (" +
                 "MAMON INTEGER PRIMARY KEY, " +
                 "TENMON TEXT NOT NULL, " +
@@ -66,7 +83,7 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
                 "HINHANH TEXT" +
                 ");");
 
-        // Table NHANVIEN
+        // Tạo bảng NHANVIEN (Lưu thông tin nhân viên hoặc khách hàng phục vụ đăng nhập)
         db.execSQL("CREATE TABLE NHANVIEN (" +
                 "MANV INTEGER PRIMARY KEY, " +
                 "HOTENNV TEXT NOT NULL, " +
@@ -99,6 +116,12 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
     }
 
     //region BAN Sync & Query
+    /**
+     * Đồng bộ hóa dữ liệu danh sách Bàn ăn từ Cloud Server xuống SQLite cục bộ.
+     * Sử dụng SQLite Transaction để tối ưu tốc độ ghi và đảm bảo tính toàn vẹn dữ liệu.
+     *
+     * @param tables Danh sách bàn ăn nhận từ API Response.
+     */
     public void syncTables(List<com.sinhvien.orderdrinkapp.Api.TableResponse> tables) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
@@ -108,14 +131,20 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
                 cv.put("MABAN", table.getMaBan());
                 cv.put("TENBAN", table.getTenBan());
                 cv.put("TINHTRANG", table.getTinhTrang());
+                // Chèn mới hoặc ghi đè nếu trùng MABAN (CONFLICT_REPLACE)
                 db.insertWithOnConflict("BAN", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
             }
-            db.setTransactionSuccessful();
+            db.setTransactionSuccessful(); // Đánh dấu giao dịch thành công để lưu thay đổi
         } finally {
-            db.endTransaction();
+            db.endTransaction(); // Hoàn tất giao dịch
         }
     }
 
+    /**
+     * Lấy toàn bộ danh sách bàn ăn được lưu trữ ở SQLite cục bộ.
+     *
+     * @return Danh sách đối tượng BanAnDTO.
+     */
     public List<BanAnDTO> getTables() {
         List<BanAnDTO> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -135,11 +164,17 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
     //endregion
 
     //region LOAIMON Sync & Query
+    /**
+     * Đồng bộ hóa danh mục loại món ăn từ Cloud Server xuống SQLite cục bộ.
+     * Xóa sạch danh mục cũ trước khi đồng bộ dữ liệu mới.
+     *
+     * @param categories Danh sách loại món nhận từ API Response.
+     */
     public void syncCategories(List<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> categories) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
-            db.delete("LOAIMON", null, null);
+            db.delete("LOAIMON", null, null); // Xóa dữ liệu cũ để tránh dư thừa danh mục đã xóa trên Cloud
             for (com.sinhvien.orderdrinkapp.Api.LoaiMonResponse cat : categories) {
                 ContentValues cv = new ContentValues();
                 cv.put("MALOAI", cat.getMaLoai());
@@ -153,6 +188,11 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Lấy toàn bộ danh sách loại món ăn lưu trong SQLite cục bộ.
+     *
+     * @return Danh sách đối tượng LoaiMonDTO.
+     */
     public List<LoaiMonDTO> getCategories() {
         List<LoaiMonDTO> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -172,11 +212,19 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
     //endregion
 
     //region MON Sync & Query
+    /**
+     * Đồng bộ danh sách món ăn cụ thể thuộc một danh mục hoặc toàn bộ.
+     *
+     * @param maLoai Mã loại món cần đồng bộ.
+     * @param dishes Danh sách món ăn nhận từ API Response.
+     * @param clearAllForCategory Có xóa sạch món ăn cũ thuộc loại món này trước khi đồng bộ hay không.
+     */
     public void syncDishes(int maLoai, List<com.sinhvien.orderdrinkapp.Api.MonResponse> dishes, boolean clearAllForCategory) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
             if (clearAllForCategory) {
+                // Xóa các món thuộc danh mục này để đồng bộ lại từ đầu
                 db.delete("MON", "MALOAI = ?", new String[]{String.valueOf(maLoai)});
             }
             for (com.sinhvien.orderdrinkapp.Api.MonResponse dish : dishes) {
@@ -195,6 +243,13 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Lấy danh sách món ăn thuộc một danh mục cụ thể từ SQLite cục bộ, có hỗ trợ tìm kiếm theo tên món.
+     *
+     * @param maLoai Mã loại món cần tìm.
+     * @param searchQuery Từ khóa tìm kiếm tên món ăn (nếu có).
+     * @return Danh sách đối tượng MonDTO.
+     */
     public List<MonDTO> getDishes(int maLoai, String searchQuery) {
         List<MonDTO> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -222,6 +277,12 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         return list;
     }
+
+    /**
+     * Lấy toàn bộ món ăn lưu trong SQLite cục bộ, xếp thứ tự theo bảng chữ cái ABC.
+     *
+     * @return Danh sách tất cả đối tượng MonDTO.
+     */
     public List<MonDTO> getAllDishes() {
         List<MonDTO> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
@@ -244,6 +305,11 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
     //endregion
 
     //region NHANVIEN Sync & Query
+    /**
+     * Đồng bộ danh sách tài khoản Nhân viên từ Cloud Server xuống SQLite cục bộ.
+     *
+     * @param staffList Danh sách nhân viên lấy từ API Response.
+     */
     public void syncStaff(List<com.sinhvien.orderdrinkapp.Api.StaffResponse> staffList) {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
@@ -267,6 +333,11 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         }
     }
 
+    /**
+     * Lấy toàn bộ danh sách nhân viên từ SQLite cục bộ.
+     *
+     * @return Danh sách đối tượng NhanVienDTO.
+     */
     public List<NhanVienDTO> getStaff() {
         List<NhanVienDTO> list = new ArrayList<>();
         SQLiteDatabase db = this.getReadableDatabase();
