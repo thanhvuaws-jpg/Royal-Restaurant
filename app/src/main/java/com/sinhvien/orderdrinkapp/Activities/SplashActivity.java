@@ -24,7 +24,7 @@ import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 public class SplashActivity extends AppCompatActivity {
 
     // Thời gian hiển thị màn hình chào trước khi chuyển trang (3000ms = 3 giây)
-    private static int SPLASH_TIMER = 3000;
+    private static int SPLASH_TIMER = 1000;
     
     @Override
     protected void onCreate(Bundle savedInstanceState) {

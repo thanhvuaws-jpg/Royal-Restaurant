@@ -218,7 +218,7 @@ public class DisplayTableFragment extends Fragment {
      * - Tab 1: Mang đi (Có chứa các cụm từ "mang đi", "takeaway").
      */
     private void filterTables(int tabIndex) {
-        filteredList.clear();
+        List<BanAnDTO> newFilteredList = new ArrayList<>();
         for (BanAnDTO ban : banAnDTOList) {
             String nameLower = ban.getTenBan().toLowerCase();
             boolean isTakeaway = nameLower.contains("mang đi")
@@ -227,15 +227,17 @@ public class DisplayTableFragment extends Fragment {
                     || nameLower.contains("take away");
             if (tabIndex == 0) {
                 if (!isTakeaway) {
-                    filteredList.add(ban);
+                    newFilteredList.add(ban);
                 }
             } else {
                 if (isTakeaway) {
-                    filteredList.add(ban);
+                    newFilteredList.add(ban);
                 }
             }
         }
-        adapterDisplayTable.notifyDataSetChanged();
+        adapterDisplayTable.updateData(newFilteredList);
+        filteredList.clear();
+        filteredList.addAll(newFilteredList);
         capNhatTrangThai();
     }
 

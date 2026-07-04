@@ -58,7 +58,7 @@
                     android:id="@+id/txt_dialogqr_Bank"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="BIDV"
+                    android:text="@string/vietqr_bank_id"
                     android:fontFamily="@font/muli_black"
                     android:textColor="@color/black"
                     android:textSize="14sp" />
@@ -76,7 +76,7 @@
                     android:id="@+id/txt_dialogqr_Account"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="6151099464"
+                    android:text="@string/vietqr_bank_acc"
                     android:fontFamily="@font/muli_black"
                     android:textColor="@color/black"
                     android:textSize="14sp" />

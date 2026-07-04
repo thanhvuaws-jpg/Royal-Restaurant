@@ -29,7 +29,7 @@ import retrofit2.Response;
  * LoginActivity - Quản lý màn hình Đăng nhập của ứng dụng.
  * Hỗ trợ các tính năng:
  * - Đăng nhập tài khoản Nhân viên / Khách hàng thông qua kết nối API Cloud Server (Retrofit).
- * - Cơ chế lưu mật khẩu đã mã hóa Base64 vào SharedPreferences ("Ghi nhớ mật khẩu").
+ * - Cơ chế lưu mật khẩu đã mã hóa AES vào SharedPreferences ("Ghi nhớ mật khẩu").
  * - Kiểm tra quyền hạn sau khi đăng nhập thành công và định hướng vào trang chủ thích hợp.
  * - Tự động hủy yêu cầu API nếu màn hình bị đóng giữa chừng để tránh rò rỉ bộ nhớ.
  */
@@ -75,9 +75,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         String pass = "";
         try {
             if (!encodedPass.isEmpty()) {
-                // Giải mã mật khẩu bằng Base64 để hiển thị lên trường nhập liệu
-                byte[] decodedBytes = android.util.Base64.decode(encodedPass, android.util.Base64.DEFAULT);
-                pass = new String(decodedBytes, "UTF-8");
+                // Giải mã mật khẩu bằng AES để hiển thị lên trường nhập liệu
+                pass = com.sinhvien.orderdrinkapp.Utils.AESUtils.decrypt(encodedPass);
             }
         } catch (Exception e) {
             Log.e(TAG, "Lỗi giải mã mật khẩu đã lưu: " + e.getMessage());
@@ -164,8 +163,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         if (cb_login_RememberMe.isChecked()) {
                             try {
-                                // Mã hóa Base64 trước khi lưu mật khẩu để tăng tính an toàn ở mức cơ bản
-                                String encoded = android.util.Base64.encodeToString(finalPass.getBytes("UTF-8"), android.util.Base64.DEFAULT);
+                                // Mã hóa AES trước khi lưu mật khẩu để đảm bảo an toàn
+                                String encoded = com.sinhvien.orderdrinkapp.Utils.AESUtils.encrypt(finalPass);
                                 editor.putString("username", finalUser);
                                 editor.putString("password", encoded);
                             } catch (Exception e) {

@@ -60,8 +60,16 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
 
     public AdapterDisplayTable(Context context, List<BanAnDTO> banAnDTOList) {
         this.context = context;
-        this.banAnDTOList = banAnDTOList;
+        this.banAnDTOList = new java.util.ArrayList<>(banAnDTOList);
         this.isAdmin = SessionManager.isAdmin(context);
+    }
+
+    public void updateData(List<BanAnDTO> newList) {
+        androidx.recyclerview.widget.DiffUtil.DiffResult diffResult =
+                androidx.recyclerview.widget.DiffUtil.calculateDiff(new TableDiffCallback(this.banAnDTOList, newList));
+        this.banAnDTOList.clear();
+        this.banAnDTOList.addAll(newList);
+        diffResult.dispatchUpdatesTo(this);
     }
 
     /**
@@ -246,6 +254,35 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             txt_Status      = itemView.findViewById(R.id.txt_customtable_Status);
             txt_ActionHint  = itemView.findViewById(R.id.txt_customtable_ActionHint);
             img_Delete      = itemView.findViewById(R.id.img_customtable_Delete);
+        }
+    }
+
+    private static class TableDiffCallback extends androidx.recyclerview.widget.DiffUtil.Callback {
+        private final List<BanAnDTO> oldList;
+        private final List<BanAnDTO> newList;
+
+        public TableDiffCallback(List<BanAnDTO> oldList, List<BanAnDTO> newList) {
+            this.oldList = oldList;
+            this.newList = newList;
+        }
+
+        @Override
+        public int getOldListSize() { return oldList.size(); }
+
+        @Override
+        public int getNewListSize() { return newList.size(); }
+
+        @Override
+        public boolean areItemsTheSame(int oldItemPosition, int newItemPosition) {
+            return oldList.get(oldItemPosition).getMaBan() == newList.get(newItemPosition).getMaBan();
+        }
+
+        @Override
+        public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
+            BanAnDTO oldItem = oldList.get(oldItemPosition);
+            BanAnDTO newItem = newList.get(newItemPosition);
+            return oldItem.getTenBan().equals(newItem.getTenBan()) &&
+                   oldItem.getTinhTrang().equals(newItem.getTinhTrang());
         }
     }
 }

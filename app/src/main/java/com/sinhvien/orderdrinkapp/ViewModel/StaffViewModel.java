@@ -100,4 +100,30 @@ public class StaffViewModel extends AndroidViewModel {
         void onSuccess();
         void onError(String errorMsg);
     }
+
+    public void deleteStaff(int manv, OnDeleteCallback callback) {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.OrderResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.OrderResponse> call, Response<com.sinhvien.orderdrinkapp.Api.OrderResponse> response) {
+                if (response.isSuccessful()) {
+                    if (callback != null) callback.onSuccess();
+                    // Tải lại danh sách sau khi xóa thành công
+                    syncStaffFromServer(null);
+                } else {
+                    if (callback != null) callback.onError("Xóa thất bại");
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.OrderResponse> call, Throwable t) {
+                if (callback != null) callback.onError(t.getMessage());
+            }
+        });
+    }
+
+    public interface OnDeleteCallback {
+        void onSuccess();
+        void onError(String errorMsg);
+    }
 }

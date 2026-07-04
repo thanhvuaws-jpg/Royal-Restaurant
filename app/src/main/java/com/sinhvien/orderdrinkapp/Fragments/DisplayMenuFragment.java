@@ -65,7 +65,7 @@ import com.sinhvien.orderdrinkapp.ViewModel.MenuViewModel;
 public class DisplayMenuFragment extends Fragment {
 
     // Kích thước tối đa tải dữ liệu trong một trang (Pagination size)
-    private static final int PAGE_SIZE = 1000;
+    private static final int PAGE_SIZE = 10;
 
     // Lưu mã loại món, mã bàn ăn, tên loại món
     int maloai, maban;

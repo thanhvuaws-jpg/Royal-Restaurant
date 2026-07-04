@@ -149,4 +149,7 @@
     <string name="qty_zero">0</string>
     <string name="manage_booking_btn_cancel">Hủy đặt</string>
     <string name="manage_booking_btn_confirm">Xác nhận đặt</string>
+    <string name="vietqr_bank_id">BIDV</string>
+    <string name="vietqr_bank_acc">6151099464</string>
+    <string name="vietqr_bank_name">VU THANH</string>
 </resources>

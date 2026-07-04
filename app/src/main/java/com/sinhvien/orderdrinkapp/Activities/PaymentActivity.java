@@ -229,19 +229,19 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         String qrUrl = "";
         try {
             String encodedMsg = java.net.URLEncoder.encode(message, "UTF-8");
-            String encodedName = java.net.URLEncoder.encode(ApiClient.BANK_NAME, "UTF-8");
-            qrUrl = "https://img.vietqr.io/image/" + ApiClient.BANK_ID + "-" + ApiClient.BANK_ACC + "-compact2.png"
+            String encodedName = java.net.URLEncoder.encode(getString(R.string.vietqr_bank_name), "UTF-8");
+            qrUrl = "https://img.vietqr.io/image/" + getString(R.string.vietqr_bank_id) + "-" + getString(R.string.vietqr_bank_acc) + "-compact2.png"
                     + "?amount=" + tongtien
                     + "&addInfo=" + encodedMsg
                     + "&accountName=" + encodedName;
         } catch (Exception e) {
-            qrUrl = "https://img.vietqr.io/image/" + ApiClient.BANK_ID + "-" + ApiClient.BANK_ACC + "-compact2.png"
+            qrUrl = "https://img.vietqr.io/image/" + getString(R.string.vietqr_bank_id) + "-" + getString(R.string.vietqr_bank_acc) + "-compact2.png"
                     + "?amount=" + tongtien
                     + "&addInfo=" + message;
         }
 
-        txtBank.setText(ApiClient.BANK_ID);
-        txtAccount.setText(ApiClient.BANK_ACC);
+        txtBank.setText(getString(R.string.vietqr_bank_id));
+        txtAccount.setText(getString(R.string.vietqr_bank_acc));
         txtAmount.setText(String.format("%,d", tongtien) + " VNĐ");
         txtMessage.setText(message);
 

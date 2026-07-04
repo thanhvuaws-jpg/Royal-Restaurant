@@ -193,36 +193,19 @@ public class DisplayStaffFragment extends Fragment {
                     androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang xóa...");
                     progressDialog.show();
 
-                    ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                    // Gọi API DELETE quản lý nhân viên
-                    apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<OrderResponse>() {
+                    staffViewModel.deleteStaff(manv, new StaffViewModel.OnDeleteCallback() {
                         @Override
-                        public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        public void onSuccess() {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (!isAdded() || getActivity() == null) return;
-                            if (response.isSuccessful()) {
-                                NhanVienDTO toRemove = null;
-                                for (NhanVienDTO nv : nhanVienDTOS) {
-                                    if (nv.getMANV() == manv) { toRemove = nv; break; }
-                                }
-                                if (toRemove != null) {
-                                    int currentPos = nhanVienDTOS.indexOf(toRemove);
-                                    allStaffList.remove(toRemove);
-                                    nhanVienDTOS.remove(toRemove);
-                                    // Hiệu ứng mượt mà khi xóa dòng trong danh sách RecyclerView
-                                    adapterDisplayStaff.notifyItemRemoved(currentPos);
-                                    adapterDisplayStaff.notifyItemRangeChanged(currentPos, nhanVienDTOS.size());
-                                }
-                                Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
-                                capNhatTrangThai();
-                            }
+                            Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
-                        public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        public void onError(String errorMsg) {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (isAdded() && getActivity() != null) {
-                                Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + errorMsg, Toast.LENGTH_SHORT).show();
                             }
                         }
                     });

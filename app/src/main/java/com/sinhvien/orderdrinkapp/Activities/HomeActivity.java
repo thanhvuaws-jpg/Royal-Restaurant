@@ -77,7 +77,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     // Các thành phần xử lý kiểm tra phiên đăng nhập ngầm
     private Handler sessionHandler;
     private Runnable sessionRunnable;
-    private static final int SESSION_CHECK_INTERVAL = 10000; // Khoảng thời gian kiểm tra session: 10 giây
+    private static final int SESSION_CHECK_INTERVAL = 60000; // Khoảng thời gian kiểm tra session: 60 giây
     private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
     private io.socket.emitter.Emitter.Listener connectListener;
 

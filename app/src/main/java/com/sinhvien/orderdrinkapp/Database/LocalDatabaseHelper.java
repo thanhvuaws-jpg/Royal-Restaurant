@@ -319,7 +319,7 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
                 cv.put("MANV", staff.getMaNV());
                 cv.put("HOTENNV", staff.getHoTenNV());
                 cv.put("TENDN", staff.getTenDN());
-                cv.put("MATKHAU", staff.getMatKhau());
+                cv.put("MATKHAU", "");
                 cv.put("EMAIL", staff.getEmail());
                 cv.put("SDT", staff.getSdt());
                 cv.put("GIOITINH", staff.getGioiTinh());

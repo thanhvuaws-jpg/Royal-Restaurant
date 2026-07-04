@@ -22,10 +22,7 @@ public class ApiClient {
     /** Địa chỉ gốc của VPS (IP:Port). Mọi endpoint API đều ghép sau URL này. */
     public static final String BASE_URL = "http://103.157.204.120:8081/";
 
-    /** Thông tin ngân hàng dùng cho tính năng thanh toán QR Code. */
-    public static final String BANK_ID = "BIDV";
-    public static final String BANK_ACC = "6151099464";
-    public static final String BANK_NAME = "VU THANH";
+
 
     /** Đối tượng Retrofit duy nhất — dùng chung toàn app (Singleton). */
     private static Retrofit retrofit = null;
