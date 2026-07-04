@@ -84,42 +84,68 @@ public class AmountMenuActivity extends AppCompatActivity {
                     return;
                 }
 
-                if (madondatCloud == 0) {
-                    Toast.makeText(AmountMenuActivity.this, "Đang khởi tạo đơn hàng, vui lòng thử lại...", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
                 int sluong = Integer.parseInt(txtl_amount_Quantity.getEditText().getText().toString());
                 
                 // Hiển thị tiến trình loading
-                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AmountMenuActivity.this, "Đang thêm món...");
+                androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AmountMenuActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
-                // Gửi thông tin chi tiết món ăn vừa gọi lên Cloud
-                ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                apiService.addOrderDetail(madondatCloud, mamon, sluong).enqueue(new Callback<OrderResponse>() {
-                    @Override
-                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        if (isFinishing() || isDestroyed()) return;
-                        if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                            Log.d(TAG, "Thêm món thành công: mamon=" + mamon + ", soluong=" + sluong + ", madon=" + madondatCloud);
-                            Toast.makeText(AmountMenuActivity.this, "Đã gọi món lên Cloud!", Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else {
-                            Toast.makeText(AmountMenuActivity.this, "Lỗi lưu món ăn", Toast.LENGTH_SHORT).show();
+                if (madondatCloud == 0) {
+                    // Chưa có đơn hàng -> Tạo đơn trước rồi mới thêm món (Khắc phục lỗi đẻ ra đơn 0 đồng khi huỷ ngang)
+                    int manv = SessionManager.getMaNV(AmountMenuActivity.this);
+                    ApiService apiService = ApiClient.getClient().create(ApiService.class);
+                    apiService.createOrder(manv, maban).enqueue(new Callback<OrderResponse>() {
+                        @Override
+                        public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                            if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                                madondatCloud = response.body().getMaDonDat(); // Cập nhật mã đơn mới
+                                themMonVaoDon(progressDialog, sluong);
+                            } else {
+                                if (progressDialog.isShowing()) progressDialog.dismiss();
+                                Toast.makeText(AmountMenuActivity.this, "Lỗi tạo đơn hàng mới", Toast.LENGTH_SHORT).show();
+                            }
                         }
-                    }
 
-                    @Override
-                    public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        if (progressDialog.isShowing()) progressDialog.dismiss();
-                        Log.e(TAG, "Lỗi thêm món vào đơn: " + t.getMessage());
-                        if (!isFinishing() && !isDestroyed()) {
+                        @Override
+                        public void onFailure(Call<OrderResponse> call, Throwable t) {
+                            if (progressDialog.isShowing()) progressDialog.dismiss();
                             Toast.makeText(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                         }
-                    }
-                });
+                    });
+                } else {
+                    // Đã có đơn hàng -> Trực tiếp thêm món
+                    themMonVaoDon(progressDialog, sluong);
+                }
+            }
+        });
+    }
+
+    /**
+     * Hàm phụ trợ gọi API thêm món vào đơn đặt hàng
+     */
+    private void themMonVaoDon(androidx.appcompat.app.AlertDialog progressDialog, int sluong) {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.addOrderDetail(madondatCloud, mamon, sluong).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                if (progressDialog.isShowing()) progressDialog.dismiss();
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
+                    Log.d(TAG, "Thêm món thành công: mamon=" + mamon + ", soluong=" + sluong + ", madon=" + madondatCloud);
+                    Toast.makeText(AmountMenuActivity.this, "Đã gọi món lên Cloud!", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(AmountMenuActivity.this, "Lỗi lưu món ăn", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                if (progressDialog.isShowing()) progressDialog.dismiss();
+                Log.e(TAG, "Lỗi thêm món vào đơn: " + t.getMessage());
+                if (!isFinishing() && !isDestroyed()) {
+                    Toast.makeText(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
     }
@@ -136,39 +162,16 @@ public class AmountMenuActivity extends AppCompatActivity {
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     madondatCloud = response.body().getMaDonDat(); // Nhận mã đơn hiện tại
                 } else {
-                    // Nếu bàn chưa được mở đơn, tạo mới một đơn hàng tức thì
-                    taoDonHangMoi();
+                    // Không tự động tạo đơn rỗng nữa để tránh rác database, giữ madondatCloud = 0
+                    // Đơn sẽ chỉ được tạo khi user thực sự bấm "Xác nhận thêm món"
+                    madondatCloud = 0;
                 }
             }
 
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(AmountMenuActivity.this, "Lỗi lấy mã đơn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-    }
-
-    /**
-     * Khởi tạo một đơn hàng mới gắn với nhân viên phục vụ hiện tại và bàn ăn được chọn.
-     */
-    private void taoDonHangMoi() {
-        int manv = SessionManager.getMaNV(this);
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.createOrder(manv, maban).enqueue(new Callback<OrderResponse>() {
-            @Override
-            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                if (isFinishing() || isDestroyed()) return;
-                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    madondatCloud = response.body().getMaDonDat(); // Nhận ID đơn mới tạo
-                }
-            }
-
-            @Override
-            public void onFailure(Call<OrderResponse> call, Throwable t) {
-                if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(AmountMenuActivity.this, "Lỗi tạo đơn mới", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AmountMenuActivity.this, "Lỗi kiểm tra mã đơn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
         });
