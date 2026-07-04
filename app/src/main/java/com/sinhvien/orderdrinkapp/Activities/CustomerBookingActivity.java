@@ -422,6 +422,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
             return;
         }
 
+        // Kiểm tra giờ hoạt động của nhà hàng (VD: Từ 08:00 sáng đến 22:00 tối)
+        if (selectedHour >= 22 || selectedHour < 8) {
+            Toast.makeText(this, "Nhà hàng chỉ nhận đặt bàn trong khung giờ từ 08:00 đến 22:00!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
         int selectedPos = spinner_tables.getSelectedItemPosition();
         int maban = tableList.get(selectedPos).getMaBan();
         int makh = SessionManager.getMaNV(this);
