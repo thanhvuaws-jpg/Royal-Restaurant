@@ -84,6 +84,81 @@
         app:strokeWidth="0dp"
         tools:targetApi="lollipop">
 
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <!-- ═══════════ MÃ GIẢM GIÁ ═══════════
+                 Đặt NGAY TRÊN nút thanh toán, không nhét vào màn hình khác:
+                 khách đọc mã lúc nhân viên chuẩn bị bấm thanh toán, nên ô
+                 nhập phải nằm trong tầm mắt ở đúng thời điểm đó. -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="16dp">
+
+                <EditText
+                    android:id="@+id/edt_ma_giam_gia"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_o_tim_kiem"
+                    android:hint="@string/tt_nhap_ma"
+                    android:inputType="textCapCharacters"
+                    android:maxLines="1"
+                    android:maxLength="20"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:textSize="14sp"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.05"
+                    android:textColor="@color/black"
+                    android:textColorHint="#9E9E9E"
+                    android:imeOptions="actionDone" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_ap_ma"
+                    android:layout_width="wrap_content"
+                    android:layout_height="46dp"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/tt_ap_ma"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:backgroundTint="@color/gold_400"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    app:cornerRadius="12dp" />
+
+            </LinearLayout>
+
+            <!-- Kết quả tra mã: xanh khi hợp lệ, đỏ khi bị từ chối.
+                 Ẩn hẳn khi chưa nhập gì để thẻ không chừa khoảng trống. -->
+            <TextView
+                android:id="@+id/txt_ket_qua_ma"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="6dp"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="14dp"
+                android:background="#EEEAE8" />
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -140,6 +215,8 @@
                 android:paddingRight="24dp" />
 
         </RelativeLayout>
+
+        </LinearLayout>
 
     </com.google.android.material.card.MaterialCardView>
 

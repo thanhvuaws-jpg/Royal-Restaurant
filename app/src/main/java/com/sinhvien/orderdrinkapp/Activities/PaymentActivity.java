@@ -63,6 +63,17 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     int maban, madondat;
     String tenban, ngaydat;
 
+    // ══════════════════ Mã giảm giá ══════════════════
+    private android.widget.EditText edt_ma_giam_gia;
+    private com.google.android.material.button.MaterialButton btn_ap_ma;
+    private TextView txt_ket_qua_ma;
+
+    /** Mã đã được máy chủ xác nhận hợp lệ. null = chưa áp mã nào. */
+    private String maDaAp = null;
+
+    /** Số tiền mã đó giảm trên hóa đơn hiện tại. */
+    private long tienGiam = 0;
+
     // Các biến phục vụ việc Polling & Socket đồng bộ
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
@@ -98,6 +109,11 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         rv_payment_DishList    = findViewById(R.id.rv_payment_DishList);
         rv_payment_DishList.setLayoutManager(new LinearLayoutManager(this));
         btn_payment_Pay        = findViewById(R.id.btn_payment_Pay);
+
+        edt_ma_giam_gia = findViewById(R.id.edt_ma_giam_gia);
+        btn_ap_ma       = findViewById(R.id.btn_ap_ma);
+        txt_ket_qua_ma  = findViewById(R.id.txt_ket_qua_ma);
+        ganSuKienMaGiamGia();
 
         // Khôi phục trạng thái cũ (nếu có) khi quay màn hình
         boolean wasPolling = false;
@@ -160,6 +176,114 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         });
     }
 
+    /* ═══════════════════════ MÃ GIẢM GIÁ ═══════════════════════ */
+
+    private void ganSuKienMaGiamGia() {
+        btn_ap_ma.setOnClickListener(v -> {
+            if (maDaAp != null) {
+                goMa();
+            } else {
+                kiemTraMa(edt_ma_giam_gia.getText().toString().trim().toUpperCase());
+            }
+        });
+
+        // Cho phép bấm Enter trên bàn phím thay vì phải với tay sang nút.
+        edt_ma_giam_gia.setOnEditorActionListener((v, actionId, event) -> {
+            if (maDaAp == null) {
+                kiemTraMa(edt_ma_giam_gia.getText().toString().trim().toUpperCase());
+            }
+            return true;
+        });
+    }
+
+    /**
+     * Hỏi máy chủ xem mã có dùng được không, TRƯỚC khi bấm thanh toán.
+     *
+     * Vì sao cần bước xem trước: nhân viên gõ mã khách đọc qua, rất dễ sai
+     * một ký tự. Thấy ngay "giảm 30.000đ, còn lại 120.000đ" thì sai sót
+     * được phát hiện lúc còn sửa được, thay vì lúc đơn đã gửi đi.
+     *
+     * Bước này KHÔNG đánh dấu mã đã dùng — việc đó xảy ra ở checkout.
+     */
+    private void kiemTraMa(String ma) {
+        if (ma.isEmpty()) {
+            hienKetQuaMa(getString(R.string.tt_chua_nhap_ma), false);
+            return;
+        }
+
+        btn_ap_ma.setEnabled(false);
+        hienKetQuaMa(getString(R.string.tt_dang_kiem_tra), true);
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.kiemTraMa(ma, madondat).enqueue(
+                new Callback<com.sinhvien.orderdrinkapp.Api.KiemTraMaResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.KiemTraMaResponse> call,
+                                   Response<com.sinhvien.orderdrinkapp.Api.KiemTraMaResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                btn_ap_ma.setEnabled(true);
+
+                boolean ok = response.isSuccessful() && response.body() != null
+                        && "success".equals(response.body().getStatus());
+
+                if (!ok) {
+                    hienKetQuaMa(docLoiMa(response), false);
+                    return;
+                }
+
+                com.sinhvien.orderdrinkapp.Api.KiemTraMaResponse r = response.body();
+                maDaAp   = r.getMaCode();
+                tienGiam = r.getTienGiam() != null ? r.getTienGiam() : 0;
+
+                hienKetQuaMa(getString(R.string.tt_ma_hop_le,
+                        r.getTen(), String.format("%,d", tienGiam)), true);
+
+                // Khóa ô nhập lại: mã đã chốt, sửa tiếp chỉ gây nhầm lẫn
+                // giữa cái đang gõ và cái thực sự sẽ được áp.
+                edt_ma_giam_gia.setText(maDaAp);
+                edt_ma_giam_gia.setEnabled(false);
+                btn_ap_ma.setText(R.string.tt_go_ma);
+
+                capNhatGiaoDien();
+            }
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.KiemTraMaResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                btn_ap_ma.setEnabled(true);
+                hienKetQuaMa("Lỗi kết nối: " + t.getMessage(), false);
+            }
+        });
+    }
+
+    private void goMa() {
+        maDaAp   = null;
+        tienGiam = 0;
+        edt_ma_giam_gia.setText("");
+        edt_ma_giam_gia.setEnabled(true);
+        btn_ap_ma.setText(R.string.tt_ap_ma);
+        txt_ket_qua_ma.setVisibility(View.GONE);
+        capNhatGiaoDien();
+    }
+
+    private void hienKetQuaMa(String noiDung, boolean tot) {
+        txt_ket_qua_ma.setText(noiDung);
+        txt_ket_qua_ma.setTextColor(android.graphics.Color.parseColor(tot ? "#2E7D32" : "#E53935"));
+        txt_ket_qua_ma.setVisibility(View.VISIBLE);
+    }
+
+    /** Máy chủ trả 409 kèm lý do cụ thể, và lý do đó nằm ở errorBody. */
+    private String docLoiMa(Response<?> response) {
+        if (response.errorBody() != null) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject(response.errorBody().string());
+                String m = o.optString("message", "");
+                if (!m.isEmpty()) return m;
+            } catch (Exception ignored) { }
+        }
+        return "Mã không dùng được";
+    }
+
     /**
      * Đồng bộ nạp danh sách món ăn lên RecyclerView và tính tổng số tiền.
      */
@@ -167,9 +291,20 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         adapterDisplayPayment = new AdapterDisplayPayment(this, thanhToanDTOList);
         rv_payment_DishList.setAdapter(adapterDisplayPayment);
 
-        txt_payment_TotalAmount.setText(
-                String.format("%,d", tongtien) + " " +
-                        getResources().getString(R.string.currency_vnd));
+        // Hiện tổng SAU KHI TRỪ giảm giá, kèm chú thích số đã giảm.
+        //
+        // Hiện số gốc rồi để khách tự trừ nhẩm là cách nhanh nhất để sinh
+        // tranh cãi ở quầy. Con số to nhất trên màn hình phải đúng bằng số
+        // tiền khách sắp đưa.
+        if (tienGiam > 0) {
+            txt_payment_TotalAmount.setText(getString(R.string.tt_tong_sau_giam,
+                    String.format("%,d", Math.max(0, tongtien - tienGiam)),
+                    String.format("%,d", tienGiam)));
+        } else {
+            txt_payment_TotalAmount.setText(
+                    String.format("%,d", tongtien) + " " +
+                            getResources().getString(R.string.currency_vnd));
+        }
 
         if (savedLayoutState != null && rv_payment_DishList.getLayoutManager() != null) {
             rv_payment_DishList.getLayoutManager().onRestoreInstanceState(savedLayoutState);
@@ -279,9 +414,17 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         progressDialog.show();
 
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.checkoutOrder(madondat, tongtien, phuongthuc).enqueue(new Callback<OrderResponse>() {
+
+        // maDaAp = null khi khong ap ma — Retrofit bo qua @Field null nen
+        // may chu nhan dung mot yeu cau khong co truong macode.
+        //
+        // May chu kiem tra lai ma va TU TINH so tien giam; con so tienGiam
+        // ben nay chi de hien thi, khong phai de tin.
+        apiService.checkoutOrder(madondat, tongtien, phuongthuc, maDaAp)
+                .enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.CheckoutResponse>() {
             @Override
-            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.CheckoutResponse> call,
+                                   Response<com.sinhvien.orderdrinkapp.Api.CheckoutResponse> response) {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
@@ -299,7 +442,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             @Override
-            public void onFailure(Call<OrderResponse> call, Throwable t) {
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.CheckoutResponse> call, Throwable t) {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 Log.e(TAG, "Lỗi gửi yêu cầu thanh toán: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
@@ -314,7 +457,49 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
      * Sử dụng kết hợp Socket.io và cơ chế Polling (gọi lại định kỳ) để đảm bảo không bị mất gói tin.
      */
     private void startPollingForApproval() {
-        waitingDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang chờ Thu ngân xác nhận...");
+        // ------------------------------------------------------------------
+        // Hộp thoại chờ CÓ ĐƯỜNG THOÁT
+        // ------------------------------------------------------------------
+        // Trước đây dùng DialogHelper.getLoadingDialog(), vốn đặt
+        // setCancelable(false). Hệ quả: nếu thu ngân không online (nghỉ ca,
+        // chưa đăng nhập, mất mạng), máy của nhân viên phục vụ bị khóa cứng
+        // trong hộp thoại này vô thời hạn — không thoát được, không phục vụ
+        // bàn khác được. Đây là nửa nghiệp vụ của lỗi kẹt đơn: nửa kia nằm
+        // ở giao diện thu ngân (xem QĐ-013).
+        //
+        // Điểm cần hiểu đúng: yêu cầu thanh toán ĐÃ được ghi vào cơ sở dữ
+        // liệu ở trạng thái 'pending' trước khi hộp thoại này hiện ra. Đóng
+        // hộp thoại KHÔNG hủy đơn — thu ngân vẫn thấy và duyệt được bất cứ
+        // lúc nào. Vì vậy việc giam nhân viên ở đây không mang lại lợi ích
+        // nào cả.
+        //
+        // Không sửa DialogHelper vì nó còn dùng cho các thao tác chờ ngắn
+        // khác, nơi việc khóa thao tác là hợp lý.
+        View viewCho = LayoutInflater.from(this).inflate(R.layout.dialog_loading, null);
+        TextView txtCho = viewCho.findViewById(R.id.txt_loading_message);
+        if (txtCho != null) {
+            txtCho.setText("Đang chờ Thu ngân xác nhận...");
+        }
+
+        waitingDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setView(viewCho)
+                .setCancelable(true)  // cho phép bấm nút Back để thoát
+                .setNegativeButton("Để thu ngân duyệt sau", (d, which) -> {
+                    stopPolling();
+                    Toast.makeText(PaymentActivity.this,
+                            "Đơn đã gửi sang thu ngân. Bàn sẽ được giải phóng sau khi duyệt.",
+                            Toast.LENGTH_LONG).show();
+                    finish();
+                })
+                .create();
+
+        // Bấm Back cũng phải dừng polling, nếu không Runnable vẫn chạy nền
+        // và tiếp tục gọi API sau khi màn hình đã đóng.
+        waitingDialog.setOnCancelListener(d -> {
+            stopPolling();
+            finish();
+        });
+
         waitingDialog.show();
 
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
