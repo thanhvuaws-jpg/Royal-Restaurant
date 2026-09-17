@@ -109,9 +109,18 @@ public class Register2ndActivity extends AppCompatActivity {
                 androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(Register2ndActivity.this, "Đang xử lý...");
                 progressDialog.show();
 
-                // Gọi API tạo tài khoản trên Cloud (Gán mặc định mã quyền = 4: Khách hàng)
+                // Gọi endpoint đăng ký CÔNG KHAI.
+                //
+                // Trước đây chỗ này gọi addStaff(..., 4). Nhưng add_staff.php
+                // yêu cầu quyền Quản lý, mà người đang đăng ký thì chưa có tài
+                // khoản nào để đăng nhập — mọi lần đăng ký đều nhận HTTP 401 và
+                // chức năng đăng ký chết hoàn toàn.
+                //
+                // dang_ky_khach.php không cần đăng nhập và GHI CỨNG quyền 4 ở
+                // phía máy chủ, nên ở đây không truyền maquyen nữa: client
+                // không có cách nào tự nâng quyền cho mình.
                 ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                Call<StaffResponse> apiStaffResponseCall = apiService.addStaff(hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh, 4);
+                Call<StaffResponse> apiStaffResponseCall = apiService.dangKyKhach(hoTen, tenDN, matKhau, eMail, sDT, gioiTinh, ngaySinh);
                 apiStaffResponseCall.enqueue(new Callback<StaffResponse>() {
                     @Override
                     public void onResponse(Call<StaffResponse> call, Response<StaffResponse> response) {
@@ -124,9 +133,15 @@ public class Register2ndActivity extends AppCompatActivity {
                             Toast.makeText(Register2ndActivity.this, "Đăng ký thành công lên Cloud!", Toast.LENGTH_SHORT).show();
                             callLoginFromRegister(); // Điều hướng người dùng về trang Welcome/Đăng nhập
                         } else {
-                            String msg = response.body() != null ? response.body().getMessage() : "Lỗi đăng ký";
+                            // Máy chủ giải thích rõ vì sao từ chối, ví dụ
+                            // "Tên đăng nhập abc đã có người dùng" hay
+                            // "Mật khẩu phải từ 6 đến 100 ký tự". Những câu đó
+                            // đi kèm mã 4xx nên nằm ở errorBody(), KHÔNG ở
+                            // body() — chỉ đọc body() sẽ luôn ra null và người
+                            // dùng nhận lại câu vô nghĩa "Lỗi đăng ký".
+                            String msg = docLoiDangKy(response);
                             Log.w(TAG, "Đăng ký thất bại: " + msg);
-                            Toast.makeText(Register2ndActivity.this, msg, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(Register2ndActivity.this, msg, Toast.LENGTH_LONG).show();
                         }
                     }
 
@@ -206,4 +221,29 @@ public class Register2ndActivity extends AppCompatActivity {
             return true;
         }
     }
+
+    /**
+     * Lấy câu thông báo máy chủ gửi kèm khi từ chối đăng ký.
+     *
+     * Retrofit để thân phản hồi ở hai nơi khác nhau tùy mã HTTP: thành công
+     * ở body(), lỗi 4xx/5xx ở errorBody() và không phân giải sẵn thành đối
+     * tượng.
+     */
+    private String docLoiDangKy(Response<StaffResponse> response) {
+        if (response.body() != null && response.body().getMessage() != null
+                && !response.body().getMessage().isEmpty()) {
+            return response.body().getMessage();
+        }
+        if (response.errorBody() != null) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject(response.errorBody().string());
+                String m = o.optString("message", "");
+                if (!m.isEmpty()) return m;
+            } catch (Exception e) {
+                Log.w(TAG, "Không đọc được errorBody: " + e.getMessage());
+            }
+        }
+        return "Lỗi đăng ký";
+    }
+
 }

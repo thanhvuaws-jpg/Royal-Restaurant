@@ -340,7 +340,20 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             transaction.show(existing);
             currentFragment = existing;
         }
-        transaction.commit();
+        // commitNow() thay cho commit(): commit() chi XEP HANG giao dich, chua
+        // thuc thi. Luc khoi dong, onCreate goi navigateTo() roi ngay sau do
+        // bottomNav.setSelectedItemId() kich hoat lai listener va goi
+        // navigateTo() lan nua — trong cung mot vong lap su kien. Voi commit(),
+        // lan goi thu hai thay findFragmentByTag() = null VA currentFragment
+        // .getTag() = null (tag chi duoc gan khi giao dich thuc thi), nen chot
+        // chan o dau ham khong an va mot instance THU HAI duoc them vao.
+        //
+        // Hau qua: hai fragment cung song, moi loi goi mang bi nhan doi.
+        // Da do duoc trong Logcat o CustomerHomeActivity — xem chu thich chi
+        // tiet trong navigateTo() cua lop do.
+        //
+        // Giao dich nay khong dung addToBackStack nen commitNow() hop le.
+        transaction.commitNow();
         updateToolbarTitle(currentFragment);
     }
 
@@ -592,7 +605,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (socket != null && connectListener != null) {
             socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
         }
-        com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
+        // Không ngắt Socket ở đây nữa: SocketManager là singleton dùng chung,
+        // còn onDestroy() chạy cả khi Activity chỉ bị tạo lại trong điều hướng
+        // bình thường. Việc ngắt đã chuyển vào SessionManager.clearSession().
     }
 
     /**

@@ -97,6 +97,11 @@ public class SessionManager {
                 .putString(KEY_HOTEN, hoten)
                 .putString(KEY_TOKEN, token)
                 .apply();
+
+        // Đồng bộ sang ApiClient để Interceptor đính kèm vào mọi lời gọi
+        // API sau đó. Không có dòng này thì đăng nhập xong vẫn bị máy chủ
+        // trả 401 ở mọi màn hình, vì yêu cầu không mang theo token.
+        com.sinhvien.orderdrinkapp.Api.ApiClient.setAuth(manv, token);
     }
 
     /**
@@ -111,6 +116,41 @@ public class SessionManager {
      */
     public static void clearSession(Context context) {
         getPrefs(context).edit().clear().apply();
+        com.sinhvien.orderdrinkapp.Api.ApiClient.clearAuth();
+
+        // Ngắt Socket.IO tại ĐÂY — nơi phiên làm việc thật sự kết thúc.
+        //
+        // Trước đây việc này nằm trong onDestroy() của HomeActivity và
+        // CustomerHomeActivity. Nhưng SocketManager là singleton dùng chung
+        // toàn ứng dụng, còn onDestroy() thì chạy mỗi khi Android hủy một
+        // Activity — kể cả lúc chỉ xoay màn hình hay tạo lại màn hình trong
+        // điều hướng thông thường.
+        //
+        // Hậu quả đã quan sát được trên máy ảo: một instance HomeActivity
+        // mới kết nối và vào room lúc 12:46:59, rồi instance CŨ bị hủy lúc
+        // 12:47:00 và giết luôn socket mà instance mới đang dùng. Vì
+        // disconnect() đặt cờ intentionalDisconnect = true nên cơ chế tự
+        // kết nối lại cũng bị vô hiệu — realtime chết hẳn cho tới khi khởi
+        // động lại ứng dụng, mà không có dấu hiệu gì trên giao diện.
+        com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect();
+    }
+
+    /**
+     * Nạp lại thông tin phiên từ SharedPreferences vào ApiClient.
+     *
+     * Cần gọi lúc ứng dụng khởi động: bộ nhớ đệm trong ApiClient là biến
+     * tĩnh nên mất khi tiến trình bị hệ thống thu hồi, trong khi phiên vẫn
+     * còn nguyên trong SharedPreferences. Thiếu bước này thì người dùng mở
+     * lại app (không đăng nhập lại) sẽ gặp 401 ở mọi nơi.
+     */
+    public static void restoreAuth(Context context) {
+        int manv = getMaNV(context);
+        String token = getToken(context);
+        if (manv > 0 && token != null && !token.isEmpty()) {
+            com.sinhvien.orderdrinkapp.Api.ApiClient.setAuth(manv, token);
+        } else {
+            com.sinhvien.orderdrinkapp.Api.ApiClient.clearAuth();
+        }
     }
 
     /**

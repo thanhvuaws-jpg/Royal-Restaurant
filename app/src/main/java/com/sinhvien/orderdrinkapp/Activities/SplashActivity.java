@@ -31,6 +31,13 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_layout);
 
+        // Khôi phục phiên đăng nhập vào ApiClient ngay khi ứng dụng khởi
+        // động. Bộ nhớ đệm xác thực trong ApiClient là biến tĩnh nên mất
+        // khi tiến trình bị hệ thống thu hồi, trong khi phiên vẫn còn trong
+        // SharedPreferences. Thiếu bước này, người dùng mở lại app mà không
+        // đăng nhập lại sẽ bị máy chủ trả 401 ở mọi màn hình.
+        com.sinhvien.orderdrinkapp.Utils.SessionManager.restoreAuth(this);
+
         // Ánh xạ các thành phần giao diện
         ImageView img_splash_Logo = (ImageView)findViewById(R.id.img_splash_Logo);
         TextView txt_splash_AppName = (TextView)findViewById(R.id.txt_splash_AppName);

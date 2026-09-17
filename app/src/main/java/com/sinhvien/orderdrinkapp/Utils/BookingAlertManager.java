@@ -34,6 +34,7 @@ import retrofit2.Response;
 public class BookingAlertManager {
 
     // ID kênh thông báo cho đặt bàn
+    private static final String TAG = "BookingAlertManager";
     private static final String CHANNEL_ID = "booking_alerts";
     // Tên hiển thị của kênh thông báo
     private static final String CHANNEL_NAME = "Nhắc nhở đặt bàn";
@@ -224,14 +225,40 @@ public class BookingAlertManager {
 
     /**
      * Gọi API cập nhật hàng loạt trạng thái của các lịch đặt bàn.
+     *
+     * VÌ SAO PHẢI GHI LOG Ở ĐÂY
+     * --------------------------
+     * Trước đây cả onResponse lẫn onFailure đều có thân RỖNG. Hậu quả thật
+     * đã xảy ra: ràng buộc `CHK_DATBAN_TINHTRANG` trong CSDL thiếu giá trị
+     * 'overdue', nên mọi lần gọi đều trả lỗi — và vì không ai ghi lại, tính
+     * năng cảnh báo quá giờ chết lặng lẽ suốt một thời gian dài mà không có
+     * một dấu vết nào trong Logcat.
+     *
+     * Đây là hàm chạy nền mỗi 60 giây, không có giao diện để báo cho người
+     * dùng, nên log là kênh duy nhất để biết nó còn sống hay không. Cố ý
+     * KHÔNG hiện Toast: một lỗi mạng thoáng qua mà bắn Toast mỗi phút thì
+     * còn phiền hơn cả lỗi.
      */
     private void updateBatchBookingStatus(String madatbans, String status) {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.batchUpdateBookingStatus(madatbans, status).enqueue(new Callback<BookingResponse>() {
             @Override
-            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {}
+            public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
+                if (response.isSuccessful() && response.body() != null
+                        && "success".equals(response.body().getStatus())) {
+                    android.util.Log.d(TAG, "Đánh dấu quá hạn thành công [" + madatbans + "]: "
+                            + response.body().getMessage());
+                } else {
+                    android.util.Log.w(TAG, "Đánh dấu quá hạn THẤT BẠI [" + madatbans + "] HTTP "
+                            + response.code());
+                }
+            }
+
             @Override
-            public void onFailure(Call<BookingResponse> call, Throwable t) {}
+            public void onFailure(Call<BookingResponse> call, Throwable t) {
+                android.util.Log.e(TAG, "Lỗi kết nối khi đánh dấu quá hạn [" + madatbans + "]: "
+                        + t.getMessage());
+            }
         });
     }
 

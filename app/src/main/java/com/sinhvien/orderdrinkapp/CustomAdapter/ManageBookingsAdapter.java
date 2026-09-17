@@ -72,7 +72,24 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         BookingResponse booking = bookingList.get(position);
 
         holder.txt_booking_table.setText(booking.getTenBan() != null ? booking.getTenBan() : "Bàn #" + booking.getMaBan());
-        holder.txt_booking_customer.setText("Mã Khách hàng: #" + booking.getMaKH());
+        // Hiện TÊN và SỐ ĐIỆN THOẠI người đặt thay vì mã khách hàng.
+        //
+        // Dòng cũ in "Mã Khách hàng: #19" — một con số nhân viên không dùng
+        // được vào việc gì. Với phiếu của khách vãng lai đặt từ landing page
+        // thì MAKH = 0, nên nó in "Mã Khách hàng: #0" và nhân viên không có
+        // cách nào liên hệ để xác nhận.
+        //
+        // Máy chủ đã gửi TENNGUOIDAT/SDTNGUOIDAT từ nhiệm vụ E5; chỉ là
+        // BookingResponse chưa khai báo nên Gson bỏ qua. Nay đã khai báo.
+        String tenNguoiDat = booking.getTenNguoiDat();
+        String sdtNguoiDat = booking.getSdtNguoiDat();
+        if (tenNguoiDat == null || tenNguoiDat.trim().isEmpty()) {
+            tenNguoiDat = "Khách #" + booking.getMaKH();
+        }
+        holder.txt_booking_customer.setText(
+                (sdtNguoiDat != null && !sdtNguoiDat.trim().isEmpty())
+                        ? tenNguoiDat + " · " + sdtNguoiDat
+                        : tenNguoiDat);
         holder.txt_booking_time.setText("Giờ hẹn: " + booking.getThoigianhen());
 
         // Hiển thị số tiền đặt trước món ăn nếu có
@@ -252,7 +269,20 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         @Override
                         public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                             progressDialog.dismiss();
-                            if (response.isSuccessful()) {
+
+                            // Phải kiểm tra CẢ mã HTTP LẪN trường status trong thân phản hồi.
+                            //
+                            // Trước đây chỉ có `response.isSuccessful()`. Máy chủ lại trả
+                            // HTTP 200 kèm {"status":"error"} khi từ chối, nên nhánh này
+                            // chạy và hiện "Đã hủy lịch hẹn đặt bàn!" trong khi CSDL không
+                            // đổi gì — người dùng tin là đã hủy, phiếu vẫn còn nguyên.
+                            // Hai hàm performConfirmBooking và performCheckIn ngay phía trên
+                            // vốn đã kiểm tra đủ cả hai; chỗ này bị bỏ sót.
+                            boolean thanhCong = response.isSuccessful()
+                                    && response.body() != null
+                                    && "success".equals(response.body().getStatus());
+
+                            if (thanhCong) {
                                 Log.d(TAG, "Hủy lịch đặt bàn thành công: madatban=" + madatban);
                                 Toast.makeText(context, "Đã hủy lịch hẹn đặt bàn!", Toast.LENGTH_SHORT).show();
                                 
@@ -267,8 +297,13 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                                     actionListener.onActionSuccess();
                                 }
                             } else {
-                                Log.w(TAG, "Không thể hủy lịch đặt bàn: madatban=" + madatban);
-                                Toast.makeText(context, "Không thể hủy lịch đặt!", Toast.LENGTH_SHORT).show();
+                                // Máy chủ nay giải thích rõ vì sao từ chối, ví dụ
+                                // "Phiếu đang ở trạng thái đã nhận bàn, không thể chuyển
+                                // sang đã hủy". Hiện nguyên câu đó hữu ích hơn nhiều so
+                                // với một câu chung chung.
+                                String msg = docThongBaoLoi(response, "Không thể hủy lịch đặt!");
+                                Log.w(TAG, "Không thể hủy lịch đặt bàn: madatban=" + madatban + " — " + msg);
+                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
                             }
                         }
 
@@ -282,6 +317,32 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                 })
                 .setNegativeButton("Quay lại", null)
                 .show();
+    }
+
+    /**
+     * Lấy câu thông báo mà máy chủ gửi kèm khi từ chối một thao tác.
+     *
+     * Retrofit đặt thân phản hồi ở hai nơi khác nhau tùy mã HTTP: thành công
+     * thì ở body(), lỗi (4xx/5xx) thì ở errorBody() và KHÔNG được phân giải
+     * sẵn thành đối tượng. Máy trạng thái phía máy chủ trả HTTP 409 kèm lời
+     * giải thích tiếng Việt, nên phải đọc errorBody mới thấy được.
+     */
+    private String docThongBaoLoi(Response<BookingResponse> response, String macDinh) {
+        if (response.body() != null && response.body().getMessage() != null
+                && !response.body().getMessage().isEmpty()) {
+            return response.body().getMessage();
+        }
+        if (response.errorBody() != null) {
+            try {
+                String raw = response.errorBody().string();
+                org.json.JSONObject o = new org.json.JSONObject(raw);
+                String m = o.optString("message", "");
+                if (!m.isEmpty()) return m;
+            } catch (Exception e) {
+                Log.w(TAG, "Không đọc được errorBody: " + e.getMessage());
+            }
+        }
+        return macDinh;
     }
 
     @Override

@@ -19,6 +19,20 @@ public class TableResponse {
     @SerializedName("TINHTRANG")
     private String tinhTrang;
 
+    /**
+     * Trạng thái HÀNH CHÍNH của bàn: "true" = đang sử dụng, "false" = bảo trì.
+     *
+     * Khác hẳn TINHTRANG ở trên — TINHTRANG là trạng thái VẬN HÀNH, đổi liên
+     * tục trong ngày khi khách vào/ra. Còn HOATDONG do quản lý đặt, hiếm khi
+     * đổi, và dùng để đánh dấu bàn hỏng hoặc tạm ngưng.
+     *
+     * Lý do tồn tại: bàn đã có lịch sử đơn hàng thì cơ sở dữ liệu KHÔNG cho
+     * xóa (khóa ngoại DONDAT.MABAN dùng NO ACTION, để bảo toàn số liệu doanh
+     * thu). Chế độ bảo trì là lối thoát cho ràng buộc đó.
+     */
+    @SerializedName("HOATDONG")
+    private String hoatDong;
+
     // Trạng thái phản hồi của yêu cầu cập nhật bàn ("success", "error")
     @SerializedName("status")
     private String status;
@@ -39,6 +53,11 @@ public class TableResponse {
 
     public String getTinhTrang() { return tinhTrang; }
     public void setTinhTrang(String tinhTrang) { this.tinhTrang = tinhTrang; }
+
+    /** Trả về "true" nếu bàn đang hoạt động. Mặc định "true" khi máy chủ
+     *  chưa gửi trường này (tương thích ngược với bản API cũ). */
+    public String getHoatDong() { return hoatDong == null ? "true" : hoatDong; }
+    public void setHoatDong(String hoatDong) { this.hoatDong = hoatDong; }
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }

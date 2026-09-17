@@ -38,8 +38,15 @@ public class SocketManager {
      */
     private SocketManager() {
         try {
-            // Lấy địa chỉ IP/domain từ ApiClient và bỏ port 8081 để trỏ về host Apache chính
-            String socketUrl = ApiClient.BASE_URL.replace(":8081/", "");
+            // Dùng hằng SOCKET_URL khai báo tường minh trong ApiClient.
+            //
+            // Cách cũ suy ra địa chỉ bằng phép thay chuỗi:
+            //     ApiClient.BASE_URL.replace(":8081/", "")
+            // Cách đó phụ thuộc vào việc BASE_URL phải chứa đúng chuỗi
+            // ":8081/". Chỉ cần đổi cổng hay đổi cấu trúc URL là phép thay
+            // không khớp gì cả, socketUrl trở thành chính BASE_URL, và kết
+            // nối hỏng ngầm mà không có lỗi biên dịch nào báo trước.
+            String socketUrl = ApiClient.SOCKET_URL;
             
             IO.Options options = new IO.Options();
             options.path = "/socket.io/";

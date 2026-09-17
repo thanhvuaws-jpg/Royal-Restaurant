@@ -113,7 +113,18 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
 
         GradientDrawable badge = (GradientDrawable) ContextCompat
                 .getDrawable(context, R.drawable.round_corner_textview).mutate();
-        if (dangDung) {
+
+        // Bàn đang bảo trì được xét TRƯỚC mọi trạng thái khác: dù có đang
+        // trống hay đã được đặt trước thì nó cũng không phục vụ được.
+        boolean dangBaoTri = "false".equals(ban.getHoatDong());
+
+        if (dangBaoTri) {
+            holder.txt_Status.setText("Bảo trì");
+            badge.setColor(android.graphics.Color.parseColor("#78909C")); // xám xanh
+            holder.txt_ActionHint.setText("Bàn tạm ngưng phục vụ");
+            // Làm mờ cả thẻ để phân biệt rõ với bàn còn dùng được
+            holder.itemView.setAlpha(0.55f);
+        } else if (dangDung) {
             holder.txt_Status.setText("Đang dùng");
             badge.setColor(ContextCompat.getColor(context, R.color.status_occupied));
             holder.txt_ActionHint.setText("Nhấn để xem đơn & thanh toán");
@@ -133,6 +144,15 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             badge.setColor(ContextCompat.getColor(context, R.color.status_available));
             holder.txt_ActionHint.setText("Nhấn để đặt món");
         }
+
+        // BẮT BUỘC đặt lại độ mờ cho thẻ KHÔNG bảo trì.
+        // RecyclerView tái sử dụng view, nên nếu chỉ đặt alpha ở nhánh bảo
+        // trì mà không khôi phục ở đây, một thẻ từng dùng cho bàn bảo trì
+        // sẽ tiếp tục mờ khi được tái dùng cho bàn bình thường.
+        if (!dangBaoTri) {
+            holder.itemView.setAlpha(1.0f);
+        }
+
         holder.txt_Status.setBackground(badge);
 
         // Bật/tắt nút xóa bàn dành cho Admin
@@ -181,6 +201,18 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
      */
     private void xuLyClickBan(int position) {
         BanAnDTO ban = banAnDTOList.get(position);
+
+        // Chặn ngay từ đầu: bàn đang bảo trì thì không gọi món được.
+        // Nếu để lọt, nhân viên sẽ mở đơn trên một bàn mà nhà hàng đã đánh
+        // dấu là không phục vụ — và khách đặt trực tuyến cũng không được xếp
+        // vào bàn đó, dẫn tới hai nguồn dữ liệu mâu thuẫn nhau.
+        if ("false".equals(ban.getHoatDong())) {
+            android.widget.Toast.makeText(context,
+                    "Bàn \"" + ban.getTenBan() + "\" đang bảo trì, không thể gọi món.",
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         int maban = ban.getMaBan();
         String tenban = ban.getTenBan();
         boolean dangDung = "true".equals(ban.getTinhTrang());
@@ -281,8 +313,12 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         public boolean areContentsTheSame(int oldItemPosition, int newItemPosition) {
             BanAnDTO oldItem = oldList.get(oldItemPosition);
             BanAnDTO newItem = newList.get(newItemPosition);
+            // Phải so cả HOATDONG: thiếu nó thì khi quản lý bật/tắt bảo trì
+            // từ web, DiffUtil sẽ coi hai bản ghi là giống nhau và KHÔNG vẽ
+            // lại thẻ — giao diện đứng yên dù dữ liệu đã đổi.
             return oldItem.getTenBan().equals(newItem.getTenBan()) &&
-                   oldItem.getTinhTrang().equals(newItem.getTinhTrang());
+                   oldItem.getTinhTrang().equals(newItem.getTinhTrang()) &&
+                   oldItem.getHoatDong().equals(newItem.getHoatDong());
         }
     }
 }

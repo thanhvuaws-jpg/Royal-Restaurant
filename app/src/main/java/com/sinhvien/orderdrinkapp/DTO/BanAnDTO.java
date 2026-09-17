@@ -32,6 +32,12 @@ public class BanAnDTO {
         return TinhTrang;
     }
 
+    /** "true" = bàn đang sử dụng, "false" = đang bảo trì. Xem TableResponse. */
+    private String hoatDong = "true";
+
+    public String getHoatDong() { return hoatDong == null ? "true" : hoatDong; }
+    public void setHoatDong(String hoatDong) { this.hoatDong = hoatDong; }
+
     public void setTinhTrang(String tinhTrang) {
         TinhTrang = tinhTrang;
     }
