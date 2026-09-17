@@ -1,0 +1,226 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Màn hình chat với bộ phận chăm sóc khách hàng.
+
+    Bố cục ba tầng cố định: thanh tiêu đề trên, danh sách tin ở giữa (co giãn
+    hết phần còn lại), thanh nhập dưới cùng.
+
+    Thanh nhập neo ở đáy bằng LinearLayout dọc chứ không phải ConstraintLayout:
+    khi bàn phím bật lên, adjustResize thu gọn phần giữa và thanh nhập tự nổi
+    theo — không cần tính toán gì thêm.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#F5F1ED">
+
+    <!-- ══════════════ Thanh tiêu đề ══════════════ -->
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/thanh_chat"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:elevation="4dp"
+        app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
+        app:titleTextColor="@color/white">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chăm sóc khách hàng"
+                android:textColor="@color/white"
+                android:textSize="17sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txt_trang_thai_chat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Royal Restaurant · 08:00 – 22:00"
+                android:textColor="#D6C8BE"
+                android:textSize="12sp" />
+        </LinearLayout>
+    </androidx.appcompat.widget.Toolbar>
+
+    <!-- ══════════════ Danh sách tin nhắn ══════════════ -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/ds_tin_nhan"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:paddingTop="12dp"
+            android:paddingBottom="12dp"
+            android:scrollbars="none" />
+
+        <!--
+            Màn hình chào khi khách chưa từng nhắn.
+
+            Có gợi ý sẵn vài câu hỏi thường gặp: đối diện một ô trống, phần
+            lớn người dùng không biết bắt đầu từ đâu và sẽ thoát ra.
+        -->
+        <LinearLayout
+            android:id="@+id/khung_chao"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:padding="32dp"
+            android:visibility="gone">
+
+            <ImageView
+                android:layout_width="72dp"
+                android:layout_height="72dp"
+                android:src="@drawable/ic_chat_ho_tro"
+                android:alpha="0.35"
+                android:contentDescription="Biểu tượng trò chuyện" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Nhà hàng có thể giúp gì cho bạn?"
+                android:textColor="@color/black"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:gravity="center"
+                android:text="Trợ lý trả lời ngay những câu thường gặp.\nCác việc khác sẽ có nhân viên phản hồi."
+                android:textColor="@color/grey"
+                android:textSize="13sp" />
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/nhom_goi_y"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                app:chipSpacingVertical="2dp"
+                app:singleLine="false" />
+        </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/vong_quay_chat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+    </FrameLayout>
+
+    <!--
+        ══════════════ Khối hỏi khách xác nhận đóng ══════════════
+
+        Chỉ hiện khi nhân viên đã bấm "Hoàn tất". Đặt NGAY TRÊN thanh nhập
+        chứ không phải dưới cùng danh sách tin: nếu nó là một dòng trong
+        danh sách thì khách cuộn lên xem lại lịch sử là mất nó khỏi tầm mắt,
+        trong khi đây là việc đang chờ họ quyết.
+    -->
+    <LinearLayout
+        android:id="@+id/khung_xac_nhan"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/bg_khung_xac_nhan"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_marginBottom="8dp"
+        android:padding="14dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vấn đề của bạn đã được giải quyết chưa?"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="10dp">
+
+            <Button
+                android:id="@+id/nut_van_can"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_nut_vien"
+                android:text="Vẫn cần hỗ trợ"
+                android:textAllCaps="false"
+                android:textColor="@color/colorPrimary"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/nut_ket_thuc"
+                style="?android:attr/borderlessButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_nut_dac"
+                android:text="Đã xong, cảm ơn"
+                android:textAllCaps="false"
+                android:textColor="@color/white"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- ══════════════ Thanh nhập ══════════════ -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:padding="8dp">
+
+        <EditText
+            android:id="@+id/o_nhap_tin"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:background="@drawable/bg_o_nhap_chat"
+            android:hint="Nhập tin nhắn…"
+            android:inputType="textCapSentences|textMultiLine"
+            android:maxLines="4"
+            android:maxLength="2000"
+            android:minHeight="44dp"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/black"
+            android:textColorHint="@color/grey"
+            android:textSize="15sp"
+            android:importantForAutofill="no" />
+
+        <ImageButton
+            android:id="@+id/nut_gui"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/bg_nut_gui"
+            android:src="@drawable/ic_gui_di"
+            android:scaleType="centerInside"
+            android:padding="10dp"
+            android:contentDescription="Gửi tin nhắn" />
+    </LinearLayout>
+</LinearLayout>

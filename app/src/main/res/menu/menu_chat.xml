@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Menu trên thanh tiêu đề màn chat.
+
+    Đặt trong menu thay vì làm nút nổi trên màn hình: cả hai đều là việc
+    HIẾM làm. Phần lớn thời gian khách chỉ gõ và đọc; hai nút to thường trực
+    sẽ chiếm chỗ của đúng thứ họ tới đây để làm.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/menu_gap_nhan_vien"
+        android:title="Gặp nhân viên"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/menu_ket_thuc"
+        android:title="Kết thúc trò chuyện"
+        app:showAsAction="never" />
+</menu>

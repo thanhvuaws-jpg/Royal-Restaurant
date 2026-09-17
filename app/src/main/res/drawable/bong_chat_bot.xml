@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Bong bóng tin của TRỢ LÝ TỰ ĐỘNG.
+
+    Cố ý KHÁC MÀU hẳn bong bóng nhân viên. Khách phải phân biệt được ngay
+    câu nào do máy đáp và câu nào do người thật trả lời — nhầm hai thứ này
+    làm họ tưởng đã có người tiếp nhận khiếu nại trong khi chưa ai đọc.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+    <solid android:color="@color/cream" />
+    <stroke android:width="1dp" android:color="#E8D9A0" />
+    <corners
+        android:topLeftRadius="18dp"
+        android:topRightRadius="18dp"
+        android:bottomLeftRadius="4dp"
+        android:bottomRightRadius="18dp" />
+</shape>

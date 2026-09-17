@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Tin từ phía nhà hàng: dạt trái.
+
+    MỘT layout dùng cho cả nhân viên lẫn trợ lý tự động, vì hai loại chỉ khác
+    nhau ở nền bong bóng, biểu tượng và tên. Tách thành hai tệp sẽ phải sửa
+    song song mỗi lần đổi khoảng cách hay cỡ chữ — và chúng sẽ lệch nhau.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:gravity="start"
+    android:paddingStart="12dp"
+    android:paddingEnd="56dp"
+    android:paddingTop="3dp"
+    android:paddingBottom="3dp">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginStart="4dp"
+        android:layout_marginBottom="3dp">
+
+        <ImageView
+            android:id="@+id/anh_nguoi_gui"
+            android:layout_width="14dp"
+            android:layout_height="14dp"
+            android:layout_marginEnd="5dp"
+            android:src="@drawable/ic_tro_ly"
+            android:contentDescription="Biểu tượng người gửi" />
+
+        <TextView
+            android:id="@+id/txt_ten_nguoi_gui"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#8D7B6C"
+            android:textSize="11sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txt_noi_dung"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bong_chat_nhanvien"
+        android:paddingStart="14dp"
+        android:paddingEnd="14dp"
+        android:paddingTop="10dp"
+        android:paddingBottom="10dp"
+        android:textColor="@color/black"
+        android:textSize="15sp"
+        android:lineSpacingExtra="2dp"
+        android:textIsSelectable="true" />
+
+    <TextView
+        android:id="@+id/txt_gio"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:layout_marginStart="4dp"
+        android:textColor="@color/grey"
+        android:textSize="11sp" />
+</LinearLayout>

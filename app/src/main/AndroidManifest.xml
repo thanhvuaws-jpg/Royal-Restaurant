@@ -42,6 +42,15 @@
         <activity android:name=".Activities.HomeActivity" android:exported="false" />
         <activity android:name=".Activities.CustomerHomeActivity" android:exported="false" />
         <activity android:name=".Activities.CustomerBookingActivity" android:exported="false" />
+        <!--
+            adjustResize (khong phai adjustPan): khi ban phim bat len, ca man hinh
+            co lai va thanh nhap noi theo. adjustPan se DAY ca man hinh len, che mat
+            thanh tieu de va lam danh sach tin truot ra ngoai vung nhin.
+        -->
+        <activity
+            android:name=".Activities.ChatActivity"
+            android:exported="false"
+            android:windowSoftInputMode="adjustResize" />
         <activity android:name=".Activities.LoginActivity" android:exported="false" />
         <activity android:name=".Activities.Register2ndActivity" android:exported="false" />
         <activity android:name=".Activities.WelcomeActivity" android:exported="false" />
