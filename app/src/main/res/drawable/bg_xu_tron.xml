@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nền tròn của đồng xu trong ô ngày. Màu đổi trong mã theo trạng thái ô. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#D4AF37"/>
+</shape>

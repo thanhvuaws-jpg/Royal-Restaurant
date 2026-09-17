@@ -132,7 +132,70 @@
     <string name="customer_total_spending">TỔNG CHI TIÊU TÍCH LŨY</string>
     <string name="customer_spending_zero">0đ</string>
     <string name="customer_rank_bronze">Thành viên Đồng</string>
-    <string name="customer_all_bookings_label">Tất cả lịch hẹn đặt của bạn:</string>
+    <string name="customer_all_bookings_label">Lịch sử đặt bàn</string>
+
+    <!-- Màn hình Lịch sử & chi tiêu: ô thống kê và tiến độ hạng thành viên -->
+    <string name="customer_stat_bookings">lượt đặt</string>
+    <string name="customer_stat_done">hoàn thành</string>
+    <string name="customer_stat_cancelled">đã hủy</string>
+    <string name="customer_rank_silver">Thành viên Bạc</string>
+    <string name="customer_rank_gold">Thành viên Vàng</string>
+    <string name="customer_rank_progress">Chi thêm %1$s đ để lên %2$s</string>
+    <string name="customer_rank_top">Bạn đang ở hạng cao nhất. Cảm ơn bạn!</string>
+    <string name="customer_last_visit">Lần ghé gần nhất: %1$s</string>
+
+    <!-- ══════════ Màn hình Điểm danh & Quà tặng ══════════ -->
+    <string name="dd_tieu_de">ĐIỂM DANH MỖI NGÀY</string>
+    <string name="dd_phu_de">Tích điểm, nhận quà!</string>
+    <string name="dd_ngay">NGÀY %1$d</string>
+    <string name="dd_cong_diem">+%1$dđ</string>
+    <string name="dd_moc_qua">Mốc quà tặng</string>
+    <string name="dd_diem">điểm</string>
+    <string name="dd_so_diem_cua_ban">SỐ ĐIỂM CỦA BẠN</string>
+    <string name="dd_tien_trinh">Tiến trình 7 ngày</string>
+    <string name="dd_chuoi_hien_tai">Chuỗi hiện tại: %1$d/7 ngày</string>
+    <string name="dd_nut_diem_danh">ĐIỂM DANH NGAY</string>
+    <string name="dd_nut_da_diem_danh">ĐÃ ĐIỂM DANH</string>
+    <string name="dd_nut_doi_phieu">ĐỔI PHIẾU GIẢM GIÁ</string>
+    <string name="dd_nut_xem_ma">XEM MÃ CỦA TÔI</string>
+    <string name="dd_ma_cua_toi">Mã giảm giá của tôi</string>
+    <string name="dd_kho_phieu">Kho phiếu giảm giá</string>
+    <string name="dd_doi_duoc">Đổi được %1$d phiếu</string>
+    <string name="dd_chua_du_doi">Chưa đủ điểm đổi phiếu</string>
+    <string name="dd_gia_diem">%1$dđ</string>
+    <string name="dd_nut_doi">ĐỔI</string>
+    <string name="dd_thieu_diem">Thiếu %1$d điểm</string>
+    <string name="dd_can_hang">Cần %1$s</string>
+    <string name="dd_han_dung">Hạn dùng: %1$s</string>
+    <string name="dd_don_toi_thieu">Áp dụng cho hóa đơn từ %1$sđ</string>
+    <string name="dd_tt_chuadung">CÒN HẠN</string>
+    <string name="dd_tt_dadung">ĐÃ DÙNG</string>
+    <string name="dd_tt_hethan">HẾT HẠN</string>
+    <string name="dd_rong_ma">Bạn chưa có mã giảm giá nào.\nĐiểm danh mỗi ngày để tích điểm đổi phiếu!</string>
+    <string name="dd_rong_voucher">Chưa có phiếu nào để đổi</string>
+    <string name="dd_qua_tuan_moi">🎁 Quà tri ân tuần này</string>
+    <string name="dd_xac_nhan_doi">Đổi %1$d điểm lấy "%2$s"?</string>
+    <string name="dd_xac_nhan_doi_ok">Đổi ngay</string>
+    <string name="dd_da_sao_chep">Đã sao chép mã %1$s</string>
+    <string name="dd_nhan_de_chep">Nhấn vào mã để sao chép</string>
+
+    <!-- Ô nhập mã giảm giá ở màn thanh toán -->
+    <string name="tt_nhap_ma">Nhập mã giảm giá</string>
+    <string name="tt_ap_ma">ÁP MÃ</string>
+    <string name="tt_go_ma">GỠ MÃ</string>
+    <string name="tt_ma_hop_le">✓ %1$s · giảm %2$s đ</string>
+    <string name="tt_dang_kiem_tra">Đang kiểm tra mã…</string>
+    <string name="tt_chua_nhap_ma">Vui lòng nhập mã giảm giá</string>
+    <string name="tt_tong_sau_giam">%1$s VNĐ  (đã giảm %2$s đ)</string>
+
+    <!-- Chọn mã giảm giá khi đặt bàn -->
+    <string name="booking_voucher_label">4. Mã Giảm Giá (Tùy chọn):</string>
+    <string name="booking_voucher_chua_chon">Chưa chọn mã giảm giá</string>
+    <string name="booking_voucher_chon">CHỌN</string>
+    <string name="booking_voucher_bo">BỎ</string>
+    <string name="booking_voucher_khong_co">Bạn chưa có mã nào dùng được.\nĐiểm danh mỗi ngày để tích điểm đổi phiếu!</string>
+    <string name="booking_voucher_tieu_de">Chọn mã giảm giá</string>
+    <string name="booking_voucher_giu_cho">Mã sẽ được giữ cho lịch hẹn này. Nếu bạn hủy lịch, mã được trả lại ví.</string>
     <string name="booking_toolbar_title">Đặt bàn &amp; chọn món</string>
     <string name="booking_select_table_label">1. Chọn Bàn Ăn:</string>
     <string name="booking_select_datetime_label">2. Chọn Ngày &amp; Giờ Hẹn:</string>
@@ -141,6 +204,44 @@
     <string name="booking_no_datetime">Chưa chọn thời gian</string>
     <string name="booking_select_dishes_label">3. Chọn Món Ăn Đặt Trước (Tùy chọn):</string>
     <string name="booking_total_default">Tổng: 0đ</string>
+
+    <!-- Màn hình đặt bàn: khối chọn món có tìm kiếm, lọc danh mục và phân trang -->
+    <string name="booking_search_hint">Tìm món ăn…</string>
+    <string name="booking_clear_search">Xóa từ khóa</string>
+    <string name="booking_all_categories">Tất cả</string>
+    <string name="booking_no_dish_found">Không tìm thấy món nào</string>
+    <string name="booking_prev_page">Trang trước</string>
+    <string name="booking_next_page">Trang sau</string>
+    <string name="booking_page_indicator">Trang %1$d / %2$d</string>
+    <string name="booking_dish_count">%1$d món</string>
+    <string name="booking_dish_count_selected">%1$d món · đã chọn %2$d</string>
+
+    <!-- Màn hình lịch hẹn của khách: bộ lọc trạng thái, hủy phiếu, trạng thái rỗng -->
+    <string name="customer_empty_bookings">Bạn chưa có lịch hẹn nào</string>
+    <string name="customer_filter_all">Tất cả</string>
+    <string name="customer_filter_upcoming">Sắp tới</string>
+    <string name="customer_filter_seated">Đã nhận bàn</string>
+    <string name="customer_filter_done">Hoàn thành</string>
+    <string name="customer_filter_cancelled">Đã hủy</string>
+
+    <string name="customer_btn_cancel_booking">Hủy lịch hẹn</string>
+    <string name="customer_cancel_title">Hủy lịch hẹn này?</string>
+    <string name="customer_cancel_message">Lịch hẹn %1$s lúc %2$s sẽ bị hủy. Bạn có thể đặt lại bất cứ lúc nào.</string>
+    <string name="customer_cancel_yes">Hủy lịch hẹn</string>
+    <string name="customer_cancel_no">Giữ lại</string>
+    <string name="customer_cancel_ok">Đã hủy lịch hẹn</string>
+    <string name="customer_cancel_too_late">Đã quá gần giờ hẹn (dưới 1 tiếng) nên không thể tự hủy. Vui lòng gọi hotline để nhà hàng hỗ trợ.</string>
+
+    <string name="customer_booking_count">%1$d lịch hẹn</string>
+    <string name="customer_empty_filtered">Không có lịch hẹn nào ở mục này</string>
+    <string name="customer_countdown_days">Còn %1$d ngày nữa</string>
+    <string name="customer_countdown_hours">Còn %1$d giờ nữa</string>
+    <string name="customer_countdown_minutes">Còn %1$d phút nữa</string>
+    <string name="customer_countdown_now">Sắp tới giờ hẹn</string>
+    <string name="customer_guests_dishes">%1$s · %2$s</string>
+    <string name="customer_guests">%1$d khách</string>
+    <string name="customer_no_preorder">Chưa đặt món trước</string>
+    <string name="customer_preorder">%1$d món · %2$s đ</string>
     <string name="booking_btn_confirm">Đặt Bàn</string>
     <string name="customer_btn_new_booking">ĐẶT BÀN &amp; MÓN TRƯỚC NGAY</string>
     <string name="customer_active_bookings_title">Lịch hẹn đặt bàn của bạn:</string>

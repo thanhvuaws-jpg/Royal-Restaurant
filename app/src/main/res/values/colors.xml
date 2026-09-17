@@ -20,4 +20,14 @@
     <color name="status_unavailable">#E53935</color>
     <color name="overlay_unavailable">#99000000</color>
     <color name="red_soft">#E57373</color>
+
+    <!-- Royal Restaurant Luxury Palette -->
+    <color name="gold_300">#F3E5AB</color>
+    <color name="gold_400">#D4AF37</color>
+    <color name="gold_500">#C5A017</color>
+    <color name="gold_600">#AA8811</color>
+    <color name="royal_bg">#0A0A0A</color>
+    <color name="royal_dark_card">#1A1A1A</color>
+    <color name="gold_stroke">#40D4AF37</color>
+    <color name="gold_glow">#25D4AF37</color>
 </resources>

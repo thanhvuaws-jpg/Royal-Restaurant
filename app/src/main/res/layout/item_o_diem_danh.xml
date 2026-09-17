@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Một ô ngày trong bảng điểm danh 7 ngày.
+
+    Bốn trạng thái, đúng như bản thiết kế:
+      chua   — xám nhạt, xu mờ            (ngày chưa tới)
+      xong   — nâu đậm, dấu tích          (đã điểm danh)
+      homnay — kem, viền vàng dày         (ô đang chờ bấm)
+      moc    — kem, viền vàng, hộp quà    (ngày 7)
+
+    Adapter đổi nền, màu chữ và biểu tượng; layout chỉ dựng khung.
+-->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/khung_o_ngay"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="96dp"
+    android:gravity="center"
+    android:background="@drawable/bg_o_chua">
+
+    <TextView
+        android:id="@+id/txt_ten_ngay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#8D8074"/>
+
+    <FrameLayout
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginTop="5dp">
+
+        <!-- Đồng xu / dấu tích -->
+        <TextView
+            android:id="@+id/txt_bieu_tuong"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="#8A6510"
+            android:background="@drawable/bg_xu_tron"/>
+
+        <!-- Hộp quà cho ô mốc -->
+        <ImageView
+            android:id="@+id/img_qua"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/ic_hop_qua"
+            android:visibility="gone"
+            android:contentDescription="@string/dd_moc_qua"/>
+
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/txt_diem_o"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:textSize="11sp"
+        android:textStyle="bold"
+        android:textColor="#A99C8F"/>
+
+</LinearLayout>

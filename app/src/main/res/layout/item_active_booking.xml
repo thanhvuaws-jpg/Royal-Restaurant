@@ -1,64 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Một thẻ lịch hẹn trong màn hình của khách.
+
+    Bố cục: dải màu trạng thái dọc bên trái + nội dung bên phải.
+    Dải màu cho phép liếc qua là biết trạng thái mà không cần đọc chữ —
+    hữu ích khi danh sách dài và người dùng đang tìm một phiếu cụ thể.
+
+    Mọi phần có thể vắng (ghi chú, món đặt trước, hàng nút) đều để
+    visibility="gone" sẵn; Adapter bật lên khi có dữ liệu. Làm vậy để thẻ
+    không chừa khoảng trống của những thứ không tồn tại.
+-->
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    android:background="@color/white">
+    android:layout_marginStart="4dp"
+    android:layout_marginEnd="4dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="10dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="3dp"
+    app:cardBackgroundColor="@color/white">
 
     <LinearLayout
-        android:orientation="vertical"
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:layout_height="wrap_content">
 
-        <RelativeLayout
+        <!-- Dải màu trạng thái -->
+        <View
+            android:id="@+id/dai_mau_trang_thai"
+            android:layout_width="5dp"
+            android:layout_height="match_parent"
+            android:background="@color/colorAccent"/>
+
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:padding="14dp">
 
-            <TextView
-                android:id="@+id/txt_booking_table"
-                android:layout_width="wrap_content"
+            <!-- ── Hàng 1: tên bàn + huy hiệu trạng thái ── -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Bàn 1"
-                android:textSize="20sp"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/txt_booking_table"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="18sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:maxLines="1"
+                    android:ellipsize="end"/>
+
+                <TextView
+                    android:id="@+id/txt_booking_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="5dp"
+                    android:paddingBottom="5dp"/>
+
+            </LinearLayout>
+
+            <!-- ── Hàng 2: giờ hẹn, chữ to nhất vì đây là thứ khách tìm ── -->
+            <TextView
+                android:id="@+id/txt_booking_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                android:textColor="@color/colorPrimary"/>
+                android:textColor="@color/black"/>
 
+            <!-- ── Hàng 3: khoảng cách tới giờ hẹn ("còn 2 ngày") ── -->
             <TextView
-                android:id="@+id/txt_booking_status"
-                android:layout_width="wrap_content"
+                android:id="@+id/txt_booking_countdown"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:text="Chờ nhận bàn"
-                android:textSize="14sp"
+                android:layout_marginTop="2dp"
+                android:textSize="12sp"
                 android:textStyle="bold"
                 android:textColor="@color/colorAccent"
-                android:padding="6dp"
-                android:background="@drawable/border_status_pending"/>
+                android:visibility="gone"/>
 
-        </RelativeLayout>
+            <!-- ── Hàng 4: số khách · món đặt trước ── -->
+            <TextView
+                android:id="@+id/txt_booking_dishes"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="13sp"
+                android:textColor="@color/grey"/>
 
-        <TextView
-            android:id="@+id/txt_booking_time"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="Giờ hẹn: 19:30 - 26/05/2026"
-            android:textSize="16sp"
-            android:textColor="@color/black"/>
+            <!-- ── Ghi chú của khách ── -->
+            <TextView
+                android:id="@+id/txt_booking_note"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="12sp"
+                android:textStyle="italic"
+                android:textColor="#8D6E63"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:visibility="gone"/>
 
-        <TextView
-            android:id="@+id/txt_booking_dishes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="Món đặt trước: Không có"
-            android:textSize="15sp"
-            android:textColor="@color/grey"/>
+            <!-- ── Hàng nút: chỉ hiện khi phiếu còn hủy được ── -->
+            <LinearLayout
+                android:id="@+id/layout_nut_phieu"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:layout_marginTop="10dp"
+                android:visibility="gone">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_huy_phieu"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="38dp"
+                    android:text="@string/customer_btn_cancel_booking"
+                    android:textSize="12sp"
+                    android:textColor="#E53935"
+                    app:strokeColor="#E53935"
+                    app:cornerRadius="10dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"/>
+
+            </LinearLayout>
+
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.cardview.widget.CardView>

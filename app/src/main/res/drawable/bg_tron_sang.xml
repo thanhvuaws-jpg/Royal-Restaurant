@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nền tròn sáng cho ô chữ cái đầu của tên khách (thay ảnh đại diện) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#F5EFEC"/>
+</shape>

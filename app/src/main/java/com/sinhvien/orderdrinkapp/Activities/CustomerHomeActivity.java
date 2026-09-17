@@ -24,6 +24,7 @@ import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerBookingFragment;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerProfileFragment;
+import com.sinhvien.orderdrinkapp.Fragments.DiemDanhFragment;
 import com.sinhvien.orderdrinkapp.Fragments.CustomerContactFragment;
 
 // Nhập thư viện cần thiết cho SharedPreferences, AlertDialog, API và Socket
@@ -150,9 +151,12 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             } else if (id == R.id.nav_customer_history) {
                 navigateTo(new CustomerProfileFragment(), "CustomerProfileFragment");
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+            } else if (id == R.id.nav_diem_danh) {
+                navigateTo(new DiemDanhFragment(), "DiemDanhFragment");
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle("Điểm danh & Quà tặng");
             } else if (id == R.id.nav_customer_contact) {
                 navigateTo(new CustomerContactFragment(), "CustomerContactFragment");
-                if (getSupportActionBar() != null) getSupportActionBar().setTitle("Liên hệ quán");
+                if (getSupportActionBar() != null) getSupportActionBar().setTitle("Hỗ trợ khách hàng");
             } else if (id == R.id.nav_logout) {
                 logout();
             }
@@ -174,6 +178,10 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                     navigationView.setCheckedItem(R.id.nav_customer_booking);
                     bottomNav.setSelectedItemId(R.id.nav_customer_booking);
                     if (getSupportActionBar() != null) getSupportActionBar().setTitle("Đặt bàn & món");
+                } else if ("DiemDanhFragment".equals(activeTag)) {
+                    navigationView.setCheckedItem(R.id.nav_diem_danh);
+                    bottomNav.setSelectedItemId(R.id.nav_diem_danh);
+                    if (getSupportActionBar() != null) getSupportActionBar().setTitle("Điểm danh & Quà tặng");
                 } else if ("CustomerProfileFragment".equals(activeTag)) {
                     navigationView.setCheckedItem(R.id.nav_customer_history);
                     bottomNav.setSelectedItemId(R.id.nav_customer_history);
@@ -181,7 +189,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                 } else if ("CustomerContactFragment".equals(activeTag)) {
                     navigationView.setCheckedItem(R.id.nav_customer_contact);
                     bottomNav.setSelectedItemId(R.id.nav_customer_contact);
-                    if (getSupportActionBar() != null) getSupportActionBar().setTitle("Liên hệ quán");
+                    if (getSupportActionBar() != null) getSupportActionBar().setTitle("Hỗ trợ khách hàng");
                 }
             }
         }
@@ -229,9 +237,51 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
     }
 
     /**
-     * Xử lý chuyển đổi qua lại giữa các Fragment một cách mượt mà và lưu lại trạng thái (không khởi tạo lại Fragment nếu đã có sẵn).
+     * Chuyển qua lại giữa các Fragment, giữ nguyên trạng thái từng màn hình.
+     *
+     *
+     * LỖI ĐÃ SỬA: MỖI MÀN HÌNH BỊ TẠO HAI LẦN
+     * ========================================
+     * Lúc khởi động, `onCreate` chạy hai dòng liền nhau:
+     *
+     *     navigateTo(new CustomerBookingFragment(), "CustomerBookingFragment");
+     *     bottomNav.setSelectedItemId(R.id.nav_customer_booking);
+     *
+     * Dòng thứ hai KÍCH HOẠT LẠI listener của thanh điều hướng, và listener
+     * đó lại gọi `navigateTo(new CustomerBookingFragment(), ...)` lần nữa.
+     *
+     * Đáng lẽ `findFragmentByTag(tag)` phải chặn được lần thứ hai. Nhưng
+     * `commit()` là BẤT ĐỒNG BỘ — nó chỉ xếp giao dịch vào hàng đợi, chưa
+     * thực thi. Nên ở lần gọi thứ hai (xảy ra ngay sau, cùng một vòng lặp
+     * sự kiện) `findFragmentByTag` vẫn trả về null, và một instance THỨ HAI
+     * được thêm vào với cùng cái tag.
+     *
+     * Hậu quả đo được trong Logcat:
+     *
+     *     D LichHen: taiPhieu: makh=19 loc= trang=1     <- instance A
+     *     D LichHen: taiPhieu: makh=19 loc= trang=1     <- instance B
+     *     D LichHen: onResponse: HTTP 200 ... data=10
+     *     D LichHen: onResponse: HTTP 200 ... data=10
+     *
+     * Tức là MỌI lời gọi mạng bị nhân đôi, và có hai fragment cùng sống,
+     * mỗi cái giữ một danh sách và một RecyclerView riêng — đúng thứ làm
+     * nặng bộ nhớ mà chẳng ai nhìn thấy.
+     *
+     * HAI CHỖ SỬA:
+     *   1. Thoát sớm nếu màn hình đang hiển thị đã đúng là cái được yêu cầu.
+     *      Đây là lớp chặn chính và cũng bỏ luôn hoạt ảnh nhấp nháy vô ích
+     *      khi bấm lại đúng mục đang mở.
+     *   2. Dùng `commitNow()` thay cho `commit()`. Giao dịch thực thi ngay,
+     *      nên `findFragmentByTag` ở lần gọi kế tiếp thấy được fragment vừa
+     *      thêm. `commitNow()` không cho phép thêm vào back stack — ở đây
+     *      không dùng back stack nên không ảnh hưởng gì.
      */
     private void navigateTo(Fragment newFragment, String tag) {
+        // (1) Đã ở đúng màn hình này rồi thì không làm gì.
+        if (currentFragment != null && tag.equals(currentFragment.getTag())) {
+            return;
+        }
+
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.setCustomAnimations(R.anim.fragment_fade_in, R.anim.fragment_fade_out);
         if (currentFragment != null) {
@@ -245,7 +295,9 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             transaction.show(existing); // Hiển thị lại fragment cũ đã tải
             currentFragment = existing;
         }
-        transaction.commit();
+
+        // (2) commitNow() để lần gọi ngay sau đó nhìn thấy fragment này.
+        transaction.commitNow();
     }
 
     /**
@@ -275,10 +327,14 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             navigateTo(new CustomerProfileFragment(), "CustomerProfileFragment");
             bottomNav.setSelectedItemId(R.id.nav_customer_history);
             if (getSupportActionBar() != null) getSupportActionBar().setTitle("Lịch sử & chi tiêu");
+        } else if (id == R.id.nav_diem_danh) {
+            navigateTo(new DiemDanhFragment(), "DiemDanhFragment");
+            bottomNav.setSelectedItemId(R.id.nav_diem_danh);
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Điểm danh & Quà tặng");
         } else if (id == R.id.nav_customer_contact) {
             navigateTo(new CustomerContactFragment(), "CustomerContactFragment");
             bottomNav.setSelectedItemId(R.id.nav_customer_contact);
-            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Liên hệ quán");
+            if (getSupportActionBar() != null) getSupportActionBar().setTitle("Hỗ trợ khách hàng");
         } else if (id == R.id.nav_logout) {
             logout();
             return true;
@@ -296,7 +352,9 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             socket.off(io.socket.client.Socket.EVENT_CONNECT, connectListener);
             socket.off("booking_update");
         }
-        com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().disconnect(); // Hủy kết nối Socket khi thoát ứng dụng
+        // Không ngắt Socket ở đây nữa: SocketManager là singleton dùng chung,
+        // còn onDestroy() chạy cả khi Activity chỉ bị tạo lại trong điều hướng
+        // bình thường. Việc ngắt đã chuyển vào SessionManager.clearSession().
     }
 
     /**
