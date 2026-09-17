@@ -93,7 +93,7 @@
                 android:layout_marginBottom="16dp"
                 android:gravity="center"/>
 
-            <!-- Chọn món -->
+            <!-- ============ 3. CHỌN MÓN ĂN ĐẶT TRƯỚC ============ -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -101,13 +101,211 @@
                 android:textStyle="bold"
                 android:textSize="16sp"
                 android:textColor="@color/black"
-                android:layout_marginBottom="8dp"/>
+                android:layout_marginBottom="10dp"/>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rv_booking_dishes"
+            <!-- Ô tìm món.
+                 Đặt TRƯỚC dãy danh mục vì tìm kiếm áp dụng trong danh mục
+                 đang chọn, nên thứ tự đọc từ trên xuống phản ánh đúng thứ
+                 tự thu hẹp: gõ từ khóa, chọn danh mục, xem kết quả. -->
+            <LinearLayout
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
-                android:layout_height="400dp"
-                android:background="@color/white"/>
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_o_tim_kiem"
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="12dp">
+
+                <ImageView
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:src="@android:drawable/ic_menu_search"
+                    android:alpha="0.45"
+                    android:contentDescription="@string/booking_search_hint"/>
+
+                <EditText
+                    android:id="@+id/edt_tim_mon"
+                    android:layout_width="0dp"
+                    android:layout_height="46dp"
+                    android:layout_weight="1"
+                    android:background="@android:color/transparent"
+                    android:hint="@string/booking_search_hint"
+                    android:inputType="text"
+                    android:imeOptions="actionSearch"
+                    android:maxLines="1"
+                    android:paddingStart="10dp"
+                    android:paddingEnd="4dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:textColorHint="#9E9E9E"/>
+
+                <ImageButton
+                    android:id="@+id/btn_xoa_tim"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_close_clear_cancel"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:alpha="0.45"
+                    android:visibility="gone"
+                    android:contentDescription="@string/booking_clear_search"/>
+
+            </LinearLayout>
+
+            <!-- Dãy chip danh mục, cuộn ngang.
+                 Chip được sinh động từ get_categories.php nên không khai báo
+                 sẵn ở đây; LinearLayout bên trong là chỗ để gắn vào. -->
+            <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:scrollbars="none"
+                android:layout_marginBottom="12dp">
+
+                <LinearLayout
+                    android:id="@+id/layout_chip_danh_muc"
+                    android:orientation="horizontal"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+
+            </HorizontalScrollView>
+
+            <!-- Danh sách món của TRANG hiện tại.
+                 Chiều cao cố định: RecyclerView nằm trong NestedScrollView,
+                 nếu để wrap_content thì nó tự giãn hết cỡ và mất khả năng
+                 tái sử dụng view. Với 6 món mỗi trang thì 400dp vừa khít,
+                 và thanh phân trang bên dưới không bị nhảy chỗ khi trang
+                 cuối có ít món hơn. -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="400dp">
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_booking_dishes"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/white"/>
+
+                <TextView
+                    android:id="@+id/txt_khong_co_mon"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="@string/booking_no_dish_found"
+                    android:textColor="#9E9E9E"
+                    android:textSize="14sp"
+                    android:visibility="gone"/>
+
+                <ProgressBar
+                    android:id="@+id/progress_mon"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="center"
+                    android:visibility="gone"/>
+
+            </FrameLayout>
+
+            <!-- Thanh phân trang -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:paddingTop="10dp"
+                android:paddingBottom="4dp">
+
+                <TextView
+                    android:id="@+id/txt_tong_so_mon"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textSize="12sp"
+                    android:textColor="#8D6E63"/>
+
+                <ImageButton
+                    android:id="@+id/btn_trang_truoc"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_nut_trang"
+                    android:src="@android:drawable/ic_media_previous"
+                    android:scaleType="centerInside"
+                    android:contentDescription="@string/booking_prev_page"/>
+
+                <TextView
+                    android:id="@+id/txt_so_trang"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:minWidth="96dp"
+                    android:gravity="center"
+                    android:textSize="13sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimaryDark"/>
+
+                <ImageButton
+                    android:id="@+id/btn_trang_sau"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:background="@drawable/bg_nut_trang"
+                    android:src="@android:drawable/ic_media_next"
+                    android:scaleType="centerInside"
+                    android:contentDescription="@string/booking_next_page"/>
+
+            </LinearLayout>
+
+
+            <!-- ══════════ 4. MÃ GIẢM GIÁ ══════════
+                 Đặt SAU phần chọn món, vì mức giảm chỉ có nghĩa khi đã biết
+                 mình gọi những gì. Đặt trước thì khách chọn voucher "giảm cho
+                 hóa đơn từ 300.000đ" rồi mới phát hiện đơn của mình có 80.000đ. -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="@string/booking_voucher_label"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/black"/>
+
+            <LinearLayout
+                android:id="@+id/khung_chon_voucher"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:gravity="center_vertical"
+                android:background="@drawable/bg_o_tim_kiem"
+                android:paddingStart="14dp"
+                android:paddingEnd="10dp"
+                android:paddingTop="12dp"
+                android:paddingBottom="12dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:src="@drawable/ic_ve_giam_gia"
+                    android:contentDescription="@string/booking_voucher_label"/>
+
+                <TextView
+                    android:id="@+id/txt_voucher_da_chon"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="10dp"
+                    android:text="@string/booking_voucher_chua_chon"
+                    android:textSize="14sp"
+                    android:textColor="#8D6E63"/>
+
+                <TextView
+                    android:id="@+id/txt_voucher_thao_tac"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/booking_voucher_chon"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimary"/>
+
+            </LinearLayout>
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

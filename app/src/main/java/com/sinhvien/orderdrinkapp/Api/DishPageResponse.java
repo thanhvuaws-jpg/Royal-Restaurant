@@ -33,10 +33,15 @@ public class DishPageResponse {
     @SerializedName("has_more")
     private boolean hasMore;
 
+    /** Tổng số trang, do máy chủ tính sẵn để client khỏi phải chia lấy trần. */
+    @SerializedName("total_pages")
+    private int totalPages;
+
     public String getStatus()        { return status; }
     public List<MonResponse> getData() { return data; }
     public int getPage()             { return page; }
     public int getLimit()            { return limit; }
     public int getTotal()            { return total; }
     public boolean isHasMore()       { return hasMore; }
+    public int getTotalPages()       { return totalPages < 1 ? 1 : totalPages; }
 }

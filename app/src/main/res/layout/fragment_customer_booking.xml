@@ -1,43 +1,166 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView
+<!--
+    Màn hình "Lịch hẹn đặt bàn của bạn".
+
+    VÌ SAO BỎ NestedScrollView
+    ==========================
+    Bố cục cũ là:
+
+        NestedScrollView
+          └ LinearLayout
+              └ RecyclerView  height="wrap_content"
+                              nestedScrollingEnabled="false"
+
+    Hai thuộc tính đó cộng lại làm RecyclerView **mất hoàn toàn khả năng
+    tái sử dụng view**: nó buộc phải cao bằng tổng chiều cao mọi mục, nên
+    dựng sẵn TẤT CẢ thẻ ngay từ đầu và giữ chúng trong bộ nhớ. Với 50
+    phiếu là 50 CardView cùng tồn tại — đúng nguyên nhân gây nặng máy,
+    chứ không phải kích thước dữ liệu tải về.
+
+    Nay RecyclerView tự cuộn, chỉ dựng đủ số thẻ vừa màn hình (khoảng 4-5)
+    và tái dùng chúng khi cuộn. Số phiếu có tăng lên bao nhiêu thì số view
+    trong bộ nhớ vẫn không đổi.
+
+    Phần đầu (nút đặt bàn + dãy lọc) tách ra ngoài, đứng yên khi cuộn —
+    tiện hơn cho người dùng so với việc phải cuộn ngược lên mới đổi được
+    bộ lọc.
+-->
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/nsv_customer_booking"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true"
     android:background="@color/lightwhite">
 
+    <!-- ══════════════ Phần đầu cố định ══════════════ -->
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:paddingTop="16dp"
+        android:background="@color/white"
+        android:elevation="2dp">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_new_booking"
             android:layout_width="match_parent"
-            android:layout_height="60dp"
+            android:layout_height="56dp"
             android:text="@string/customer_btn_new_booking"
             android:textColor="@color/white"
-            android:textSize="16sp"
+            android:textSize="15sp"
             android:textStyle="bold"
             android:backgroundTint="@color/colorPrimary"
-            android:layout_marginBottom="16dp"/>
+            app:cornerRadius="14dp"
+            app:icon="@android:drawable/ic_menu_my_calendar"
+            app:iconTint="@color/white"
+            app:iconGravity="textStart"
+            android:layout_marginBottom="14dp"/>
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/customer_active_bookings_title"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"
-            android:layout_marginBottom="8dp"/>
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_active_bookings"
+        <LinearLayout
+            android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:nestedScrollingEnabled="false"/>
+            android:gravity="center_vertical"
+            android:layout_marginBottom="10dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/customer_active_bookings_title"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+
+            <!-- Số phiếu khớp bộ lọc hiện tại. Cho người dùng biết danh
+                 sách còn dài bao nhiêu mà không phải cuộn tới cuối. -->
+            <TextView
+                android:id="@+id/txt_tong_so_phieu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="12sp"
+                android:textColor="#8D6E63"/>
+
+        </LinearLayout>
+
+        <!-- Dãy lọc theo trạng thái, cuộn ngang. Sinh động trong Fragment. -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingBottom="12dp">
+
+            <LinearLayout
+                android:id="@+id/layout_chip_loc"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+
+        </HorizontalScrollView>
 
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+
+    <!-- ══════════════ Danh sách ══════════════ -->
+    <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+        android:id="@+id/swipe_lich_hen"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rv_active_bookings"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:paddingStart="12dp"
+                android:paddingEnd="12dp"
+                android:paddingTop="8dp"
+                android:paddingBottom="16dp"/>
+
+            <!-- Trạng thái rỗng. Nội dung đổi theo bộ lọc đang chọn nên
+                 chữ được đặt trong Fragment, không ghi cứng ở đây. -->
+            <LinearLayout
+                android:id="@+id/layout_rong"
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:visibility="gone">
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:src="@android:drawable/ic_menu_my_calendar"
+                    android:alpha="0.18"
+                    android:contentDescription="@string/customer_empty_bookings"/>
+
+                <TextView
+                    android:id="@+id/txt_rong"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:text="@string/customer_empty_bookings"
+                    android:textSize="14sp"
+                    android:textColor="#9E9E9E"/>
+
+            </LinearLayout>
+
+            <ProgressBar
+                android:id="@+id/progress_lich_hen"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:layout_gravity="center"
+                android:visibility="gone"/>
+
+        </FrameLayout>
+
+    </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+</LinearLayout>

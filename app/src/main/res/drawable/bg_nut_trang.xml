@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Nền nút chuyển trang. Có state_enabled để nút "trang trước" ở trang 1
+    (và "trang sau" ở trang cuối) tự mờ đi — người dùng thấy ngay là hết
+    trang thay vì bấm mãi không có gì xảy ra.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item android:state_enabled="false">
+        <shape android:shape="oval">
+            <solid android:color="#EEEAE8"/>
+        </shape>
+    </item>
+
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/colorPrimary"/>
+        </shape>
+    </item>
+
+</selector>

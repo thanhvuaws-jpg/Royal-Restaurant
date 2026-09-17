@@ -27,7 +27,12 @@ public interface ApiService {
     );
 
     /**
-     * Đăng ký tài khoản mới hoặc Thêm nhân viên.
+     * Thêm nhân viên — CHỈ dành cho Quản lý.
+     *
+     * Khách tự đăng ký thì dùng dangKyKhach() bên dưới, không dùng hàm này:
+     * add_staff.php nhận maquyen từ client nên bắt buộc phải yêu cầu quyền
+     * Quản lý, nếu không ai cũng tự tạo được tài khoản toàn quyền.
+     *
      * @param hoTen Họ và tên.
      * @param tenDN Tên đăng nhập mong muốn.
      * @param matKhau Mật khẩu.
@@ -48,6 +53,27 @@ public interface ApiService {
             @Field("gioitinh") String gioiTinh,
             @Field("ngaysinh") String ngaySinh,
             @Field("maquyen") int maQuyen
+    );
+
+    /**
+     * Khách TỰ ĐĂNG KÝ tài khoản (màn hình Đăng ký).
+     *
+     * Vì sao không dùng chung addStaff() ở trên: endpoint add_staff.php yêu
+     * cầu quyền Quản lý, mà người đang đăng ký thì chưa có tài khoản nào để
+     * đăng nhập — gọi vào đó luôn nhận HTTP 401. Endpoint riêng này công
+     * khai, và ghi cứng quyền 4 (Khách hàng) ở phía máy chủ nên client
+     * không truyền maquyen và cũng không đổi được nó.
+     */
+    @FormUrlEncoded
+    @POST("api/dang_ky_khach.php")
+    Call<StaffResponse> dangKyKhach(
+            @Field("hoten") String hoTen,
+            @Field("tendn") String tenDN,
+            @Field("matkhau") String matKhau,
+            @Field("email") String email,
+            @Field("sdt") String sdt,
+            @Field("gioitinh") String gioiTinh,
+            @Field("ngaysinh") String ngaySinh
     );
 
     /**
@@ -93,6 +119,27 @@ public interface ApiService {
      * @param limit Số lượng bản ghi mỗi trang.
      * @param search Từ khóa tìm kiếm tên món.
      */
+    /**
+     * Lấy món ăn CÓ PHÂN TRANG cho màn hình đặt món của khách.
+     *
+     * Khác getDishes() ở hai chỗ:
+     *   - truyền `chi_con_ban=1` để máy chủ loại sẵn món đã tắt, thay vì
+     *     tải hết rồi lọc ở client như trước;
+     *   - dùng `limit` nhỏ (một trang) thay vì 1000.
+     *
+     * Tách thành hàm riêng thay vì thêm tham số vào getDishes() để ba nơi
+     * đang gọi hàm cũ (SplashActivity, MenuViewModel, CustomerBookingActivity)
+     * không phải sửa theo.
+     */
+    @GET("api/get_dishes.php")
+    Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> getDishesPhanTrang(
+            @Query("maloai") int maLoai,
+            @Query("page") int page,
+            @Query("limit") int limit,
+            @Query("search") String search,
+            @Query("chi_con_ban") int chiConBan
+    );
+
     @GET("api/get_dishes.php")
     Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> getDishes(
             @Query("maloai") int maLoai,
@@ -153,14 +200,22 @@ public interface ApiService {
     Call<List<OrderDetailResponse>> getOrderDetails(@Query("madondat") int maDonDat);
 
     /**
-     * Gửi yêu cầu thanh toán đơn hàng (Chuyển trạng thái từ hoạt động sang chờ thanh toán).
+     * Gửi đơn cho thu ngân duyệt, kèm mã giảm giá nếu có.
+     *
+     * Chuyển đơn từ 'false' (đang phục vụ) sang 'pending' (chờ thu ngân).
+     *
+     * `macode` truyền null khi không áp mã — Retrofit BỎ QUA hẳn @Field mang
+     * giá trị null, nên máy chủ nhận đúng một yêu cầu không có trường đó.
+     * Nhờ vậy một phương thức phục vụ được cả hai trường hợp, thay vì hai
+     * phương thức gần giống hệt nhau chỉ khác một tham số.
      */
     @FormUrlEncoded
     @POST("api/checkout_order.php")
-    Call<OrderResponse> checkoutOrder(
+    Call<CheckoutResponse> checkoutOrder(
             @Field("madondat") int madondat,
             @Field("tongtien") long tongtien,
-            @Field("phuongthuc") String phuongthuc
+            @Field("phuongthuc") String phuongthuc,
+            @Field("macode") String macode
     );
 
     /**
@@ -294,12 +349,116 @@ public interface ApiService {
             @Field("makh") int maKH,
             @Field("maban") int maBan,
             @Field("thoigianhen") String thoigianhen,
-            @Field("monan") String monanJson
+            @Field("monan") String monanJson,
+            /** Mã giảm giá khách chọn. null = không gắn — Retrofit bỏ qua @Field null. */
+            @Field("macode") String macode
     );
 
     /**
      * Khách hàng: Lấy danh sách lịch sử đặt bàn của bản thân.
      */
+    /* ══════════════ Điểm danh · Tích điểm · Voucher ══════════════ */
+
+    /**
+     * Toàn bộ dữ liệu màn hình "Điểm danh & Quà tặng" trong một lời gọi.
+     *
+     * Lời gọi này cũng là nơi máy chủ CẤP QUÀ TRI ÂN TUẦN nếu tuần đó khách
+     * chưa nhận — xem `loyalty_cap_qua_tuan()` bên PHP để biết vì sao cấp
+     * lúc mở màn hình thay vì chạy tác vụ định kỳ.
+     */
+    @GET("api/loyalty_home.php")
+    Call<LoyaltyResponse> layDuLieuDiemDanh(@Query("makh") int maKH);
+
+    /** Bấm điểm danh. Máy chủ chặn điểm danh hai lần trong ngày. */
+    @FormUrlEncoded
+    @POST("api/diem_danh.php")
+    Call<DiemDanhResponse> diemDanh(@Field("makh") int maKH);
+
+    /** Đổi điểm lấy một mã giảm giá. */
+    @FormUrlEncoded
+    @POST("api/doi_voucher.php")
+    Call<DoiVoucherResponse> doiVoucher(
+            @Field("makh") int maKH,
+            @Field("mavoucher") int maVoucher
+    );
+
+    /* ══════════════════ Chăm sóc khách hàng ══════════════════ */
+
+    /**
+     * Lấy hội thoại đang mở của khách và các tin trong đó.
+     *
+     * `tuTin` = 0 lấy toàn bộ lịch sử; truyền mã tin cuối đã có để chỉ lấy
+     * phần MỚI HƠN. Màn chat gọi lại liên tục, nên trả cả lịch sử mỗi lần
+     * vừa lãng phí vừa làm danh sách nhấp nháy khi vẽ lại.
+     *
+     * Không truyền mã khách: máy chủ tự lấy theo phiên đăng nhập, nên khách
+     * không đọc được hội thoại của người khác dù có sửa lời gọi.
+     */
+    @GET("api/chat_lay.php")
+    Call<ChatResponse> layHoiThoai(@Query("tu_tin") long tuTin);
+
+    /**
+     * Chỉ lấy CON SỐ tin chưa đọc, không kéo theo tin nhắn.
+     *
+     * Dùng cho huy hiệu trên thẻ "Chat với nhân viên". Truyền
+     * `danhDauDaDoc = 0` là bắt buộc: mặc định endpoint đánh dấu đã đọc, nên
+     * chỉ cần khách lướt qua màn hình Hỗ trợ là huy hiệu bị xóa oan.
+     */
+    @GET("api/chat_lay.php?chi_dem=1")
+    Call<ChatResponse> demTinChuaDoc(@Query("danh_dau_da_doc") int danhDauDaDoc);
+
+    /**
+     * Khách gửi một tin nhắn tới bộ phận chăm sóc.
+     *
+     * Máy chủ tự tạo hội thoại nếu chưa có, chạy bot câu hỏi thường gặp, và
+     * LUÔN trả lời một câu — dù chỉ là hứa chuyển tiếp. Im lặng khiến khách
+     * tưởng tin không gửi được.
+     */
+    @FormUrlEncoded
+    @POST("api/chat_gui.php")
+    Call<ChatGuiResponse> guiTinNhan(@Field("noidung") String noiDung);
+
+    /**
+     * Ba nút bấm phía khách: `gapnhanvien` | `tieptuc` | `ketthuc`.
+     *
+     * Không truyền mã hội thoại: máy chủ tự tra theo phiên đăng nhập, nên
+     * khách không thao tác được lên hội thoại của người khác.
+     */
+    @FormUrlEncoded
+    @POST("api/chat_thao_tac.php")
+    Call<ChatGuiResponse> chatThaoTac(@Field("action") String action);
+
+    /**
+     * Nhân viên tra mã giảm giá TRƯỚC khi thu tiền.
+     *
+     * Chỉ đọc, không đánh dấu đã dùng — việc đó xảy ra ở checkoutOrder().
+     */
+    @GET("api/kiem_tra_ma.php")
+    Call<KiemTraMaResponse> kiemTraMa(
+            @Query("macode") String maCode,
+            @Query("madondat") int maDonDat
+    );
+
+    /**
+     * Lấy phiếu đặt bàn CÓ PHÂN TRANG và LỌC theo trạng thái.
+     *
+     * Dùng cho màn hình lịch hẹn của khách. Trả về phong bì
+     * {status, data, page, total, total_pages, has_more} thay vì mảng trần,
+     * nên khai báo riêng — xem chú thích ở BookingPageResponse để biết vì
+     * sao không sửa thẳng getBookings().
+     *
+     * @param tinhtrang Một hoặc nhiều trạng thái, ngăn bởi dấu phẩy.
+     *                  Chuỗi rỗng nghĩa là không lọc.
+     */
+    @GET("api/get_bookings.php")
+    Call<BookingPageResponse> getBookingsPhanTrang(
+            @Query("makh") int makh,
+            @Query("tinhtrang") String tinhtrang,
+            @Query("page") int page,
+            @Query("limit") int limit,
+            @Query("phan_trang") int phanTrang
+    );
+
     @GET("api/get_bookings.php")
     Call<List<BookingResponse>> getBookings(@Query("makh") int maKH);
 

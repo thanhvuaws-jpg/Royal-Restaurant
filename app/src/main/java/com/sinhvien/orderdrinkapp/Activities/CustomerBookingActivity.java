@@ -6,7 +6,12 @@ import android.app.TimePickerDialog;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.Button;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -84,6 +89,57 @@ public class CustomerBookingActivity extends AppCompatActivity {
     private int savedTableId = -1;
     private Map<Integer, Integer> savedQuantities = new java.util.HashMap<>();
 
+    // ══════════════════ Khối chọn món: lọc danh mục + tìm + phân trang ══════════════════
+
+    /** Số món hiển thị mỗi trang. 6 vừa khít khung 400dp, không phải cuộn lồng nhau. */
+    private static final int MON_MOI_TRANG = 6;
+
+    /** Trễ (ms) trước khi gõ xong mới gọi máy chủ, tránh bắn một yêu cầu mỗi ký tự. */
+    private static final long TRE_TIM_KIEM = 350;
+
+    private EditText edt_tim_mon;
+    private ImageButton btn_xoa_tim, btn_trang_truoc, btn_trang_sau;
+    private LinearLayout layout_chip_danh_muc;
+    private TextView txt_khong_co_mon, txt_tong_so_mon, txt_so_trang;
+    private ProgressBar progress_mon;
+
+    /**
+     * Kho món đã từng tải về, khóa theo MAMON.
+     *
+     * VÌ SAO CẦN: trước khi phân trang, `dishList` chứa TOÀN BỘ 62 món nên
+     * `updateTotalPriceDisplay()` tra giá bằng cách quét thẳng nó. Sau khi
+     * phân trang, `dishList` chỉ còn 6 món của trang đang xem — khách chọn
+     * 2 món ở trang 1 rồi sang trang 2 thì hai món đó biến mất khỏi tổng
+     * tiền, dù vẫn nằm trong giỏ và vẫn được gửi lên khi đặt bàn.
+     *
+     * Kho này tích lũy qua mọi trang và mọi danh mục, không bao giờ xóa
+     * trong một phiên, nên giá luôn tra được.
+     */
+    private final Map<Integer, MonDTO> khoMon = new HashMap<>();
+
+    private final List<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse> danhSachLoai = new ArrayList<>();
+
+    private int maLoaiDangChon = 0;   // 0 = Tất cả
+    private int trangHienTai   = 1;
+    private int tongSoTrang    = 1;
+    private int tongSoMon      = 0;
+    private String tuKhoa      = "";
+
+    private final android.os.Handler handlerTimKiem =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    private Runnable viecTimKiemDangCho;
+
+    // ══════════════════ Mã giảm giá ══════════════════
+    private LinearLayout khung_chon_voucher;
+    private TextView txt_voucher_da_chon, txt_voucher_thao_tac;
+
+    /** Mã khách đã chọn. null = không gắn mã nào. */
+    private String maVoucherDaChon = null;
+
+    /** Danh sách mã còn dùng được, nạp cùng lúc mở màn hình. */
+    private final List<com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia> maKhaDung =
+            new ArrayList<>();
+
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +177,25 @@ public class CustomerBookingActivity extends AppCompatActivity {
         txt_total_preorder = findViewById(R.id.txt_total_preorder);
         rv_booking_dishes = findViewById(R.id.rv_booking_dishes);
 
+        // Khối chọn món
+        edt_tim_mon          = findViewById(R.id.edt_tim_mon);
+        btn_xoa_tim          = findViewById(R.id.btn_xoa_tim);
+        layout_chip_danh_muc = findViewById(R.id.layout_chip_danh_muc);
+        txt_khong_co_mon     = findViewById(R.id.txt_khong_co_mon);
+        progress_mon         = findViewById(R.id.progress_mon);
+        txt_tong_so_mon      = findViewById(R.id.txt_tong_so_mon);
+        txt_so_trang         = findViewById(R.id.txt_so_trang);
+        btn_trang_truoc      = findViewById(R.id.btn_trang_truoc);
+        btn_trang_sau        = findViewById(R.id.btn_trang_sau);
+
+        khung_chon_voucher   = findViewById(R.id.khung_chon_voucher);
+        txt_voucher_da_chon  = findViewById(R.id.txt_voucher_da_chon);
+        txt_voucher_thao_tac = findViewById(R.id.txt_voucher_thao_tac);
+        khung_chon_voucher.setOnClickListener(v -> {
+            if (maVoucherDaChon != null) boChonVoucher(); else moDanhSachVoucher();
+        });
+        taiMaKhaDung();
+
         dbHelper = LocalDatabaseHelper.getInstance(this);
 
         // Khởi tạo Spinner danh sách bàn ăn
@@ -131,6 +206,8 @@ public class CustomerBookingActivity extends AppCompatActivity {
         // Nạp danh sách bàn ăn, đăng ký sự kiện picker và tải món ăn
         loadTables();
         setupDateTimePickers();
+        khoiTaoKhoiChonMon();
+        taiDanhMuc();
         loadDishes();
 
         if (savedInstanceState != null) {
@@ -281,121 +358,463 @@ public class CustomerBookingActivity extends AppCompatActivity {
      */
     private void updateTotalPriceDisplay(Map<Integer, Integer> quantities) {
         totalPreorderPrice = 0;
+
+        // Tra giá trong KHO MÓN chứ không trong dishList.
+        //
+        // dishList nay chỉ chứa món của TRANG đang xem (6 món). Nếu tra ở
+        // đó thì món khách chọn ở trang khác sẽ không cộng vào tổng — số
+        // tiền hiện trên màn hình thấp hơn số thực sự đặt.
         for (Map.Entry<Integer, Integer> entry : quantities.entrySet()) {
-            int mamon = entry.getKey();
-            int qty = entry.getValue();
-            for (MonDTO dish : dishList) {
-                if (dish.getMaMon() == mamon) {
-                    try {
-                        totalPreorderPrice += qty * Long.parseLong(dish.getGiaTien());
-                    } catch (NumberFormatException ignored) {}
-                    break;
-                }
-            }
+            MonDTO mon = khoMon.get(entry.getKey());
+            if (mon == null) continue;
+            try {
+                totalPreorderPrice += (long) entry.getValue() * Long.parseLong(mon.getGiaTien());
+            } catch (NumberFormatException ignored) {}
         }
+
         DecimalFormat formatter = new DecimalFormat("#,###");
         txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
+        capNhatThanhPhanTrang();
+    }
+
+    /** Gom món vào kho để tra giá được ở mọi trang. */
+    private void ghiVaoKhoMon(List<MonDTO> ds) {
+        for (MonDTO m : ds) khoMon.put(m.getMaMon(), m);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    //  KHỐI CHỌN MÓN: lọc theo danh mục, tìm kiếm, phân trang
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Gắn sự kiện cho ô tìm, hai nút chuyển trang, và tạo adapter MỘT LẦN.
+     *
+     * Adapter phải được tạo đúng một lần và giữ nguyên suốt màn hình: nó
+     * là nơi cất `selectedQuantities` (MAMON -> số lượng). Tạo lại mỗi lần
+     * đổi trang đồng nghĩa xóa sạch giỏ của khách.
+     */
+    private void khoiTaoKhoiChonMon() {
+        dishesAdapter = new PreorderDishesAdapter(this, dishList,
+                quantities -> updateTotalPriceDisplay(quantities));
+
+        if (savedQuantities != null && !savedQuantities.isEmpty()) {
+            dishesAdapter.getSelectedQuantities().putAll(savedQuantities);
+            savedQuantities.clear();
+        }
+
+        rv_booking_dishes.setLayoutManager(new LinearLayoutManager(this));
+        rv_booking_dishes.setAdapter(dishesAdapter);
+
+        btn_trang_truoc.setOnClickListener(v -> {
+            if (trangHienTai > 1) { trangHienTai--; taiMon(); }
+        });
+        btn_trang_sau.setOnClickListener(v -> {
+            if (trangHienTai < tongSoTrang) { trangHienTai++; taiMon(); }
+        });
+
+        btn_xoa_tim.setOnClickListener(v -> {
+            edt_tim_mon.setText("");
+            edt_tim_mon.clearFocus();
+        });
+
+        edt_tim_mon.addTextChangedListener(new android.text.TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence c, int a, int b, int d) {}
+            @Override public void onTextChanged(CharSequence c, int a, int b, int d) {}
+            @Override public void afterTextChanged(android.text.Editable e) {
+                String moi = e.toString().trim();
+                btn_xoa_tim.setVisibility(moi.isEmpty() ? View.GONE : View.VISIBLE);
+                if (moi.equals(tuKhoa)) return;
+
+                // Hoãn lại: gõ "bánh canh" là 9 ký tự, không nên thành 9
+                // lượt gọi máy chủ. Mỗi ký tự mới hủy lượt chờ trước đó.
+                if (viecTimKiemDangCho != null) handlerTimKiem.removeCallbacks(viecTimKiemDangCho);
+                viecTimKiemDangCho = () -> {
+                    tuKhoa = moi;
+                    trangHienTai = 1;   // từ khóa đổi thì số trang cũ vô nghĩa
+                    taiMon();
+                };
+                handlerTimKiem.postDelayed(viecTimKiemDangCho, TRE_TIM_KIEM);
+            }
+        });
+    }
+
+    /** Lấy danh mục từ máy chủ rồi dựng dãy chip lọc. */
+    private void taiDanhMuc() {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getCategories().enqueue(
+                new Callback<List<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>>() {
+            @Override
+            public void onResponse(Call<List<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>> call,
+                                   Response<List<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>> response) {
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    danhSachLoai.clear();
+                    danhSachLoai.addAll(response.body());
+                    veChipDanhMuc();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<List<com.sinhvien.orderdrinkapp.Api.LoaiMonResponse>> call, Throwable t) {
+                // Mất mạng thì vẫn còn chip "Tất cả" để khách xem thực đơn
+                // từ bộ nhớ đệm — không chặn cả màn hình vì một dãy lọc.
+                Log.w(TAG, "Không tải được danh mục: " + t.getMessage());
+                if (!isFinishing() && !isDestroyed()) veChipDanhMuc();
+            }
+        });
+    }
+
+    /** Dựng dãy chip: "Tất cả" + mỗi danh mục một chip. */
+    private void veChipDanhMuc() {
+        layout_chip_danh_muc.removeAllViews();
+        layout_chip_danh_muc.addView(taoChip(0, getString(R.string.booking_all_categories)));
+        for (com.sinhvien.orderdrinkapp.Api.LoaiMonResponse loai : danhSachLoai) {
+            layout_chip_danh_muc.addView(taoChip(loai.getMaLoai(), loai.getTenLoai()));
+        }
+        capNhatChipDangChon();
+    }
+
+    private TextView taoChip(int maLoai, String nhan) {
+        TextView chip = new TextView(this);
+        chip.setText(nhan);
+        chip.setTextSize(13);
+        chip.setAllCaps(false);
+        chip.setSingleLine(true);
+        chip.setBackgroundResource(R.drawable.bg_chip_danh_muc);
+        chip.setTextColor(androidx.core.content.ContextCompat
+                .getColorStateList(this, R.color.text_chip_danh_muc));
+
+        int dx = (int) (14 * getResources().getDisplayMetrics().density);
+        int dy = (int) (8  * getResources().getDisplayMetrics().density);
+        chip.setPadding(dx, dy, dx, dy);
+
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+        lp.rightMargin = (int) (8 * getResources().getDisplayMetrics().density);
+        chip.setLayoutParams(lp);
+
+        chip.setTag(maLoai);
+        chip.setOnClickListener(v -> {
+            if (maLoaiDangChon == maLoai) return;
+            maLoaiDangChon = maLoai;
+            trangHienTai = 1;   // đổi danh mục thì số trang cũ vô nghĩa
+            capNhatChipDangChon();
+            taiMon();
+        });
+        return chip;
+    }
+
+    private void capNhatChipDangChon() {
+        for (int i = 0; i < layout_chip_danh_muc.getChildCount(); i++) {
+            View v = layout_chip_danh_muc.getChildAt(i);
+            Object tag = v.getTag();
+            v.setSelected(tag instanceof Integer && (Integer) tag == maLoaiDangChon);
+        }
+    }
+
+    /** Bật/tắt hai nút chuyển trang và cập nhật hai dòng chữ đi kèm. */
+    private void capNhatThanhPhanTrang() {
+        txt_so_trang.setText(getString(R.string.booking_page_indicator, trangHienTai, tongSoTrang));
+
+        int daChon = dishesAdapter != null ? dishesAdapter.getSelectedQuantities().size() : 0;
+        txt_tong_so_mon.setText(daChon > 0
+                ? getString(R.string.booking_dish_count_selected, tongSoMon, daChon)
+                : getString(R.string.booking_dish_count, tongSoMon));
+
+        boolean coTruoc = trangHienTai > 1;
+        boolean coSau   = trangHienTai < tongSoTrang;
+        btn_trang_truoc.setEnabled(coTruoc);
+        btn_trang_sau.setEnabled(coSau);
+        btn_trang_truoc.setAlpha(coTruoc ? 1f : 0.45f);
+        btn_trang_sau.setAlpha(coSau ? 1f : 0.45f);
     }
 
     /**
-     * Tải danh sách món ăn từ SQLite cache lên giao diện, song song đồng bộ từ Server.
+     * Nạp một trang món theo danh mục và từ khóa đang chọn.
+     *
+     * Máy chủ lo cả ba việc lọc — danh mục, từ khóa, phân trang — qua
+     * `get_dishes.php`. Trước đây màn hình này gọi `limit=1000` lấy sạch
+     * 62 món rồi tự lọc ở client, nên tham số phân trang của endpoint gần
+     * như không được dùng tới.
      */
-    private void loadDishes() {
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<MonDTO> allCached = dbHelper.getAllDishes();
-            List<MonDTO> cachedList = new ArrayList<>();
-            for (MonDTO dish : allCached) {
-                // Chỉ lấy món ăn ở trạng thái đang phục vụ (true)
-                if ("true".equalsIgnoreCase(dish.getTinhTrang())) {
-                    cachedList.add(dish);
+    private void taiMon() {
+        progress_mon.setVisibility(View.VISIBLE);
+        txt_khong_co_mon.setVisibility(View.GONE);
+
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getDishesPhanTrang(maLoaiDangChon, trangHienTai, MON_MOI_TRANG, tuKhoa, 1)
+                .enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.DishPageResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call,
+                                   Response<com.sinhvien.orderdrinkapp.Api.DishPageResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                progress_mon.setVisibility(View.GONE);
+
+                if (!response.isSuccessful() || response.body() == null
+                        || !"success".equals(response.body().getStatus())) {
+                    Log.w(TAG, "Tải món thất bại, HTTP " + response.code());
+                    hienThiTrangTuBoNhoDem();
+                    return;
                 }
+
+                com.sinhvien.orderdrinkapp.Api.DishPageResponse body = response.body();
+                List<MonDTO> trang = new ArrayList<>();
+                if (body.getData() != null) {
+                    for (com.sinhvien.orderdrinkapp.Api.MonResponse r : body.getData()) {
+                        MonDTO m = new MonDTO();
+                        m.setMaMon(r.getMaMon());
+                        m.setTenMon(r.getTenMon());
+                        m.setGiaTien(r.getGiaTien());
+                        m.setMaLoai(r.getMaLoai());
+                        m.setTinhTrang(r.getTinhTrang());
+                        m.setHinhAnhUrl(r.getHinhAnh());
+                        trang.add(m);
+                    }
+                }
+
+                tongSoMon   = body.getTotal();
+                tongSoTrang = body.getTotalPages();
+
+                // Người dùng đang ở trang 3 rồi quản trị viên xóa bớt món:
+                // trang 3 không còn tồn tại. Lùi về trang cuối thay vì hiện
+                // một danh sách rỗng khó hiểu.
+                if (trang.isEmpty() && trangHienTai > tongSoTrang && tongSoTrang >= 1) {
+                    trangHienTai = tongSoTrang;
+                    taiMon();
+                    return;
+                }
+
+                ghiVaoKhoMon(trang);
+                hienThiTrang(trang);
             }
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                Map<Integer, Integer> currentSelected = dishesAdapter != null ? dishesAdapter.getSelectedQuantities() : new HashMap<>();
-                dishList.clear();
-                dishList.addAll(cachedList);
-                if (dishesAdapter == null) {
-                    dishesAdapter = new PreorderDishesAdapter(CustomerBookingActivity.this, dishList, quantities -> {
-                        updateTotalPriceDisplay(quantities);
-                    });
-                    if (savedQuantities != null && !savedQuantities.isEmpty()) {
-                        dishesAdapter.getSelectedQuantities().putAll(savedQuantities);
-                        savedQuantities.clear();
-                    }
-                    rv_booking_dishes.setLayoutManager(new LinearLayoutManager(CustomerBookingActivity.this));
-                    rv_booking_dishes.setAdapter(dishesAdapter);
-                } else {
-                    Map<Integer, Integer> validSelected = new HashMap<>();
-                    for (Map.Entry<Integer, Integer> entry : currentSelected.entrySet()) {
-                        for (MonDTO dish : dishList) {
-                            if (dish.getMaMon() == entry.getKey()) {
-                                validSelected.put(entry.getKey(), entry.getValue());
-                                break;
-                            }
-                        }
-                    }
-                    dishesAdapter.getSelectedQuantities().clear();
-                    dishesAdapter.getSelectedQuantities().putAll(validSelected);
-                    dishesAdapter.notifyDataSetChanged();
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                progress_mon.setVisibility(View.GONE);
+                Log.w(TAG, "Lỗi mạng khi tải món: " + t.getMessage());
+                hienThiTrangTuBoNhoDem();
+            }
+        });
+    }
+
+    /**
+     * Đường lùi khi không gọi được máy chủ: lấy từ SQLite rồi tự cắt trang.
+     *
+     * Giữ lại nhánh này vì thực đơn là thứ khách cần xem được cả khi mạng
+     * chập chờn. Sắp xếp theo tên để ranh giới trang trùng với máy chủ
+     * (`ORDER BY TENMON ASC`), nếu không thì lúc mạng có lại, cùng một số
+     * trang sẽ hiện món khác và trông như lỗi.
+     */
+    private void hienThiTrangTuBoNhoDem() {
+        LocalDatabaseHelper.getExecutor().execute(() -> {
+            List<MonDTO> nguon = (maLoaiDangChon == 0)
+                    ? dbHelper.getAllDishes()
+                    : dbHelper.getDishes(maLoaiDangChon, tuKhoa);
+
+            List<MonDTO> loc = new ArrayList<>();
+            for (MonDTO m : nguon) {
+                if (!"true".equalsIgnoreCase(m.getTinhTrang())) continue;
+                if (maLoaiDangChon == 0 && !tuKhoa.isEmpty()
+                        && (m.getTenMon() == null
+                            || !m.getTenMon().toLowerCase().contains(tuKhoa.toLowerCase()))) {
+                    continue;
                 }
-                updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
+                loc.add(m);
+            }
+            java.util.Collections.sort(loc, (a, b) ->
+                    String.valueOf(a.getTenMon()).compareToIgnoreCase(String.valueOf(b.getTenMon())));
+
+            int tong = loc.size();
+            int soTrang = Math.max(1, (int) Math.ceil(tong / (double) MON_MOI_TRANG));
+            int trang = Math.min(trangHienTai, soTrang);
+            int tu = (trang - 1) * MON_MOI_TRANG;
+            int den = Math.min(tu + MON_MOI_TRANG, tong);
+            List<MonDTO> cat = (tu < den) ? new ArrayList<>(loc.subList(tu, den)) : new ArrayList<>();
+
+            runOnUiThread(() -> {
+                if (isFinishing() || isDestroyed()) return;
+                tongSoMon = tong;
+                tongSoTrang = soTrang;
+                trangHienTai = trang;
+                ghiVaoKhoMon(cat);
+                hienThiTrang(cat);
             });
         });
+    }
 
-        // Gọi API tải danh sách món ăn từ Server Cloud
+    /** Đổ một trang món lên RecyclerView. KHÔNG đụng tới giỏ đã chọn. */
+    private void hienThiTrang(List<MonDTO> trang) {
+        dishList.clear();
+        dishList.addAll(trang);
+        dishesAdapter.notifyDataSetChanged();
+
+        txt_khong_co_mon.setVisibility(trang.isEmpty() ? View.VISIBLE : View.GONE);
+        rv_booking_dishes.scrollToPosition(0);
+
+        updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
+    }
+
+    /* ═══════════════════════ MÃ GIẢM GIÁ ═══════════════════════ */
+
+    /**
+     * Nạp các mã còn dùng được của khách.
+     *
+     * Dùng chung `loyalty_home.php` thay vì viết endpoint riêng: nó đã trả
+     * về đủ danh sách mã kèm trạng thái, và một endpoint ít hơn là một chỗ
+     * ít hơn để hai bên lệch nhau về "mã nào còn dùng được".
+     *
+     * Lọc 'chuadung' ở client vì máy chủ trả cả mã đã dùng và hết hạn để
+     * màn hình Điểm danh hiển thị lịch sử — ở đây chỉ cần cái còn xài.
+     */
+    private void taiMaKhaDung() {
+        int makh = SessionManager.getMaNV(this);
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getDishes(0, 1, 1000, "").enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.DishPageResponse>() {
+
+        apiService.layDuLieuDiemDanh(makh).enqueue(
+                new Callback<com.sinhvien.orderdrinkapp.Api.LoyaltyResponse>() {
             @Override
-            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call, Response<com.sinhvien.orderdrinkapp.Api.DishPageResponse> response) {
-                if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
-                    List<com.sinhvien.orderdrinkapp.Api.MonResponse> data = response.body().getData();
-                    if (data != null && !data.isEmpty()) {
-                        Map<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> grouped = new HashMap<>();
-                        for (com.sinhvien.orderdrinkapp.Api.MonResponse r : data) {
-                            int catId = r.getMaLoai();
-                            if (!grouped.containsKey(catId)) {
-                                grouped.put(catId, new ArrayList<>());
-                            }
-                            grouped.get(catId).add(r);
-                        }
-                        LocalDatabaseHelper.getExecutor().execute(() -> {
-                            for (Map.Entry<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> entry : grouped.entrySet()) {
-                                dbHelper.syncDishes(entry.getKey(), entry.getValue(), true);
-                            }
-                            List<MonDTO> allUpdated = dbHelper.getAllDishes();
-                            List<MonDTO> updatedList = new ArrayList<>();
-                            for (MonDTO dish : allUpdated) {
-                                if ("true".equalsIgnoreCase(dish.getTinhTrang())) {
-                                    updatedList.add(dish);
-                                }
-                            }
-                            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                                Map<Integer, Integer> currentSelected = dishesAdapter != null ? dishesAdapter.getSelectedQuantities() : new HashMap<>();
-                                dishList.clear();
-                                dishList.addAll(updatedList);
-                                if (dishesAdapter != null) {
-                                    Map<Integer, Integer> validSelected = new HashMap<>();
-                                    for (Map.Entry<Integer, Integer> entry : currentSelected.entrySet()) {
-                                        for (MonDTO dish : dishList) {
-                                            if (dish.getMaMon() == entry.getKey()) {
-                                                validSelected.put(entry.getKey(), entry.getValue());
-                                                break;
-                                            }
-                                        }
-                                    }
-                                    dishesAdapter.getSelectedQuantities().clear();
-                                    dishesAdapter.getSelectedQuantities().putAll(validSelected);
-                                    dishesAdapter.notifyDataSetChanged();
-                                    updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
-                                }
-                            });
-                        });
-                    }
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.LoyaltyResponse> call,
+                                   Response<com.sinhvien.orderdrinkapp.Api.LoyaltyResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                if (!response.isSuccessful() || response.body() == null
+                        || response.body().getMaCuaToi() == null) return;
+
+                maKhaDung.clear();
+                for (com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia m
+                        : response.body().getMaCuaToi()) {
+                    if ("chuadung".equals(m.getTinhTrang())) maKhaDung.add(m);
                 }
+                capNhatHienThiVoucher();
             }
 
             @Override
-            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call, Throwable t) {}
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.LoyaltyResponse> call, Throwable t) {
+                // Không báo lỗi: mã giảm giá là tùy chọn, mất mạng thì khách
+                // vẫn phải đặt bàn được. Chỉ là không chọn được mã lần này.
+                Log.w(TAG, "Không tải được danh sách mã: " + t.getMessage());
+            }
+        });
+    }
+
+    private void moDanhSachVoucher() {
+        if (maKhaDung.isEmpty()) {
+            new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle(R.string.booking_voucher_tieu_de)
+                    .setMessage(R.string.booking_voucher_khong_co)
+                    .setPositiveButton("Đã hiểu", null)
+                    .show();
+            return;
+        }
+
+        final java.text.DecimalFormat dt = new java.text.DecimalFormat("#,###");
+        String[] nhan = new String[maKhaDung.size()];
+        for (int i = 0; i < maKhaDung.size(); i++) {
+            com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia m = maKhaDung.get(i);
+            // Hiện điều kiện hóa đơn tối thiểu ngay trong danh sách: khách
+            // cần biết TRƯỚC khi chọn, không phải lúc thanh toán mới vỡ lẽ.
+            nhan[i] = m.getTen()
+                    + (m.getDonToiThieu() > 0
+                        ? "\n   Hóa đơn từ " + dt.format(m.getDonToiThieu()) + "đ"
+                        : "")
+                    + "\n   " + m.getMaCode();
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle(R.string.booking_voucher_tieu_de)
+                .setItems(nhan, (d, i) -> {
+                    maVoucherDaChon = maKhaDung.get(i).getMaCode();
+                    capNhatHienThiVoucher();
+                    Toast.makeText(this, R.string.booking_voucher_giu_cho, Toast.LENGTH_LONG).show();
+                })
+                .setNegativeButton("Đóng", null)
+                .show();
+    }
+
+    private void boChonVoucher() {
+        maVoucherDaChon = null;
+        capNhatHienThiVoucher();
+    }
+
+    private void capNhatHienThiVoucher() {
+        if (maVoucherDaChon == null) {
+            txt_voucher_da_chon.setText(R.string.booking_voucher_chua_chon);
+            txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#8D6E63"));
+            txt_voucher_thao_tac.setText(R.string.booking_voucher_chon);
+            return;
+        }
+
+        String ten = maVoucherDaChon;
+        for (com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia m : maKhaDung) {
+            if (maVoucherDaChon.equals(m.getMaCode())) { ten = m.getTen(); break; }
+        }
+        txt_voucher_da_chon.setText(ten + " · " + maVoucherDaChon);
+        txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#2E7D32"));
+        txt_voucher_thao_tac.setText(R.string.booking_voucher_bo);
+    }
+
+    /**
+     * Nạp lại khối chọn món.
+     *
+     * Gọi lúc mở màn hình và mỗi khi nhận sự kiện socket `menu_changed`
+     * (quản trị viên vừa sửa thực đơn).
+     *
+     * Việc hiển thị nay do `taiMon()` lo — nó chỉ lấy ĐÚNG một trang từ
+     * máy chủ. Hàm này thêm một việc nữa: kéo toàn bộ thực đơn về nền để
+     * làm mới bộ nhớ đệm SQLite, vốn là đường lùi khi mất mạng.
+     *
+     * Hai việc tách rời nhau có chủ đích: giao diện hiện ra ngay sau một
+     * yêu cầu nhỏ (6 món), còn việc đồng bộ 62 món chạy lặng lẽ phía sau
+     * và không làm khách phải chờ.
+     */
+    private void loadDishes() {
+        taiMon();
+        dongBoBoNhoDemThucDon();
+    }
+
+    /**
+     * Kéo toàn bộ thực đơn về ghi vào SQLite, không đụng tới giao diện.
+     *
+     * Vẫn gọi `getDishes(0, 1, 1000, "")` như cũ: `limit` lớn nên máy chủ
+     * trả hết, đúng thứ bộ nhớ đệm cần. Khác bản cũ ở chỗ kết quả KHÔNG
+     * còn được đổ thẳng lên màn hình.
+     */
+    private void dongBoBoNhoDemThucDon() {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.getDishes(0, 1, 1000, "").enqueue(
+                new Callback<com.sinhvien.orderdrinkapp.Api.DishPageResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call,
+                                   Response<com.sinhvien.orderdrinkapp.Api.DishPageResponse> response) {
+                if (!response.isSuccessful() || response.body() == null
+                        || !"success".equals(response.body().getStatus())) {
+                    return;
+                }
+                List<com.sinhvien.orderdrinkapp.Api.MonResponse> data = response.body().getData();
+                if (data == null || data.isEmpty()) return;
+
+                Map<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> theoLoai = new HashMap<>();
+                for (com.sinhvien.orderdrinkapp.Api.MonResponse r : data) {
+                    if (!theoLoai.containsKey(r.getMaLoai())) {
+                        theoLoai.put(r.getMaLoai(), new ArrayList<>());
+                    }
+                    theoLoai.get(r.getMaLoai()).add(r);
+                }
+
+                LocalDatabaseHelper.getExecutor().execute(() -> {
+                    for (Map.Entry<Integer, List<com.sinhvien.orderdrinkapp.Api.MonResponse>> e : theoLoai.entrySet()) {
+                        dbHelper.syncDishes(e.getKey(), e.getValue(), true);
+                    }
+                    Log.d(TAG, "Đã đồng bộ " + data.size() + " món vào bộ nhớ đệm");
+                });
+            }
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.DishPageResponse> call, Throwable t) {
+                // Không báo cho người dùng: đây là việc chạy nền, màn hình
+                // vẫn dùng được bằng dữ liệu từ taiMon() hoặc bộ nhớ đệm cũ.
+                Log.w(TAG, "Không đồng bộ được bộ nhớ đệm thực đơn: " + t.getMessage());
+            }
         });
     }
 
@@ -450,7 +869,9 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
         // Gọi API đặt bàn
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.createBooking(makh, maban, datetime, jsonPreorder).enqueue(new Callback<BookingResponse>() {
+        // maVoucherDaChon = null khi không gắn mã — Retrofit bỏ qua @Field null.
+        apiService.createBooking(makh, maban, datetime, jsonPreorder, maVoucherDaChon)
+                .enqueue(new Callback<BookingResponse>() {
             @Override
             public void onResponse(Call<BookingResponse> call, Response<BookingResponse> response) {
                 progressDialog.dismiss();
