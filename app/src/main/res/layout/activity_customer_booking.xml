@@ -169,6 +169,33 @@
 
             </HorizontalScrollView>
 
+            <!-- Khối Bestseller món bán chạy dành cho khách -->
+            <LinearLayout
+                android:id="@+id/layout_booking_bestseller"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔥 Món bán chạy nhất"
+                    android:textStyle="bold"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:layout_marginBottom="4dp"/>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_booking_bestseller"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:clipToPadding="false"/>
+            </LinearLayout>
+
             <!-- Danh sách món của TRANG hiện tại.
                  Chiều cao cố định: RecyclerView nằm trong NestedScrollView,
                  nếu để wrap_content thì nó tự giãn hết cỡ và mất khả năng

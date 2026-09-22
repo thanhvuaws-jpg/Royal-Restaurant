@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/lightwhite">
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar_lap_phieu"
+        android:layout_width="match_parent"
+        android:layout_height="?attr/actionBarSize"
+        android:background="@color/colorPrimary"
+        android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
+        app:titleTextColor="@color/white"
+        app:title="Lập phiếu kho"/>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Card Thông tin chung -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Thông tin chứng từ"
+                        android:textSize="15sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"/>
+
+                    <!-- Lý do -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Lý do *"
+                        android:textSize="13sp"
+                        android:textColor="@color/grey"
+                        android:layout_marginTop="10dp"/>
+
+                    <Spinner
+                        android:id="@+id/spn_ly_do"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/round_corner_textview"
+                        android:backgroundTint="@color/lightwhite"/>
+
+                    <!-- Người nhận (chỉ hiện khi là phiếu xuất) -->
+                    <TextView
+                        android:id="@+id/lbl_nguoi_nhan"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Người nhận"
+                        android:textSize="13sp"
+                        android:textColor="@color/grey"
+                        android:layout_marginTop="10dp"/>
+
+                    <EditText
+                        android:id="@+id/edt_nguoi_nhan"
+                        android:layout_width="match_parent"
+                        android:layout_height="40dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/round_corner_textview"
+                        android:backgroundTint="@color/lightwhite"
+                        android:hint="Tên nhân viên / bộ phận nhận"
+                        android:paddingStart="12dp"
+                        android:paddingEnd="12dp"
+                        android:textSize="14sp"
+                        android:inputType="text"/>
+
+                    <!-- Ghi chú -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ghi chú"
+                        android:textSize="13sp"
+                        android:textColor="@color/grey"
+                        android:layout_marginTop="10dp"/>
+
+                    <EditText
+                        android:id="@+id/edt_ghi_chu"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/round_corner_textview"
+                        android:backgroundTint="@color/lightwhite"
+                        android:hint="Ghi chú thêm nếu có..."
+                        android:padding="10dp"
+                        android:gravity="top|start"
+                        android:textSize="14sp"
+                        android:inputType="textMultiLine"/>
+
+                    <!-- Phần Ảnh bằng chứng (chỉ hiện khi là phiếu hủy - BẮT BUỘC) -->
+                    <LinearLayout
+                        android:id="@+id/layout_anh_bang_chung"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="12dp"
+                        android:visibility="gone">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ảnh bằng chứng hủy hàng (Bắt buộc) *"
+                            android:textSize="13sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/kho_het"/>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="8dp">
+
+                            <Button
+                                android:id="@+id/btn_chup_anh"
+                                android:layout_width="wrap_content"
+                                android:layout_height="38dp"
+                                android:text="Chụp ảnh"
+                                android:textSize="12sp"
+                                android:textColor="@color/white"
+                                android:backgroundTint="@color/colorPrimary"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"/>
+
+                            <Button
+                                android:id="@+id/btn_chon_anh"
+                                android:layout_width="wrap_content"
+                                android:layout_height="38dp"
+                                android:layout_marginStart="8dp"
+                                android:text="Chọn từ thư viện"
+                                android:textSize="12sp"
+                                android:textColor="@color/white"
+                                android:backgroundTint="@color/grey"
+                                android:paddingStart="12dp"
+                                android:paddingEnd="12dp"/>
+                        </LinearLayout>
+
+                        <ImageView
+                            android:id="@+id/img_preview_bang_chung"
+                            android:layout_width="match_parent"
+                            android:layout_height="180dp"
+                            android:layout_marginTop="8dp"
+                            android:scaleType="centerCrop"
+                            android:background="@color/lightwhite"
+                            android:visibility="gone"
+                            android:contentDescription="Ảnh bằng chứng"/>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Card Dòng hàng nguyên liệu -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                app:cardCornerRadius="10dp"
+                app:cardElevation="2dp"
+                app:cardBackgroundColor="@color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Danh sách nguyên liệu"
+                            android:textSize="15sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/black"/>
+
+                        <Button
+                            android:id="@+id/btn_them_dong"
+                            android:layout_width="wrap_content"
+                            android:layout_height="36dp"
+                            android:text="+ Thêm dòng"
+                            android:textSize="12sp"
+                            android:textColor="@color/white"
+                            android:backgroundTint="@color/colorPrimary"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"/>
+                    </LinearLayout>
+
+                    <!-- Container các dòng hàng -->
+                    <LinearLayout
+                        android:id="@+id/container_dong_hang"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginTop="10dp"/>
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+    </ScrollView>
+
+    <!-- Bottom Submit Bar -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:padding="12dp"
+        android:elevation="4dp">
+
+        <Button
+            android:id="@+id/btn_xac_nhan_lap_phieu"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:text="XÁC NHẬN LẬP PHIẾU"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/colorPrimary"/>
+    </LinearLayout>
+
+</LinearLayout>

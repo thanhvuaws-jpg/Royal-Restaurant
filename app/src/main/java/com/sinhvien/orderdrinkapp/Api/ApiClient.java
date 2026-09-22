@@ -124,4 +124,12 @@ public class ApiClient {
     public static String getBaseUrl() {
         return BASE_URL;
     }
+
+    /**
+     * Trả về ApiService đã khởi tạo sẵn.
+     */
+    public static ApiService getApiService() {
+        return getClient().create(ApiService.class);
+    }
 }
+

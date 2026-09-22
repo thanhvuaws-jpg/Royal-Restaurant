@@ -536,5 +536,68 @@ public interface ApiService {
             @Query("from_date") String fromDate,
             @Query("to_date") String toDate
     );
+
+    /**
+     * Kho: Lấy danh sách tồn kho có phân trang và bộ lọc.
+     */
+    @GET("api/kho_nguyenlieu.php")
+    Call<KhoResponse> getKhoDanhSach(
+            @Query("trang") int trang,
+            @Query("moi_trang") int moiTrang,
+            @Query("manhom") Integer maNhom,
+            @Query("tukhoa") String tuKhoa,
+            @Query("chi_canh_bao") String chiCanhBao
+    );
+
+    /**
+     * Kho: Lấy danh sách nhóm nguyên liệu.
+     */
+    @GET("api/kho_nguyenlieu.php?action=nhom")
+    Call<NhomNguyenLieuResponse> getKhoNhom();
+
+    /**
+     * Kho: Lấy lịch sử sổ kho của một nguyên liệu.
+     */
+    @GET("api/kho_nguyenlieu.php?action=lichsu")
+    Call<SoKhoResponse> getLichSuKho(
+            @Query("manl") int maNL,
+            @Query("gioi_han") int gioiHan
+    );
+
+    /**
+     * Món bán chạy (bestseller) / Gợi ý món.
+     */
+    @GET("api/kho_dubao.php?action=bestseller")
+    Call<BestsellerResponse> getBestseller(
+            @Query("so_ngay") int soNgay,
+            @Query("gioi_han") int gioiHan,
+            @Query("maloai") Integer maLoai
+    );
+
+    /**
+     * Lập phiếu kho (nhập, xuất, hủy).
+     */
+    @FormUrlEncoded
+    @POST("api/kho_phieu.php?action=tao")
+    Call<PhieuKhoActionResponse> lapPhieuKho(
+            @Field("loai") String loai,
+            @Field("dong") String dongJson,
+            @Field("lydo") String lyDo,
+            @Field("nguoi_nhan") String nguoiNhan,
+            @Field("nhacungcap") String nhaCungCap,
+            @Field("so_hd_ncc") String soHdNcc,
+            @Field("ghichu") String ghiChu,
+            @Field("hinhanh_base64") String hinhAnhBase64
+    );
+
+    /**
+     * Ghi nhận kiểm kê thực tế.
+     */
+    @FormUrlEncoded
+    @POST("api/kho_nguyenlieu.php?action=kiemke")
+    Call<KiemKeActionResponse> kiemKeKho(
+            @Field("dong") String dongJson,
+            @Field("ghichu") String ghiChu
+    );
 }
 

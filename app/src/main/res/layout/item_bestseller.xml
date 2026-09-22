@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="145dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="6dp"
+    android:layout_marginEnd="6dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="6dp"
+    app:cardCornerRadius="10dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@color/white"
+    android:foreground="?android:attr/selectableItemBackground">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Image with Rank Badge overlay -->
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="100dp">
+
+            <ImageView
+                android:id="@+id/img_bestseller"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="Ảnh món bán chạy"
+                android:src="@drawable/cafe_americano"/>
+
+            <!-- Rank Badge (e.g. #1, #2) -->
+            <TextView
+                android:id="@+id/txt_rank_badge"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="6dp"
+                android:paddingStart="6dp"
+                android:paddingEnd="6dp"
+                android:paddingTop="2dp"
+                android:paddingBottom="2dp"
+                android:background="@drawable/round_corner_textview"
+                android:backgroundTint="@color/colorAccent"
+                android:text="#1"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"/>
+
+            <!-- Trend indicator -->
+            <TextView
+                android:id="@+id/txt_xu_huong"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="bottom|end"
+                android:layout_margin="4dp"
+                android:paddingStart="4dp"
+                android:paddingEnd="4dp"
+                android:background="@drawable/round_corner_textview"
+                android:backgroundTint="#80000000"
+                android:text="🔥 Hot"
+                android:textSize="9sp"
+                android:textColor="@color/white"/>
+        </FrameLayout>
+
+        <!-- Information -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/txt_bestseller_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Tên món ăn"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"
+                android:maxLines="1"
+                android:ellipsize="end"/>
+
+            <TextView
+                android:id="@+id/txt_bestseller_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="0 VNĐ"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/colorPrimaryDark"
+                android:layout_marginTop="2dp"/>
+
+            <TextView
+                android:id="@+id/txt_bestseller_tb"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TB: 0 phần/ngày"
+                android:textSize="10sp"
+                android:textColor="@color/grey"
+                android:layout_marginTop="2dp"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

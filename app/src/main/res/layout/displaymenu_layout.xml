@@ -22,6 +22,35 @@
         app:queryHint="@string/search"
         app:queryBackground="@android:color/transparent" />
 
+    <!-- Khối Bestseller món bán chạy (Nhân viên gọi món) -->
+    <LinearLayout
+        android:id="@+id/layout_menu_bestseller"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:layout_marginBottom="8dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔥 Gợi ý món bán chạy"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="@color/black"
+            android:layout_marginStart="8dp"
+            android:layout_marginBottom="4dp"/>
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_menu_bestseller"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:clipToPadding="false"/>
+    </LinearLayout>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">

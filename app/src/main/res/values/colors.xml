@@ -30,4 +30,13 @@
     <color name="royal_dark_card">#1A1A1A</color>
     <color name="gold_stroke">#40D4AF37</color>
     <color name="gold_glow">#25D4AF37</color>
+
+    <!-- Kho Status Colors -->
+    <color name="kho_am">#B71C1C</color>
+    <color name="kho_het">#E53935</color>
+    <color name="kho_sap_het">#F57C00</color>
+    <color name="kho_du">#2E7D32</color>
+    <color name="kho_ngung">#757575</color>
+    <color name="kho_bg_card">#FFFFFF</color>
+    <color name="kho_border">#E0E0E0</color>
 </resources>

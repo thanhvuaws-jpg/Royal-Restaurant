@@ -34,6 +34,20 @@
         android:clickable="true"
         android:focusable="true"/>
 
+    <TextView
+        android:id="@+id/item_kho"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Kho nguyên liệu"
+        android:drawablePadding="16dp"
+        android:padding="16dp"
+        android:textSize="16sp"
+        android:textColor="@color/black"
+        android:drawableLeft="@drawable/ic_baseline_storage_24"
+        android:background="?attr/selectableItemBackground"
+        android:clickable="true"
+        android:focusable="true"/>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

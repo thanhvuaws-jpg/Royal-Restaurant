@@ -405,6 +405,8 @@ public class CustomerBookingActivity extends AppCompatActivity {
         rv_booking_dishes.setLayoutManager(new LinearLayoutManager(this));
         rv_booking_dishes.setAdapter(dishesAdapter);
 
+        setupBestsellerForCustomer();
+
         btn_trang_truoc.setOnClickListener(v -> {
             if (trangHienTai > 1) { trangHienTai--; taiMon(); }
         });
@@ -434,6 +436,69 @@ public class CustomerBookingActivity extends AppCompatActivity {
                     taiMon();
                 };
                 handlerTimKiem.postDelayed(viecTimKiemDangCho, TRE_TIM_KIEM);
+            }
+        });
+    }
+
+    /** Lấy danh sách món bán chạy và nhúng vào màn đặt món của khách. */
+    private void setupBestsellerForCustomer() {
+        View layoutBestseller = findViewById(R.id.layout_booking_bestseller);
+        RecyclerView rvBestseller = findViewById(R.id.rv_booking_bestseller);
+        if (layoutBestseller == null || rvBestseller == null) return;
+
+        LinearLayoutManager lm = new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false);
+        rvBestseller.setLayoutManager(lm);
+        rvBestseller.setHasFixedSize(true);
+
+        com.sinhvien.orderdrinkapp.CustomAdapter.AdapterBestseller bestsellerAdapter =
+                new com.sinhvien.orderdrinkapp.CustomAdapter.AdapterBestseller(this, item -> {
+            int currentQty = 0;
+            if (dishesAdapter.getSelectedQuantities().containsKey(item.getMaMon())) {
+                Integer q = dishesAdapter.getSelectedQuantities().get(item.getMaMon());
+                currentQty = (q != null) ? q : 0;
+            }
+            dishesAdapter.getSelectedQuantities().put(item.getMaMon(), currentQty + 1);
+
+            // Đảm bảo món có trong khoMon để tính tổng tiền
+            if (!khoMon.containsKey(item.getMaMon())) {
+                MonDTO monDTO = new MonDTO();
+                monDTO.setMaMon(item.getMaMon());
+                monDTO.setTenMon(item.getTenMon());
+                monDTO.setGiaTien(String.valueOf((long)item.getGiaTien()));
+                monDTO.setHinhAnhUrl(item.getHinhAnh());
+                monDTO.setTinhTrang("true");
+                khoMon.put(item.getMaMon(), monDTO);
+            }
+
+            dishesAdapter.notifyDataSetChanged();
+            updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
+            Toast.makeText(this, "Đã thêm " + item.getTenMon() + " vào đơn đặt trước (+1)", Toast.LENGTH_SHORT).show();
+        });
+        rvBestseller.setAdapter(bestsellerAdapter);
+
+        ApiService api = ApiClient.getApiService();
+        api.getBestseller(30, 8, null).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.BestsellerResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.BestsellerResponse> call, Response<com.sinhvien.orderdrinkapp.Api.BestsellerResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    List<com.sinhvien.orderdrinkapp.Api.BestsellerResponse.BestsellerItem> list = response.body().getDanhSach();
+                    if (list != null && !list.isEmpty()) {
+                        bestsellerAdapter.setData(list);
+                        layoutBestseller.setVisibility(View.VISIBLE);
+                    } else {
+                        // Ẩn khối khi chưa đủ dữ liệu (Requirement 13.4, 16.4)
+                        layoutBestseller.setVisibility(View.GONE);
+                    }
+                } else {
+                    // Ẩn khối khi yêu cầu thất bại (Requirement 13.4, 16.4)
+                    layoutBestseller.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.BestsellerResponse> call, Throwable t) {
+                layoutBestseller.setVisibility(View.GONE);
             }
         });
     }

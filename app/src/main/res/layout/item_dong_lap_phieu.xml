@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="8dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="8dp"
+        android:gravity="center_vertical">
+
+        <!-- Spinner chọn nguyên liệu -->
+        <Spinner
+            android:id="@+id/spn_chon_nl"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@drawable/round_corner_textview"
+            android:backgroundTint="@color/lightwhite"/>
+
+        <!-- Nhập số lượng -->
+        <EditText
+            android:id="@+id/edt_so_luong"
+            android:layout_width="85dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="8dp"
+            android:background="@drawable/round_corner_textview"
+            android:backgroundTint="@color/lightwhite"
+            android:hint="SL"
+            android:gravity="center"
+            android:inputType="numberDecimal"
+            android:textSize="14sp"/>
+
+        <!-- Đơn vị hiển thị -->
+        <TextView
+            android:id="@+id/txt_don_vi"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:text="kg"
+            android:textSize="12sp"
+            android:textColor="@color/grey"/>
+
+        <!-- Nút xóa dòng -->
+        <ImageButton
+            android:id="@+id/btn_xoa_dong"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:layout_marginStart="6dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="@color/kho_het"
+            android:contentDescription="Xóa dòng"/>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

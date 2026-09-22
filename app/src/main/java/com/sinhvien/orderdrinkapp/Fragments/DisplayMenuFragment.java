@@ -168,6 +168,8 @@ public class DisplayMenuFragment extends Fragment {
             adapter.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
             rv_menu_DishList.setAdapter(adapter);
 
+            setupBestseller();
+
             // Đăng ký quan sát dữ liệu LiveData từ MenuViewModel
             menuViewModel.getDishes(maloai, currentSearch).observe(getViewLifecycleOwner(), dishes -> {
                 // Sử dụng DiffUtil so sánh khác biệt dữ liệu giúp RecyclerView hoạt động mượt mà
@@ -417,6 +419,54 @@ public class DisplayMenuFragment extends Fragment {
             outState.putInt("current_page", menuViewModel.getCurrentPage());
             outState.putBoolean("has_more", menuViewModel.isHasMore());
         }
+    }
+
+    private void setupBestseller() {
+        View layoutBestsellerContainer = view.findViewById(R.id.layout_menu_bestseller);
+        RecyclerView rvBestseller = view.findViewById(R.id.rv_menu_bestseller);
+        if (layoutBestsellerContainer == null || rvBestseller == null) return;
+
+        androidx.recyclerview.widget.LinearLayoutManager lm =
+                new androidx.recyclerview.widget.LinearLayoutManager(getActivity(), androidx.recyclerview.widget.LinearLayoutManager.HORIZONTAL, false);
+        rvBestseller.setLayoutManager(lm);
+        rvBestseller.setHasFixedSize(true);
+
+        com.sinhvien.orderdrinkapp.CustomAdapter.AdapterBestseller bestsellerAdapter =
+                new com.sinhvien.orderdrinkapp.CustomAdapter.AdapterBestseller(getActivity(), item -> {
+            if (maban != 0) {
+                Intent intent = new Intent(getActivity(), com.sinhvien.orderdrinkapp.Activities.AmountMenuActivity.class);
+                intent.putExtra("maban", maban);
+                intent.putExtra("mamon", item.getMaMon());
+                startActivity(intent);
+            }
+        });
+        rvBestseller.setAdapter(bestsellerAdapter);
+
+        // Gọi API lấy món bán chạy
+        ApiService api = ApiClient.getApiService();
+        api.getBestseller(30, 8, maloai > 0 ? maloai : null).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.BestsellerResponse>() {
+            @Override
+            public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.BestsellerResponse> call, Response<com.sinhvien.orderdrinkapp.Api.BestsellerResponse> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    List<com.sinhvien.orderdrinkapp.Api.BestsellerResponse.BestsellerItem> list = response.body().getDanhSach();
+                    if (list != null && !list.isEmpty()) {
+                        bestsellerAdapter.setData(list);
+                        layoutBestsellerContainer.setVisibility(View.VISIBLE);
+                    } else {
+                        // Ẩn khối khi chưa đủ dữ liệu (Requirement 13.4, 16.4)
+                        layoutBestsellerContainer.setVisibility(View.GONE);
+                    }
+                } else {
+                    // Ẩn khối khi yêu cầu thất bại (Requirement 13.4, 16.4)
+                    layoutBestsellerContainer.setVisibility(View.GONE);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<com.sinhvien.orderdrinkapp.Api.BestsellerResponse> call, Throwable t) {
+                layoutBestsellerContainer.setVisibility(View.GONE);
+            }
+        });
     }
 
     /**

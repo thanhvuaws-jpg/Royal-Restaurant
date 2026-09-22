@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
+    app:cardBackgroundColor="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/txt_loai_bien_dong"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Loại biến động"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="@color/black"/>
+
+            <TextView
+                android:id="@+id/txt_thay_doi"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="+0.0"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/kho_du"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="4dp"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:id="@+id/txt_ma_phieu"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Chứng từ: -"
+                android:textSize="12sp"
+                android:textColor="@color/grey"/>
+
+            <TextView
+                android:id="@+id/txt_ton_sau"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tồn sau: 0"
+                android:textSize="13sp"
+                android:textColor="@color/colorPrimaryDark"/>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_ghi_chu"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Ghi chú"
+            android:textSize="12sp"
+            android:textColor="@color/black"
+            android:layout_marginTop="4dp"
+            android:visibility="gone"/>
+
+        <TextView
+            android:id="@+id/txt_ngay_tao"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="2026-09-22 00:00:00"
+            android:textSize="11sp"
+            android:textColor="@color/grey"
+            android:layout_marginTop="4dp"/>
+
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

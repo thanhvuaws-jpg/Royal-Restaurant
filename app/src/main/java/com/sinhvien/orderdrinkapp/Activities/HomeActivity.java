@@ -208,6 +208,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_table).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_category).setVisible(false);
+            if (navigationView.getMenu().findItem(R.id.nav_kho) != null) {
+                navigationView.getMenu().findItem(R.id.nav_kho).setVisible(false);
+            }
             
             bottomNav.getMenu().findItem(R.id.nav_table).setVisible(false);
             bottomNav.getMenu().findItem(R.id.nav_more).setVisible(false);
@@ -223,6 +226,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 // Nhân viên phục vụ
                 navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
                 navigationView.getMenu().findItem(R.id.nav_statistic).setVisible(false);
+                if (navigationView.getMenu().findItem(R.id.nav_kho) != null) {
+                    navigationView.getMenu().findItem(R.id.nav_kho).setVisible(false);
+                }
                 
                 bottomNav.getMenu().findItem(R.id.nav_statistic).setVisible(false);
             }
@@ -393,6 +399,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             getSupportActionBar().setTitle("Quản lý đặt bàn");
         } else if (fragment instanceof DisplayStaffFragment) {
             getSupportActionBar().setTitle("Quản lý nhân viên");
+        } else if (fragment instanceof com.sinhvien.orderdrinkapp.Fragments.KhoFragment) {
+            getSupportActionBar().setTitle("Kho nguyên liệu");
+        } else if (fragment instanceof com.sinhvien.orderdrinkapp.Fragments.KiemKeFragment) {
+            getSupportActionBar().setTitle("Kiểm kê kho");
         }
     }
 
@@ -422,6 +432,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 navigationView.setCheckedItem(R.id.nav_manage_bookings);
+            } else if (currentFragment instanceof com.sinhvien.orderdrinkapp.Fragments.KhoFragment) {
+                bypassMoreSheet = true;
+                bottomNav.setSelectedItemId(R.id.nav_more);
+                navigationView.setCheckedItem(R.id.nav_kho);
             }
         } finally {
             isSyncingNav = false;
@@ -484,14 +498,17 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             
             View itemManageBookings = view.findViewById(R.id.item_manage_bookings);
             View itemStaff = view.findViewById(R.id.item_staff);
+            View itemKho = view.findViewById(R.id.item_kho);
             View itemLogout = view.findViewById(R.id.item_logout);
 
             // Phân quyền cho bottom sheet
             if (SessionManager.isCashier(this)) {
                 itemManageBookings.setVisibility(View.GONE);
                 itemStaff.setVisibility(View.GONE);
+                if (itemKho != null) itemKho.setVisibility(View.GONE);
             } else if (!SessionManager.isAdmin(this)) {
                 itemStaff.setVisibility(View.GONE);
+                if (itemKho != null) itemKho.setVisibility(View.GONE);
             }
 
             itemManageBookings.setOnClickListener(v -> {
@@ -502,6 +519,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 navigateTo(new DisplayStaffFragment(), "StaffFragment");
                 moreBottomSheet.dismiss();
             });
+            if (itemKho != null) {
+                itemKho.setOnClickListener(v -> {
+                    navigateTo(new com.sinhvien.orderdrinkapp.Fragments.KhoFragment(), "KhoFragment");
+                    moreBottomSheet.dismiss();
+                });
+            }
             itemLogout.setOnClickListener(v -> {
                 moreBottomSheet.dismiss();
                 logout();
@@ -559,11 +582,15 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             } else if (id == R.id.nav_staff) {
                 Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
                 navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
+            } else if (id == R.id.nav_kho) {
+                Fragment f = fragmentManager.findFragmentByTag("KhoFragment");
+                navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.KhoFragment(), "KhoFragment");
             } else if (id == R.id.nav_logout) {
                 isSyncingNav = false;
                 logout();
                 return true;
             }
+
         } finally {
             isSyncingNav = false;
         }

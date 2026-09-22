@@ -55,6 +55,8 @@
         <activity android:name=".Activities.Register2ndActivity" android:exported="false" />
         <activity android:name=".Activities.WelcomeActivity" android:exported="false" />
         <activity android:name=".Activities.RegisterActivity" android:exported="false" />
+        <activity android:name=".Activities.LichSuKhoActivity" android:exported="false" />
+        <activity android:name=".Activities.LapPhieuKhoActivity" android:exported="false" />
         <activity android:name=".Activities.SplashActivity"
             android:exported="true">
             <intent-filter>
