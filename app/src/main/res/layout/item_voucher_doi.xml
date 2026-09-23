@@ -18,9 +18,11 @@
         android:padding="14dp">
 
         <ImageView
-            android:layout_width="34dp"
-            android:layout_height="34dp"
-            android:src="@drawable/ic_ve_giam_gia"
+            android:id="@+id/img_ve_voucher"
+            android:layout_width="56dp"
+            android:layout_height="36dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ve_vang"
             android:contentDescription="@string/dd_nut_doi_phieu"/>
 
         <LinearLayout

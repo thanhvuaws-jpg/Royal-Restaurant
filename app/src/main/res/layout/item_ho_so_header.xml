@@ -17,140 +17,170 @@
     android:paddingEnd="4dp">
 
     <!-- ══════════════════ Thẻ hồ sơ ══════════════════ -->
+    <!-- ══════════════════ Thẻ hồ sơ VIP ══════════════════ -->
     <androidx.cardview.widget.CardView
+        android:id="@+id/card_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         app:cardCornerRadius="20dp"
-        app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/colorPrimary">
+        app:cardElevation="6dp">
 
-        <LinearLayout
-            android:orientation="vertical"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:padding="18dp">
+            android:layout_height="wrap_content">
 
-            <!-- Hàng danh tính -->
+            <!-- Hình nền thẻ thành viên VIP chuẩn CR80 (the_dong / the_bac / the_vang / the_kimcuong) -->
+            <ImageView
+                android:id="@+id/img_card_background"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:src="@drawable/the_dong" />
+
+            <!-- Lớp phủ bán trong suốt làm nổi bật chữ màu trắng -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#5A000000" />
+
             <LinearLayout
-                android:orientation="horizontal"
+                android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical">
+                android:padding="18dp">
 
-                <TextView
-                    android:id="@+id/txt_chu_cai_dau"
-                    android:layout_width="52dp"
-                    android:layout_height="52dp"
-                    android:gravity="center"
-                    android:textSize="22sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/colorPrimaryDark"
-                    android:background="@drawable/bg_tron_sang"/>
-
+                <!-- Hàng danh tính -->
                 <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="0dp"
+                    android:orientation="horizontal"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginStart="14dp">
+                    android:gravity="center_vertical">
 
                     <TextView
-                        android:id="@+id/txt_profile_name"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/customer_default_name"
-                        android:textSize="18sp"
+                        android:id="@+id/txt_chu_cai_dau"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:gravity="center"
+                        android:textSize="22sp"
                         android:textStyle="bold"
-                        android:textColor="@color/white"
-                        android:maxLines="1"
-                        android:ellipsize="end"/>
+                        android:textColor="@color/colorPrimaryDark"
+                        android:background="@drawable/bg_tron_sang"/>
 
-                    <TextView
-                        android:id="@+id/txt_profile_phone"
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="2dp"
-                        android:text="@string/customer_default_phone"
-                        android:textSize="13sp"
-                        android:textColor="#EFE3DE"/>
+                        android:layout_weight="1"
+                        android:layout_marginStart="14dp">
 
-                    <TextView
-                        android:id="@+id/txt_profile_email"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="12sp"
-                        android:textColor="#D6C4BD"
-                        android:maxLines="1"
-                        android:ellipsize="end"
-                        android:visibility="gone"/>
+                        <TextView
+                            android:id="@+id/txt_profile_name"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/customer_default_name"
+                            android:textSize="18sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:maxLines="1"
+                            android:ellipsize="end"/>
+
+                        <TextView
+                            android:id="@+id/txt_profile_phone"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="2dp"
+                            android:text="@string/customer_default_phone"
+                            android:textSize="13sp"
+                            android:textColor="#EFE3DE"/>
+
+                        <TextView
+                            android:id="@+id/txt_profile_email"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="12sp"
+                            android:textColor="#D6C4BD"
+                            android:maxLines="1"
+                            android:ellipsize="end"
+                            android:visibility="gone"/>
+
+                    </LinearLayout>
+
+                    <!-- Huy hiệu Rank kim loại 3D ở góc trên phải -->
+                    <ImageView
+                        android:id="@+id/img_rank_badge"
+                        android:layout_width="54dp"
+                        android:layout_height="54dp"
+                        android:src="@drawable/rank_dong"
+                        android:scaleType="fitCenter"
+                        android:contentDescription="Rank badge" />
 
                 </LinearLayout>
 
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="14dp"
+                    android:background="#40FFFFFF"/>
+
+                <!-- Chi tiêu -->
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/customer_total_spending"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.08"
+                    android:textColor="#E0E0E0"/>
+
+                <TextView
+                    android:id="@+id/txt_profile_spending"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:text="@string/customer_spending_zero"
+                    android:textSize="28sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"/>
+
+                <TextView
+                    android:id="@+id/txt_profile_badge"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/customer_rank_bronze"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
+                    android:paddingTop="6dp"
+                    android:paddingBottom="6dp"
+                    android:background="@drawable/bg_huy_hieu_hang"/>
+
+                <!-- Tiến độ lên hạng kế tiếp -->
+                <ProgressBar
+                    android:id="@+id/progress_hang"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="6dp"
+                    android:layout_marginTop="14dp"
+                    android:max="100"
+                    android:progressTint="#FFD54F"
+                    android:progressBackgroundTint="#40FFFFFF"/>
+
+                <TextView
+                    android:id="@+id/txt_tien_do_hang"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:textSize="11sp"
+                    android:textColor="#EFE3DE"/>
+
             </LinearLayout>
 
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="14dp"
-                android:background="#40FFFFFF"/>
-
-            <!-- Chi tiêu -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/customer_total_spending"
-                android:textSize="11sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08"
-                android:textColor="#D6C4BD"/>
-
-            <TextView
-                android:id="@+id/txt_profile_spending"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:text="@string/customer_spending_zero"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:textColor="@color/white"/>
-
-            <TextView
-                android:id="@+id/txt_profile_badge"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:text="@string/customer_rank_bronze"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:textColor="@color/colorPrimaryDark"
-                android:paddingStart="14dp"
-                android:paddingEnd="14dp"
-                android:paddingTop="6dp"
-                android:paddingBottom="6dp"
-                android:background="@drawable/bg_huy_hieu_hang"/>
-
-            <!-- Tiến độ lên hạng kế tiếp -->
-            <ProgressBar
-                android:id="@+id/progress_hang"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="6dp"
-                android:layout_marginTop="14dp"
-                android:max="100"
-                android:progressTint="#FFD54F"
-                android:progressBackgroundTint="#40FFFFFF"/>
-
-            <TextView
-                android:id="@+id/txt_tien_do_hang"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:textSize="11sp"
-                android:textColor="#EFE3DE"/>
-
-        </LinearLayout>
+        </RelativeLayout>
 
     </androidx.cardview.widget.CardView>
 

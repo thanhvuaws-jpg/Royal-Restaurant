@@ -26,6 +26,16 @@
             android:layout_height="match_parent"
             android:background="@color/gold_400"/>
 
+        <ImageView
+            android:id="@+id/img_ve_voucher"
+            android:layout_width="64dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ve_vang"
+            android:contentDescription="Vé ưu đãi" />
+
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="0dp"

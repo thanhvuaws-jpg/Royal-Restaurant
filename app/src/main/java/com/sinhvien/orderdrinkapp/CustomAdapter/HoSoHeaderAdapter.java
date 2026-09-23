@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -43,8 +44,9 @@ import java.text.DecimalFormat;
 public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.ViewHolder> {
 
     /** Ngưỡng chi tiêu để lên hạng, đơn vị đồng. */
-    private static final long NGUONG_BAC  = 500_000L;
-    private static final long NGUONG_VANG = 1_000_000L;
+    private static final long NGUONG_BAC       = 500_000L;
+    private static final long NGUONG_VANG      = 1_000_000L;
+    private static final long NGUONG_KIMCUONG  = 2_500_000L;
 
     /** Fragment nhận lại LinearLayout chứa chip để tự dựng dãy lọc. */
     public interface OnHeaderSan {
@@ -139,31 +141,53 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
         return cuoi.isEmpty() ? "?" : cuoi.substring(0, 1).toUpperCase();
     }
 
-    /** Huy hiệu hạng + thanh tiến độ tới hạng kế tiếp. */
+    /** Huy hiệu hạng kim loại 3D + Thẻ VIP CR80 + thanh tiến độ tới hạng kế tiếp. */
     private void veHangThanhVien(ViewHolder h) {
         String tenHang;
         String mauHang;
         long nguongKeTiep;
         String tenHangKeTiep;
+        int cardRes;
+        int badgeRes;
 
-        if (chiTieu >= NGUONG_VANG) {
-            tenHang = context.getString(R.string.customer_rank_gold);
-            mauHang = "#FFD700";
+        if (chiTieu >= NGUONG_KIMCUONG) {
+            tenHang = context.getString(R.string.customer_rank_diamond);
+            mauHang = "#00BCD4";
+            cardRes = R.drawable.the_kimcuong;
+            badgeRes = R.drawable.rank_kimcuong;
             nguongKeTiep = 0;
             tenHangKeTiep = null;
+        } else if (chiTieu >= NGUONG_VANG) {
+            tenHang = context.getString(R.string.customer_rank_gold);
+            mauHang = "#FFD700";
+            cardRes = R.drawable.the_vang;
+            badgeRes = R.drawable.rank_vang;
+            nguongKeTiep = NGUONG_KIMCUONG;
+            tenHangKeTiep = context.getString(R.string.customer_rank_diamond);
         } else if (chiTieu >= NGUONG_BAC) {
             tenHang = context.getString(R.string.customer_rank_silver);
             mauHang = "#C0C0C0";
+            cardRes = R.drawable.the_bac;
+            badgeRes = R.drawable.rank_bac;
             nguongKeTiep = NGUONG_VANG;
             tenHangKeTiep = context.getString(R.string.customer_rank_gold);
         } else {
             tenHang = context.getString(R.string.customer_rank_bronze);
             mauHang = "#CD7F32";
+            cardRes = R.drawable.the_dong;
+            badgeRes = R.drawable.rank_dong;
             nguongKeTiep = NGUONG_BAC;
             tenHangKeTiep = context.getString(R.string.customer_rank_silver);
         }
 
         h.txt_profile_badge.setText(tenHang);
+
+        if (h.img_card_background != null) {
+            h.img_card_background.setImageResource(cardRes);
+        }
+        if (h.img_rank_badge != null) {
+            h.img_rank_badge.setImageResource(badgeRes);
+        }
 
         // mutate() bắt buộc: không có nó thì Drawable được chia sẻ giữa mọi
         // view dùng cùng tệp XML, và đổi màu ở đây sẽ đổi luôn chỗ khác.
@@ -178,7 +202,7 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
             h.progress_hang.setProgress(100);
             h.txt_tien_do_hang.setText(R.string.customer_rank_top);
         } else {
-            long moc  = (nguongKeTiep == NGUONG_VANG) ? NGUONG_BAC : 0;
+            long moc = (nguongKeTiep == NGUONG_KIMCUONG) ? NGUONG_VANG : ((nguongKeTiep == NGUONG_VANG) ? NGUONG_BAC : 0);
             long da   = chiTieu - moc;
             long can  = nguongKeTiep - moc;
             int  phan = (int) Math.max(0, Math.min(100, can > 0 ? (da * 100 / can) : 0));
@@ -195,6 +219,7 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView img_card_background, img_rank_badge;
         TextView txt_chu_cai_dau, txt_profile_name, txt_profile_phone, txt_profile_email,
                  txt_profile_spending, txt_profile_badge, txt_tien_do_hang,
                  txt_so_lan_dat, txt_so_hoan_thanh, txt_so_da_huy, txt_tong_so_phieu;
@@ -203,6 +228,8 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
 
         public ViewHolder(@NonNull View v) {
             super(v);
+            img_card_background  = v.findViewById(R.id.img_card_background);
+            img_rank_badge       = v.findViewById(R.id.img_rank_badge);
             txt_chu_cai_dau      = v.findViewById(R.id.txt_chu_cai_dau);
             txt_profile_name     = v.findViewById(R.id.txt_profile_name);
             txt_profile_phone    = v.findViewById(R.id.txt_profile_phone);

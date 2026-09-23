@@ -8,6 +8,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -113,6 +114,24 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
         } else {
             h.txt_macode.setOnClickListener(null);
         }
+
+        // Chọn loại vé voucher 3D phù hợp theo nguồn hoặc tên mã
+        int resVe = R.drawable.ve_dong;
+        String ten = m.getTen() != null ? m.getTen().toLowerCase() : "";
+        String nguon = m.getNguon() != null ? m.getNguon().toLowerCase() : "";
+        if (nguon.contains("tuan") || nguon.contains("tri_an") || ten.contains("tri ân") || ten.contains("quà")) {
+            resVe = R.drawable.ve_do;
+        } else if (ten.contains("20%") || ten.contains("kim cương") || ten.contains("vip")) {
+            resVe = R.drawable.ve_vang;
+        } else if (ten.contains("15%") || ten.contains("vàng")) {
+            resVe = R.drawable.ve_vang;
+        } else if (ten.contains("10%") || ten.contains("bạc")) {
+            resVe = R.drawable.ve_bac;
+        }
+        if (h.img_ve_voucher != null) {
+            h.img_ve_voucher.setImageResource(resVe);
+            h.img_ve_voucher.setAlpha(conDung ? 1.0f : 0.4f);
+        }
     }
 
     /** '2026-09-19 08:15:00' thành '19/09/2026'. Giờ phút không giúp gì ở đây. */
@@ -127,11 +146,13 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView img_ve_voucher;
         TextView txt_ten_ma, txt_trang_thai_ma, txt_macode, txt_han_ma, txt_dk_ma;
         View dai_mau_ma;
 
         public ViewHolder(@NonNull View v) {
             super(v);
+            img_ve_voucher    = v.findViewById(R.id.img_ve_voucher);
             txt_ten_ma        = v.findViewById(R.id.txt_ten_ma);
             txt_trang_thai_ma = v.findViewById(R.id.txt_trang_thai_ma);
             txt_macode        = v.findViewById(R.id.txt_macode);

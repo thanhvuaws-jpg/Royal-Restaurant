@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -93,9 +94,27 @@ public class VoucherDoiAdapter extends RecyclerView.Adapter<VoucherDoiAdapter.Vi
             // thể mang hành động của lần bind trước.
             h.btn_doi.setOnClickListener(null);
         }
+        // Chọn loại vé voucher 3D phù hợp theo hạng tối thiểu hoặc tên phiếu
+        int resVe = R.drawable.ve_dong;
+        String hang = v.getHangToiThieu() != null ? v.getHangToiThieu().toLowerCase() : "";
+        String ten = v.getTen() != null ? v.getTen().toLowerCase() : "";
+        if (hang.contains("kimcuong") || hang.contains("diamond") || ten.contains("kim cương") || ten.contains("vip") || ten.contains("20%")) {
+            resVe = R.drawable.ve_vang;
+        } else if (hang.contains("vang") || hang.contains("gold") || ten.contains("vàng") || ten.contains("15%")) {
+            resVe = R.drawable.ve_vang;
+        } else if (hang.contains("bac") || hang.contains("silver") || ten.contains("bạc") || ten.contains("10%")) {
+            resVe = R.drawable.ve_bac;
+        } else if (ten.contains("tặng") || ten.contains("quà") || ten.contains("tri ân")) {
+            resVe = R.drawable.ve_do;
+        }
+        if (h.img_ve_voucher != null) {
+            h.img_ve_voucher.setImageResource(resVe);
+            h.img_ve_voucher.setAlpha(duocDoi ? 1.0f : 0.5f);
+        }
     }
 
     private String tenHang(String ma) {
+        if ("kimcuong".equals(ma)) return "Thành viên Kim Cương";
         if ("vang".equals(ma)) return "Thành viên Vàng";
         if ("bac".equals(ma))  return "Thành viên Bạc";
         return "Thành viên Đồng";
@@ -107,11 +126,13 @@ public class VoucherDoiAdapter extends RecyclerView.Adapter<VoucherDoiAdapter.Vi
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
+        ImageView img_ve_voucher;
         TextView txt_ten_voucher, txt_mota_voucher, txt_dieu_kien;
         MaterialButton btn_doi;
 
         public ViewHolder(@NonNull View v) {
             super(v);
+            img_ve_voucher   = v.findViewById(R.id.img_ve_voucher);
             txt_ten_voucher  = v.findViewById(R.id.txt_ten_voucher);
             txt_mota_voucher = v.findViewById(R.id.txt_mota_voucher);
             txt_dieu_kien    = v.findViewById(R.id.txt_dieu_kien);

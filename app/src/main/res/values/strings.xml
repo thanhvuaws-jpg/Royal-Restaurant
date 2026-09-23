@@ -140,6 +140,7 @@
     <string name="customer_stat_cancelled">đã hủy</string>
     <string name="customer_rank_silver">Thành viên Bạc</string>
     <string name="customer_rank_gold">Thành viên Vàng</string>
+    <string name="customer_rank_diamond">Thành viên Kim Cương</string>
     <string name="customer_rank_progress">Chi thêm %1$s đ để lên %2$s</string>
     <string name="customer_rank_top">Bạn đang ở hạng cao nhất. Cảm ơn bạn!</string>
     <string name="customer_last_visit">Lần ghé gần nhất: %1$s</string>

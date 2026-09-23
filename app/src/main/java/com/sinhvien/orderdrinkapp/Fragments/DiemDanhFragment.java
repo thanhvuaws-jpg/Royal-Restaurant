@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -65,6 +66,7 @@ public class DiemDanhFragment extends Fragment {
     private RecyclerView rv_o_ngay, rv_danh_sach;
     private TextView txt_so_diem, txt_goi_y_doi, txt_chuoi, txt_hang,
                      txt_tieu_de_ds, txt_dem_ds, txt_rong_ds;
+    private ImageView img_hang_badge;
     private ProgressBar progress_chuoi;
     private MaterialButton btn_diem_danh, btn_doi_phieu;
 
@@ -90,6 +92,7 @@ public class DiemDanhFragment extends Fragment {
         txt_goi_y_doi  = view.findViewById(R.id.txt_goi_y_doi);
         txt_chuoi      = view.findViewById(R.id.txt_chuoi);
         txt_hang       = view.findViewById(R.id.txt_hang);
+        img_hang_badge = view.findViewById(R.id.img_hang_badge);
         txt_tieu_de_ds = view.findViewById(R.id.txt_tieu_de_ds);
         txt_dem_ds     = view.findViewById(R.id.txt_dem_ds);
         txt_rong_ds    = view.findViewById(R.id.txt_rong_ds);
@@ -235,6 +238,18 @@ public class DiemDanhFragment extends Fragment {
         txt_chuoi.setText(getString(R.string.dd_chuoi_hien_tai,
                 duLieu.getChuoi() % 7 == 0 && duLieu.getChuoi() > 0 ? 7 : duLieu.getChuoi() % 7));
         txt_hang.setText(duLieu.getHangTen());
+        if (img_hang_badge != null) {
+            String hang = duLieu.getHang() != null ? duLieu.getHang().toLowerCase() : "";
+            if (hang.contains("kimcuong") || hang.contains("diamond")) {
+                img_hang_badge.setImageResource(R.drawable.rank_kimcuong);
+            } else if (hang.contains("vang") || hang.contains("gold")) {
+                img_hang_badge.setImageResource(R.drawable.rank_vang);
+            } else if (hang.contains("bac") || hang.contains("silver")) {
+                img_hang_badge.setImageResource(R.drawable.rank_bac);
+            } else {
+                img_hang_badge.setImageResource(R.drawable.rank_dong);
+            }
+        }
 
         /* Nút điểm danh */
         if (duLieu.isDaDiemDanh()) {

@@ -192,14 +192,31 @@
                             android:textSize="11sp"
                             android:textColor="#8D6E63"/>
 
-                        <TextView
-                            android:id="@+id/txt_hang"
+                        <LinearLayout
+                            android:orientation="horizontal"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"
-                            android:textSize="10sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorPrimary"/>
+                            android:gravity="center_vertical"
+                            android:layout_marginTop="6dp">
+
+                            <ImageView
+                                android:id="@+id/img_hang_badge"
+                                android:layout_width="22dp"
+                                android:layout_height="22dp"
+                                android:src="@drawable/rank_dong"
+                                android:scaleType="fitCenter"
+                                android:layout_marginEnd="6dp"
+                                android:contentDescription="Rank badge" />
+
+                            <TextView
+                                android:id="@+id/txt_hang"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textSize="11sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/colorPrimary"/>
+
+                        </LinearLayout>
 
                     </LinearLayout>
 
