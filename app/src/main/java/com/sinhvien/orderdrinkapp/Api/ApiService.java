@@ -301,15 +301,45 @@ public interface ApiService {
     Call<MonResponse> getDishById(@Query("mamon") int maMon);
 
     /**
-     * Chỉnh sửa thông tin tên bàn ăn (Admin).
+     * Thêm (action "add") hoặc sửa (action "edit") bàn, kèm ảnh bàn (Admin).
+     *
+     * Ảnh gửi theo MỘT trong ba cách, để null những trường không dùng —
+     * Retrofit bỏ qua @Field null:
+     *   hinhanh        đường dẫn một ảnh mẫu lấy từ getAnhMauBan()
+     *   hinhanhBase64  ảnh chụp/chọn từ máy (máy chủ tải lên Cloudinary)
+     *   xoaAnh = "1"   bỏ ảnh hiện tại
+     * Sửa mà để tenBan null là chỉ đổi ảnh.
      */
     @FormUrlEncoded
     @POST("api/update_table_admin.php")
-    Call<OrderResponse> manageTable(
+    Call<OrderResponse> luuBan(
             @Field("action") String action,
             @Field("maban") int maBan,
-            @Field("tenban") String tenBan
+            @Field("tenban") String tenBan,
+            @Field("hinhanh") String hinhanh,
+            @Field("hinhanh_base64") String hinhanhBase64,
+            @Field("xoa_anh") String xoaAnh
     );
+
+    /** Bật ("true") / tắt ("false") chế độ bảo trì của bàn (Admin). */
+    @FormUrlEncoded
+    @POST("api/update_table_admin.php")
+    Call<OrderResponse> doiHoatDongBan(
+            @Field("action") String action,
+            @Field("maban") int maBan,
+            @Field("hoatdong") String hoatDong
+    );
+
+    /** Ảnh mẫu có sẵn để chọn cho bàn (Admin). */
+    @GET("api/ban_anh_mau.php")
+    Call<AnhMauBanResponse> getAnhMauBan();
+
+    /**
+     * Những bàn còn đặt được vào giờ hẹn (định dạng "yyyy-MM-dd HH:mm:ss").
+     * Máy chủ trả 400 kèm lý do nếu giờ không hợp lệ (quá khứ, ngoài 08–22h).
+     */
+    @GET("api/ban_trong.php")
+    Call<BanTrongResponse> getBanTrong(@Query("thoigianhen") String thoiGianHen);
 
     /**
      * Quản lý thông tin Nhân viên: Thêm, sửa, xóa thông tin (Admin).

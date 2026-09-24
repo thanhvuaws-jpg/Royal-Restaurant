@@ -45,6 +45,27 @@ public class TableResponse {
     @SerializedName("THOIGIANHEN")
     private String thoigianhen;
 
+    /*
+     * Ảnh bàn, máy chủ đã phân loại sẵn (kho_doc_hinh trong api/kho.php):
+     * LOAI_ANH là 'anh_noi_bo' | 'anh_ngoai' | 'khong_co'. URL_ANH_NHO là bản
+     * rộng 480px cho thẻ bàn; URL_ANH là ảnh gốc cho ảnh xem trước cỡ lớn.
+     * Đường dẫn nội bộ là tương đối — ghép bằng ViewUtils.getImageUrl().
+     */
+    @SerializedName("LOAI_ANH")
+    private String loaiAnh;
+
+    @SerializedName("URL_ANH")
+    private String urlAnh;
+
+    @SerializedName("URL_ANH_NHO")
+    private String urlAnhNho;
+
+    public String getLoaiAnh() { return loaiAnh; }
+    public String getUrlAnh() { return urlAnh; }
+    public void setUrlAnh(String urlAnh) { this.urlAnh = urlAnh; }
+    public String getUrlAnhNho() { return urlAnhNho; }
+    public void setUrlAnhNho(String urlAnhNho) { this.urlAnhNho = urlAnhNho; }
+
     public int getMaBan() { return maBan; }
     public void setMaBan(int maBan) { this.maBan = maBan; }
     

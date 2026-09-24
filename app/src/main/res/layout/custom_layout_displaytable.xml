@@ -1,4 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Thẻ bàn trong lưới 2 cột.
+
+    Phần trên là ảnh bàn (bản rộng 480px, cắt vừa khung). Bàn chưa có ảnh
+    thì hiện icon ghế như trước — img_customtable_TableImage vẫn giữ nguyên
+    id và vai trò đó. Nhãn trạng thái và nút xóa nằm ĐÈ lên ảnh để thẻ không
+    cao hơn bản cũ nhiều, nên cả hai có nền riêng cho đủ tương phản.
+-->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -13,82 +21,103 @@
     android:foreground="?attr/selectableItemBackground"
     tools:targetApi="lollipop">
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
+        android:orientation="vertical"
         android:background="@color/white">
 
-        <!-- Nút Xóa bàn (Chỉ Admin thấy) -->
-        <ImageView
-            android:id="@+id/img_customtable_Delete"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentTop="true"
-            android:padding="4dp"
-            android:src="@drawable/ic_baseline_delete_24"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            app:tint="@color/red_soft"
-            android:visibility="gone" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="104dp"
+            android:background="@color/cream">
 
-        <!-- Badge trạng thái (góc trên phải) -->
-        <TextView
-            android:id="@+id/txt_customtable_Status"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
-            android:background="@drawable/round_corner_textview"
-            android:paddingLeft="8dp"
-            android:paddingRight="8dp"
-            android:paddingTop="3dp"
-            android:paddingBottom="3dp"
-            android:textColor="@color/white"
-            android:textSize="11sp"
-            android:textStyle="bold"
-            tools:text="Trống" />
+            <!-- Ảnh bàn (ẩn khi bàn chưa có ảnh) -->
+            <ImageView
+                android:id="@+id/img_customtable_Photo"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="centerCrop"
+                android:contentDescription="@string/nav_table"
+                android:visibility="gone" />
+
+            <!-- Icon ghế: dự phòng khi không có ảnh -->
+            <ImageView
+                android:id="@+id/img_customtable_TableImage"
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:layout_gravity="center"
+                android:contentDescription="@string/nav_table"
+                android:src="@drawable/ic_baseline_event_seat_40"
+                app:tint="@color/colorPrimary" />
+
+            <!-- Nút Xóa bàn (chỉ Admin thấy) -->
+            <ImageView
+                android:id="@+id/img_customtable_Delete"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="top|start"
+                android:layout_margin="6dp"
+                android:padding="5dp"
+                android:src="@drawable/ic_baseline_delete_24"
+                android:background="@drawable/circle_background_white"
+                android:contentDescription="Xóa bàn"
+                app:tint="@color/red_soft"
+                android:visibility="gone" />
+
+            <!-- Badge trạng thái (góc trên phải) -->
+            <TextView
+                android:id="@+id/txt_customtable_Status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|end"
+                android:layout_margin="8dp"
+                android:background="@drawable/round_corner_textview"
+                android:elevation="2dp"
+                android:paddingLeft="8dp"
+                android:paddingRight="8dp"
+                android:paddingTop="3dp"
+                android:paddingBottom="3dp"
+                android:textColor="@color/white"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                tools:text="Trống" />
+
+        </FrameLayout>
 
         <!-- Tên bàn -->
         <TextView
             android:id="@+id/txt_customtable_TableName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/txt_customtable_Status"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="8dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:fontFamily="@font/muli_black"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textColor="@color/black"
             android:textSize="16sp"
             tools:text="Bàn 01" />
-
-        <!-- Icon ghế -->
-        <ImageView
-            android:id="@+id/img_customtable_TableImage"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:layout_below="@id/txt_customtable_TableName"
-            android:layout_centerHorizontal="true"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="8dp"
-            android:contentDescription="@string/nav_table"
-            android:src="@drawable/ic_baseline_event_seat_40"
-            app:tint="@color/colorPrimary" />
 
         <!-- Gợi ý hành động -->
         <TextView
             android:id="@+id/txt_customtable_ActionHint"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_below="@id/img_customtable_TableImage"
-            android:layout_centerHorizontal="true"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="2dp"
+            android:layout_marginBottom="12dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
             android:fontFamily="@font/muli"
+            android:maxLines="1"
+            android:ellipsize="end"
             android:textColor="@color/grey"
             android:textSize="11sp"
             tools:text="Nhấn để đặt món" />
 
-    </RelativeLayout>
+    </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

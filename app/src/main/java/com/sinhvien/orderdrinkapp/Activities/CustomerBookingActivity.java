@@ -27,11 +27,11 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.gson.Gson;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
+import com.sinhvien.orderdrinkapp.Api.BanTrongResponse;
 import com.sinhvien.orderdrinkapp.Api.BookingResponse;
 import com.sinhvien.orderdrinkapp.Api.TableResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.PreorderDishesAdapter;
 import com.sinhvien.orderdrinkapp.DTO.MonDTO;
-import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
 import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
@@ -63,11 +63,18 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
     // Khai báo View thành phần UI
     Spinner spinner_tables;
+    // Ảnh xem trước của bàn đang chọn trong spinner
+    View cardBanXemTruoc;
+    android.widget.ImageView imgBanXemTruoc;
     Button btn_select_date, btn_select_time, btn_confirm_booking;
     TextView txt_selected_datetime, txt_total_preorder;
+    // Trạng thái danh sách bàn: "chọn giờ trước" / "còn N bàn trống" / "đã kín"
+    TextView txtTrangThaiBan;
+    ProgressBar progressBanTrong;
     RecyclerView rv_booking_dishes;
 
-    // Danh sách bàn ăn & adapter hiển thị trên Spinner
+    // Bàn CÒN TRỐNG vào giờ đã chọn (ban_trong.php) & adapter của Spinner.
+    // Rỗng khi chưa chọn đủ ngày giờ.
     List<TableResponse> tableList = new ArrayList<>();
     List<String> tableNames = new ArrayList<>();
     ArrayAdapter<String> tableAdapter;
@@ -85,6 +92,11 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
     private io.socket.client.Socket mSocket;
     private io.socket.emitter.Emitter.Listener onMenuChanged;
+    // Khách khác vừa đặt/hủy: nạp lại bàn trống để bàn vừa bị đặt biến mất ngay.
+    private io.socket.emitter.Emitter.Listener onBookingChanged;
+
+    /** Lời gọi ban_trong.php đang chạy — hủy khi khách đổi giờ, để kết quả cũ không đè kết quả mới. */
+    private Call<BanTrongResponse> yeuCauBanTrong;
 
     private int savedTableId = -1;
     private Map<Integer, Integer> savedQuantities = new java.util.HashMap<>();
@@ -170,12 +182,16 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
         // Ánh xạ View
         spinner_tables = findViewById(R.id.spinner_tables);
+        cardBanXemTruoc = findViewById(R.id.card_ban_xem_truoc);
+        imgBanXemTruoc = findViewById(R.id.img_ban_xem_truoc);
         btn_select_date = findViewById(R.id.btn_select_date);
         btn_select_time = findViewById(R.id.btn_select_time);
         btn_confirm_booking = findViewById(R.id.btn_confirm_booking);
         txt_selected_datetime = findViewById(R.id.txt_selected_datetime);
         txt_total_preorder = findViewById(R.id.txt_total_preorder);
         rv_booking_dishes = findViewById(R.id.rv_booking_dishes);
+        txtTrangThaiBan = findViewById(R.id.txt_trang_thai_ban);
+        progressBanTrong = findViewById(R.id.progress_ban_trong);
 
         // Khối chọn món
         edt_tim_mon          = findViewById(R.id.edt_tim_mon);
@@ -202,17 +218,27 @@ public class CustomerBookingActivity extends AppCompatActivity {
         tableAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tableNames);
         tableAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner_tables.setAdapter(tableAdapter);
+        spinner_tables.setOnItemSelectedListener(new android.widget.AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(android.widget.AdapterView<?> parent, View view, int position, long id) {
+                hienAnhBanDangChon(position);
+            }
 
-        // Nạp danh sách bàn ăn, đăng ký sự kiện picker và tải món ăn
-        loadTables();
+            @Override
+            public void onNothingSelected(android.widget.AdapterView<?> parent) {
+                hienAnhBanDangChon(-1);
+            }
+        });
+
+        // Đăng ký picker và tải món ăn. Danh sách bàn CHƯA tải: bàn trống
+        // hay không phụ thuộc giờ hẹn, nên chỉ tải sau khi khách chọn giờ.
         setupDateTimePickers();
         khoiTaoKhoiChonMon();
         taiDanhMuc();
         loadDishes();
 
-        if (savedInstanceState != null) {
-            updateDateTimeDisplay();
-        }
+        updateDateTimeDisplay();
+        taiBanTrong();   // xoay màn hình khi đã chọn giờ: nạp lại ngay
 
         // Đăng ký sự kiện click chuột xác nhận đặt bàn
         btn_confirm_booking.setOnClickListener(v -> {
@@ -229,106 +255,176 @@ public class CustomerBookingActivity extends AppCompatActivity {
                 }
             });
         };
+        onBookingChanged = args -> runOnUiThread(() -> {
+            if (!isFinishing() && !isDestroyed() && daChonDuGio()) taiBanTrong();
+        });
         if (mSocket != null) {
             mSocket.on("menu_changed", onMenuChanged);
+            mSocket.on("booking_status_updated", onBookingChanged);
         }
     }
 
-    /**
-     * Tải danh sách bàn ăn (Ưu tiên nạp bộ nhớ cache từ SQLite trước để tối ưu tốc độ, sau đó gọi mạng và đồng bộ).
-     */
-    private void loadTables() {
-        // 1. Tải từ SQLite cache
-        LocalDatabaseHelper dbHelper = LocalDatabaseHelper.getInstance(this);
-        LocalDatabaseHelper.getExecutor().execute(() -> {
-            List<BanAnDTO> cachedList = dbHelper.getTables();
-            new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                updateSpinnerWithTables(cachedList);
-            });
-        });
+    private boolean daChonDuGio() {
+        return selectedYear != -1 && selectedHour != -1;
+    }
 
-        // 2. Đồng bộ mới từ API Server
-        ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.getTables().enqueue(new Callback<List<TableResponse>>() {
+    private String gioHenDangChon() {
+        return String.format(java.util.Locale.US, "%04d-%02d-%02d %02d:%02d:00",
+                selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute);
+    }
+
+    /**
+     * Hỏi máy chủ những bàn còn trống vào giờ đã chọn (ban_trong.php).
+     *
+     * THIẾT KẾ LẠI 25/09/2026 (QĐ-095). Trước đây màn hình lấy get_tables và
+     * lọc TINHTRANG = "false" — nghĩa là "lúc này không có ai ngồi", chẳng
+     * liên quan gì tới giờ hẹn. Bàn đã có người đặt tối nay vẫn hiện để
+     * chọn, còn bàn đang có khách ăn trưa lại bị ẩn khỏi lịch buổi tối.
+     *
+     * Không dùng bộ nhớ đệm SQLite ở đây: danh sách bàn trống đổi theo từng
+     * lượt đặt của khách khác, bản cũ vài phút là đã sai.
+     */
+    private void taiBanTrong() {
+        if (yeuCauBanTrong != null) yeuCauBanTrong.cancel();
+        if (!daChonDuGio()) {
+            capNhatDanhSachBan(new ArrayList<>(), "Chưa chọn giờ hẹn");
+            txtTrangThaiBan.setText(R.string.booking_chon_gio_truoc);
+            return;
+        }
+
+        progressBanTrong.setVisibility(View.VISIBLE);
+        txtTrangThaiBan.setText("Đang tìm bàn trống...");
+        spinner_tables.setEnabled(false);
+
+        yeuCauBanTrong = ApiClient.getClient().create(ApiService.class).getBanTrong(gioHenDangChon());
+        yeuCauBanTrong.enqueue(new Callback<BanTrongResponse>() {
             @Override
-            public void onResponse(Call<List<TableResponse>> call, Response<List<TableResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    LocalDatabaseHelper.getExecutor().execute(() -> {
-                        dbHelper.syncTables(response.body()); // Lưu vào SQLite
-                        List<BanAnDTO> updatedList = dbHelper.getTables();
-                        new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                            updateSpinnerWithTables(updatedList);
-                        });
-                    });
+            public void onResponse(Call<BanTrongResponse> call, Response<BanTrongResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                progressBanTrong.setVisibility(View.GONE);
+                if (!response.isSuccessful() || response.body() == null) {
+                    // 400: giờ không hợp lệ (quá khứ, ngoài 08–22h) — máy chủ
+                    // nói rõ lý do, hiện nguyên văn.
+                    capNhatDanhSachBan(new ArrayList<>(), "Chọn giờ khác");
+                    txtTrangThaiBan.setText(ViewUtils.docLoiMayChu(response, "Không tải được danh sách bàn trống."));
+                    return;
+                }
+                BanTrongResponse kq = response.body();
+                capNhatDanhSachBan(kq.getBan(), "Không còn bàn trống");
+                int soTrong = kq.getBan().size();
+                String gio = String.format(java.util.Locale.US, "%02d:%02d %02d/%02d",
+                        selectedHour, selectedMinute, selectedDay, selectedMonth);
+                if (soTrong == 0) {
+                    txtTrangThaiBan.setText("Lúc " + gio + " đã kín bàn. Vui lòng chọn giờ khác.");
+                } else {
+                    txtTrangThaiBan.setText("Còn " + soTrong + " bàn trống lúc " + gio
+                            + (kq.getSoBanKin() > 0 ? " (" + kq.getSoBanKin() + " bàn đã có khách đặt)" : "")
+                            + ". Mỗi lượt đặt giữ bàn " + (kq.getThoiLuongPhut() / 60) + " tiếng.");
                 }
             }
 
             @Override
-            public void onFailure(Call<List<TableResponse>> call, Throwable t) {
-                if (tableList.isEmpty()) {
-                    Toast.makeText(CustomerBookingActivity.this, "Lỗi tải bàn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                }
+            public void onFailure(Call<BanTrongResponse> call, Throwable t) {
+                if (call.isCanceled() || isFinishing() || isDestroyed()) return;
+                progressBanTrong.setVisibility(View.GONE);
+                capNhatDanhSachBan(new ArrayList<>(), "Chưa tải được");
+                txtTrangThaiBan.setText("Lỗi kết nối, chưa tải được bàn trống. Chọn lại giờ để thử lại.");
             }
         });
     }
 
     /**
-     * Cập nhật hiển thị danh sách bàn lên Spinner (chỉ lấy những bàn có tình trạng trống).
+     * Đổ danh sách bàn trống vào Spinner, giữ bàn khách đang chọn nếu nó
+     * vẫn còn trống (đổi giờ từ 18:00 sang 18:30 thì không bắt chọn lại).
+     *
+     * @param chuKhiRong dòng hiện trong Spinner khi không có bàn nào — phải
+     *                   nói đúng lý do: chưa chọn giờ, giờ không hợp lệ hay kín bàn.
      */
-    private void updateSpinnerWithTables(List<BanAnDTO> list) {
+    private void capNhatDanhSachBan(List<TableResponse> ds, String chuKhiRong) {
+        int banDangChon = savedTableId;
+        int viTri = spinner_tables.getSelectedItemPosition();
+        if (viTri >= 0 && viTri < tableList.size()) banDangChon = tableList.get(viTri).getMaBan();
+
         tableList.clear();
         tableNames.clear();
-        for (BanAnDTO ban : list) {
-            // Chỉ hiển thị các bàn trống (tinhTrang = false)
-            if ("false".equalsIgnoreCase(ban.getTinhTrang())) {
-                TableResponse t = new TableResponse();
-                t.setMaBan(ban.getMaBan());
-                t.setTenBan(ban.getTenBan());
-                t.setTinhTrang(ban.getTinhTrang());
-                tableList.add(t);
-                tableNames.add(ban.getTenBan());
-            }
-        }
-        if (tableList.isEmpty()) {
-            tableNames.add("Hiện tại không có bàn trống");
-        }
+        tableList.addAll(ds);
+        for (TableResponse b : ds) tableNames.add(b.getTenBan());
+        if (tableList.isEmpty()) tableNames.add(chuKhiRong);
         tableAdapter.notifyDataSetChanged();
+        spinner_tables.setEnabled(!tableList.isEmpty());
 
-        // Khôi phục lại bàn được chọn trước đó
-        if (savedTableId != -1) {
-            for (int i = 0; i < tableList.size(); i++) {
-                if (tableList.get(i).getMaBan() == savedTableId) {
-                    spinner_tables.setSelection(i);
-                    break;
-                }
-            }
+        int chon = 0;
+        for (int i = 0; i < tableList.size(); i++) {
+            if (tableList.get(i).getMaBan() == banDangChon) { chon = i; break; }
         }
+        spinner_tables.setSelection(chon);
+        if (!tableList.isEmpty()) savedTableId = -1;
+
+        // Danh sách vừa nạp lại mà vị trí chọn không đổi thì spinner KHÔNG
+        // gọi onItemSelected — ảnh xem trước sẽ đứng ở bàn cũ. Gọi thẳng.
+        hienAnhBanDangChon(spinner_tables.getSelectedItemPosition());
+    }
+
+    /**
+     * Ảnh bàn đang chọn. Dùng ảnh GỐC chứ không dùng bản 480px: khung xem
+     * trước rộng gần hết màn hình, kéo bản nhỏ lên sẽ mờ. Chỉ một ảnh mỗi
+     * lần nên tải ảnh gốc (~200 KB) vẫn nhẹ.
+     */
+    private void hienAnhBanDangChon(int viTri) {
+        if (cardBanXemTruoc == null || imgBanXemTruoc == null) return;
+        // Danh sách bàn nạp bất đồng bộ; màn đã đóng thì Glide ném lỗi.
+        if (isFinishing() || isDestroyed()) return;
+        String duongDan = null;
+        if (viTri >= 0 && viTri < tableList.size()) {
+            TableResponse ban = tableList.get(viTri);
+            duongDan = ban.getUrlAnh() != null ? ban.getUrlAnh() : ban.getUrlAnhNho();
+        }
+        String url = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(duongDan);
+        if (url.isEmpty()) {
+            com.bumptech.glide.Glide.with(this).clear(imgBanXemTruoc);
+            cardBanXemTruoc.setVisibility(View.GONE);
+            return;
+        }
+        cardBanXemTruoc.setVisibility(View.VISIBLE);
+        com.bumptech.glide.Glide.with(this)
+                .load(url)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                .centerCrop()
+                .into(imgBanXemTruoc);
     }
 
     /**
      * Khởi tạo và thiết lập các hộp thoại chọn Ngày (DatePickerDialog) và Giờ (TimePickerDialog).
      */
     private void setupDateTimePickers() {
-        Calendar calendar = Calendar.getInstance();
-
-        // Click để hiển thị hộp chọn Ngày
+        // Click để hiển thị hộp chọn Ngày. Không cho chọn ngày đã qua.
         btn_select_date.setOnClickListener(v -> {
+            Calendar c = Calendar.getInstance();
+            int y = selectedYear != -1 ? selectedYear : c.get(Calendar.YEAR);
+            int m = selectedMonth != -1 ? selectedMonth - 1 : c.get(Calendar.MONTH);
+            int d = selectedDay != -1 ? selectedDay : c.get(Calendar.DAY_OF_MONTH);
             DatePickerDialog datePickerDialog = new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
                 selectedYear = year;
                 selectedMonth = month + 1;
                 selectedDay = dayOfMonth;
                 updateDateTimeDisplay();
-            }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH));
+                taiBanTrong();
+            }, y, m, d);
+            datePickerDialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000);
             datePickerDialog.show();
         });
 
-        // Click để hiển thị hộp chọn Giờ
+        // Click để hiển thị hộp chọn Giờ. Mặc định giờ kế tiếp, kẹp trong 08–21h.
         btn_select_time.setOnClickListener(v -> {
+            Calendar c = Calendar.getInstance();
+            int h = selectedHour != -1 ? selectedHour : Math.max(8, Math.min(21, c.get(Calendar.HOUR_OF_DAY) + 1));
+            int mi = selectedMinute != -1 ? selectedMinute : 0;
             TimePickerDialog timePickerDialog = new TimePickerDialog(this, (view, hourOfDay, minute) -> {
                 selectedHour = hourOfDay;
                 selectedMinute = minute;
                 updateDateTimeDisplay();
-            }, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true);
+                taiBanTrong();
+            }, h, mi, true);
             timePickerDialog.show();
         });
     }
@@ -337,19 +433,18 @@ public class CustomerBookingActivity extends AppCompatActivity {
      * Cập nhật chuỗi hiển thị ngày giờ đã chọn lên giao diện người dùng.
      */
     private void updateDateTimeDisplay() {
-        if (selectedYear != -1 && selectedHour != -1) {
-            String datetime = String.format("%04d-%02d-%02d %02d:%02d:00", selectedYear, selectedMonth, selectedDay, selectedHour, selectedMinute);
-            txt_selected_datetime.setText("Thời gian hẹn: " + datetime);
+        String display = "";
+        if (selectedYear != -1) {
+            display += String.format(java.util.Locale.US, "%02d/%02d/%04d", selectedDay, selectedMonth, selectedYear);
+        }
+        if (selectedHour != -1) {
+            if (!display.isEmpty()) display += " lúc ";
+            display += String.format(java.util.Locale.US, "%02d:%02d", selectedHour, selectedMinute);
+        }
+        if (display.isEmpty()) {
+            txt_selected_datetime.setText(R.string.booking_no_datetime);
         } else {
-            String display = "";
-            if (selectedYear != -1) {
-                display += String.format("%02d/%02d/%04d", selectedDay, selectedMonth, selectedYear);
-            }
-            if (selectedHour != -1) {
-                if (!display.isEmpty()) display += " lúc ";
-                display += String.format("%02d:%02d", selectedHour, selectedMinute);
-            }
-            txt_selected_datetime.setText(display.isEmpty() ? "Chưa chọn thời gian" : display);
+            txt_selected_datetime.setText(daChonDuGio() ? "Thời gian hẹn: " + display : display);
         }
     }
 
@@ -887,13 +982,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
      * Xác thực thông tin biểu mẫu hẹn và gửi yêu cầu đặt bàn lên Server.
      */
     private void submitBooking() {
-        if (tableList.isEmpty() || spinner_tables.getSelectedItemPosition() == -1) {
-            Toast.makeText(this, "Không có bàn trống nào để đặt!", Toast.LENGTH_SHORT).show();
+        if (!daChonDuGio()) {
+            Toast.makeText(this, "Vui lòng chọn đầy đủ ngày và giờ hẹn!", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (selectedYear == -1 || selectedHour == -1) {
-            Toast.makeText(this, "Vui lòng chọn đầy đủ ngày và giờ hẹn!", Toast.LENGTH_SHORT).show();
+        if (tableList.isEmpty() || spinner_tables.getSelectedItemPosition() == -1) {
+            Toast.makeText(this, "Giờ này không còn bàn trống, vui lòng chọn giờ khác!", Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -951,9 +1046,22 @@ public class CustomerBookingActivity extends AppCompatActivity {
                     Toast.makeText(CustomerBookingActivity.this, "Đặt bàn thành công!", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
-                    String msg = response.body() != null ? response.body().getMessage() : "Không thể đặt bàn!";
+                    // 409 (bàn vừa bị khách khác đặt, bàn bảo trì, mã giảm giá
+                    // hỏng) hay 400 đều có lý do trong errorBody — trước đây đọc
+                    // body() nên lần nào cũng chỉ hiện "Không thể đặt bàn!".
+                    String msg = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : ViewUtils.docLoiMayChu(response, "Không thể đặt bàn!");
                     Log.w(TAG, "Đặt bàn thất bại: " + msg);
-                    Toast.makeText(CustomerBookingActivity.this, msg, Toast.LENGTH_SHORT).show();
+                    if (isFinishing() || isDestroyed()) return;
+                    new androidx.appcompat.app.AlertDialog.Builder(CustomerBookingActivity.this)
+                            .setTitle("Chưa đặt được bàn")
+                            .setMessage(msg)
+                            .setPositiveButton("Đã hiểu", null)
+                            .show();
+                    // Bàn có thể vừa bị người khác đặt mất — nạp lại danh sách
+                    // để khách thấy ngay những bàn còn trống thật.
+                    if (response.code() == 409) taiBanTrong();
                 }
             }
 
@@ -1002,6 +1110,10 @@ public class CustomerBookingActivity extends AppCompatActivity {
         if (mSocket != null && onMenuChanged != null) {
             mSocket.off("menu_changed", onMenuChanged);
         }
+        if (mSocket != null && onBookingChanged != null) {
+            mSocket.off("booking_status_updated", onBookingChanged);
+        }
+        if (yeuCauBanTrong != null) yeuCauBanTrong.cancel();
     }
 }
 

@@ -26,24 +26,10 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <!-- Bàn -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/booking_select_table_label"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/black"
-                android:layout_marginBottom="8dp"/>
-
-            <Spinner
-                android:id="@+id/spinner_tables"
-                android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@android:drawable/btn_dropdown"
-                android:layout_marginBottom="16dp"/>
-
-            <!-- Ngày giờ -->
+            <!-- ============ 1. NGÀY GIỜ ============
+                 Chọn giờ TRƯỚC, chọn bàn SAU: bàn trống hay không phụ thuộc vào
+                 giờ hẹn. Trước đây chọn bàn trước và lọc theo "lúc này có ai
+                 ngồi không", nên bàn đã có người đặt tối nay vẫn hiện để chọn. -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -57,7 +43,7 @@
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="8dp"
                 android:weightSum="2">
 
                 <Button
@@ -92,6 +78,69 @@
                 android:textSize="15sp"
                 android:layout_marginBottom="16dp"
                 android:gravity="center"/>
+
+            <!-- ============ 2. BÀN TRỐNG VÀO GIỜ ĐÃ CHỌN ============ -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/booking_select_table_label"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textColor="@color/black"
+                android:layout_marginBottom="4dp"/>
+
+            <!-- Chưa chọn giờ / đang tải / còn mấy bàn trống, mấy bàn đã kín -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ProgressBar
+                    android:id="@+id/progress_ban_trong"
+                    style="?android:attr/progressBarStyleSmall"
+                    android:layout_width="18dp"
+                    android:layout_height="18dp"
+                    android:layout_marginEnd="8dp"
+                    android:visibility="gone"/>
+
+                <TextView
+                    android:id="@+id/txt_trang_thai_ban"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/booking_chon_gio_truoc"
+                    android:textColor="@color/grey"
+                    android:textSize="13sp"/>
+            </LinearLayout>
+
+            <Spinner
+                android:id="@+id/spinner_tables"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:background="@android:drawable/btn_dropdown"
+                android:enabled="false"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Ảnh bàn đang chọn: khách xem chỗ ngồi trước khi đặt. Ẩn khi bàn chưa có ảnh. -->
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_ban_xem_truoc"
+                android:layout_width="match_parent"
+                android:layout_height="170dp"
+                android:layout_marginBottom="16dp"
+                android:visibility="gone"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <ImageView
+                    android:id="@+id/img_ban_xem_truoc"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scaleType="centerCrop"
+                    android:contentDescription="@string/booking_select_table_label" />
+
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- ============ 3. CHỌN MÓN ĂN ĐẶT TRƯỚC ============ -->
             <TextView

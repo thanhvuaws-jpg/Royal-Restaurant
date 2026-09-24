@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
     <external-cache-path name="feedback_images" path="feedback_images/" />
+    <!-- Ảnh bàn vừa chụp (AddTableActivity) — tệp tạm, gửi lên xong là bỏ -->
+    <cache-path name="anh_ban" path="anh_ban/" />
 </paths>

@@ -30,7 +30,8 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
     // Nâng lên 2 (11/09/2026): bảng BAN có thêm cột HOATDONG cho chế độ bảo trì.
     // Bắt buộc phải tăng số này, nếu không onUpgrade() sẽ không chạy trên
     // những máy đã cài bản cũ và truy vấn cột HOATDONG sẽ ném lỗi.
-    private static final int DATABASE_VERSION = 2;
+    // Nâng lên 3 (24/09/2026): bảng BAN có thêm ANH_NHO, ANH_GOC cho ảnh bàn.
+    private static final int DATABASE_VERSION = 3;
 
     // Singleton instance duy nhất trong vòng đời ứng dụng để tránh rò rỉ bộ nhớ
     private static LocalDatabaseHelper instance;
@@ -67,7 +68,9 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
                 "MABAN INTEGER PRIMARY KEY, " +
                 "TENBAN TEXT NOT NULL, " +
                 "TINHTRANG TEXT DEFAULT 'false', " +
-                "HOATDONG TEXT DEFAULT 'true'" +   // 'false' = bàn đang bảo trì
+                "HOATDONG TEXT DEFAULT 'true', " +   // 'false' = bàn đang bảo trì
+                "ANH_NHO TEXT, " +                   // ảnh bàn 480px, đường dẫn tương đối
+                "ANH_GOC TEXT" +                     // ảnh bàn gốc
                 ");");
 
         // Tạo bảng LOAIMON (Quản lý các danh mục món ăn/thức uống)
@@ -118,8 +121,10 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
             }
         }
         if (oldVersion < 3) {
-            // Ví dụ nâng cấp lên v3: Thêm bảng mới nếu có yêu cầu lưu trữ mới
-            // db.execSQL("CREATE TABLE IF NOT EXISTS ...");
+            // Ảnh bàn. Mỗi cột một lệnh và một try riêng: nếu một cột đã có
+            // (máy từng chạy bản thử) thì lệnh kia vẫn phải chạy.
+            try { db.execSQL("ALTER TABLE BAN ADD COLUMN ANH_NHO TEXT"); } catch (Exception e) { e.printStackTrace(); }
+            try { db.execSQL("ALTER TABLE BAN ADD COLUMN ANH_GOC TEXT"); } catch (Exception e) { e.printStackTrace(); }
         }
     }
 
@@ -134,12 +139,18 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getWritableDatabase();
         db.beginTransaction();
         try {
+            // Danh sách máy chủ là ĐẦY ĐỦ, nên bàn nào không còn trong đó là đã
+            // bị xóa (có thể từ web hay máy khác). Chỉ ghi đè như trước thì bàn
+            // đã xóa nằm lại trong SQLite mãi mãi và vẫn hiện trên sơ đồ bàn.
+            db.delete("BAN", null, null);
             for (com.sinhvien.orderdrinkapp.Api.TableResponse table : tables) {
                 ContentValues cv = new ContentValues();
                 cv.put("MABAN", table.getMaBan());
                 cv.put("TENBAN", table.getTenBan());
                 cv.put("TINHTRANG", table.getTinhTrang());
                 cv.put("HOATDONG", table.getHoatDong());
+                cv.put("ANH_NHO", table.getUrlAnhNho());
+                cv.put("ANH_GOC", table.getUrlAnh());
                 // Chèn mới hoặc ghi đè nếu trùng MABAN (CONFLICT_REPLACE)
                 db.insertWithOnConflict("BAN", null, cv, SQLiteDatabase.CONFLICT_REPLACE);
             }
@@ -170,6 +181,10 @@ public class LocalDatabaseHelper extends SQLiteOpenHelper {
                 // schema chưa chạy, đọc thiếu cột còn hơn là làm sập màn hình.
                 int iHoatDong = cursor.getColumnIndex("HOATDONG");
                 dto.setHoatDong(iHoatDong >= 0 ? cursor.getString(iHoatDong) : "true");
+                int iAnhNho = cursor.getColumnIndex("ANH_NHO");
+                int iAnhGoc = cursor.getColumnIndex("ANH_GOC");
+                dto.setAnhNho(iAnhNho >= 0 ? cursor.getString(iAnhNho) : null);
+                dto.setAnhGoc(iAnhGoc >= 0 ? cursor.getString(iAnhGoc) : null);
 
                 list.add(dto);
             } while (cursor.moveToNext());

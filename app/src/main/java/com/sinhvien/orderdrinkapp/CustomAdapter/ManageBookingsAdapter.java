@@ -184,9 +184,13 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         actionListener.onActionSuccess();
                     }
                 } else {
-                    String msg = response.body() != null ? response.body().getMessage() : "Lỗi xác nhận đặt bàn";
+                    // Máy chủ trả 409 kèm lý do (phiếu đã hủy, bàn đã có phiếu khác
+                    // giữ giờ đó…) trong errorBody — body() lúc đó là null.
+                    String msg = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : ViewUtils.docLoiMayChu(response, "Lỗi xác nhận đặt bàn");
                     Log.w(TAG, "Xác nhận đặt bàn thất bại: " + msg);
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                    new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
                 }
             }
 
@@ -238,9 +242,13 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         actionListener.onActionSuccess();
                     }
                 } else {
-                    String msg = response.body() != null ? response.body().getMessage() : "Lỗi nhận bàn";
+                    // Máy chủ trả 409 kèm lý do (phiếu đã hủy, bàn đã có phiếu khác
+                    // giữ giờ đó…) trong errorBody — body() lúc đó là null.
+                    String msg = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : ViewUtils.docLoiMayChu(response, "Lỗi nhận bàn");
                     Log.w(TAG, "Nhận bàn thất bại: " + msg);
-                    Toast.makeText(context, msg, Toast.LENGTH_SHORT).show();
+                    new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
                 }
             }
 

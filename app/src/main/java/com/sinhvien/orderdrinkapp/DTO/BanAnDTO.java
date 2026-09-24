@@ -38,6 +38,15 @@ public class BanAnDTO {
     public String getHoatDong() { return hoatDong == null ? "true" : hoatDong; }
     public void setHoatDong(String hoatDong) { this.hoatDong = hoatDong; }
 
+    /** Ảnh bàn bản 480px (thẻ lưới) và ảnh gốc (xem trước cỡ lớn). Null nếu bàn chưa có ảnh. */
+    private String anhNho;
+    private String anhGoc;
+
+    public String getAnhNho() { return anhNho; }
+    public void setAnhNho(String anhNho) { this.anhNho = anhNho; }
+    public String getAnhGoc() { return anhGoc; }
+    public void setAnhGoc(String anhGoc) { this.anhGoc = anhGoc; }
+
     public void setTinhTrang(String tinhTrang) {
         TinhTrang = tinhTrang;
     }

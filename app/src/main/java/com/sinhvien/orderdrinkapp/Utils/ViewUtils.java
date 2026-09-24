@@ -45,4 +45,26 @@ public class ViewUtils {
         }
         return com.sinhvien.orderdrinkapp.Api.ApiClient.getBaseUrl() + rawPath;
     }
+
+    /**
+     * Lý do máy chủ đưa ra khi từ chối yêu cầu (HTTP 4xx/5xx).
+     *
+     * Retrofit KHÔNG đọc thân phản hồi lỗi vào response.body() — với mã
+     * 409 thì body() luôn null và lý do thật ("Bàn đã có khách đặt từ 18:00
+     * đến 20:00…") nằm trong errorBody(). Đọc body() như trước là lần nào
+     * cũng hiện câu chung chung, người dùng không biết phải làm gì tiếp.
+     *
+     * errorBody() chỉ đọc được MỘT lần, nên gọi hàm này đúng một lần cho
+     * mỗi phản hồi.
+     */
+    public static String docLoiMayChu(retrofit2.Response<?> response, String macDinh) {
+        if (response != null && response.errorBody() != null) {
+            try {
+                org.json.JSONObject o = new org.json.JSONObject(response.errorBody().string());
+                String m = o.optString("message", "");
+                if (!m.isEmpty()) return m;
+            } catch (Exception ignored) { }
+        }
+        return macDinh;
+    }
 }

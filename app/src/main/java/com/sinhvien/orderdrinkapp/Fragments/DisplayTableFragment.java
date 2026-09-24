@@ -123,6 +123,21 @@ public class DisplayTableFragment extends Fragment {
         rvDisplayTable.setLayoutManager(new GridLayoutManager(getActivity(), 2));
 
         adapterDisplayTable = new AdapterDisplayTable(getActivity(), filteredList);
+        adapterDisplayTable.setThaoTacBan(new AdapterDisplayTable.ThaoTacBan() {
+            @Override
+            public void suaBan(BanAnDTO ban) {
+                Intent i = new Intent(getActivity(), AddTableActivity.class);
+                i.putExtra(AddTableActivity.EXTRA_MABAN, ban.getMaBan());
+                i.putExtra(AddTableActivity.EXTRA_TENBAN, ban.getTenBan());
+                i.putExtra(AddTableActivity.EXTRA_ANH, ban.getAnhGoc());
+                resultLauncherAdd.launch(i);
+            }
+
+            @Override
+            public void taiLaiDanhSach() {
+                if (isAdded()) HienThiDSBan();
+            }
+        });
         adapterDisplayTable.setStateRestorationPolicy(RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY);
         rvDisplayTable.setAdapter(adapterDisplayTable);
 

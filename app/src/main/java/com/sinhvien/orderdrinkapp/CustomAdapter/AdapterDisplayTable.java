@@ -27,6 +27,9 @@ import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
 import com.sinhvien.orderdrinkapp.Fragments.DisplayCategoryFragment;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
+import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -44,7 +47,9 @@ import retrofit2.Response;
  *   2. Đã đặt trước (Màu cam - #FFAB40): Bàn đã được khách đặt giữ lịch qua ứng dụng, có giờ hẹn cụ thể.
  *   3. Trống (Màu xanh - R.color.status_available): Bàn sẵn sàng đón tiếp khách mới.
  * - Thay đổi hình ảnh icon ghế ngồi/bàn ăn tùy thuộc trạng thái để tăng tính trực quan.
- * - Phân quyền Admin: Cho phép hiển thị nút Xóa bàn ăn trống (chặn xóa bàn đang dùng). Gọi API DELETE và cập nhật giao diện lập tức.
+ * - Phân quyền Admin: nút Xóa trên thẻ, và NHẤN GIỮ thẻ để sửa tên/ảnh, bật/tắt bảo trì hoặc xóa.
+ *   Máy chủ chỉ cho xóa bàn chưa từng có đơn hay phiếu đặt; bị từ chối thì hiện đúng lý do
+ *   (trước đây chỉ im lặng — không có dòng nào xử lý phản hồi lỗi).
  * - Xử lý click chọn bàn:
  *   + Nếu bàn trống: Chuyển hướng sang màn hình gọi món (DisplayCategoryFragment) đính kèm mã bàn.
  *   + Nếu bàn đang dùng: Gọi API lấy mã đơn đặt (Order) gắn liền với bàn, chuyển sang PaymentActivity để xem chi tiết hoặc thanh toán.
@@ -57,6 +62,19 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
     private final boolean isAdmin;
     // Danh sách lưu trữ thông tin các bàn đã được đặt lịch hẹn từ server
     private List<com.sinhvien.orderdrinkapp.Api.TableResponse> reservedTables;
+
+    /**
+     * Việc cần Fragment làm sau thao tác quản lý bàn: mở màn sửa (Fragment
+     * giữ ActivityResultLauncher) và nạp lại sơ đồ từ máy chủ.
+     */
+    public interface ThaoTacBan {
+        void suaBan(BanAnDTO ban);
+        void taiLaiDanhSach();
+    }
+
+    private ThaoTacBan thaoTacBan;
+
+    public void setThaoTacBan(ThaoTacBan t) { this.thaoTacBan = t; }
 
     public AdapterDisplayTable(Context context, List<BanAnDTO> banAnDTOList) {
         this.context = context;
@@ -106,10 +124,11 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         }
         boolean isReserved = reservedInfo != null;
 
-        // Thay đổi icon bàn ăn theo trạng thái
+        // Thay đổi icon bàn ăn theo trạng thái (icon chỉ hiện khi bàn chưa có ảnh)
         holder.img_TableImage.setImageResource(dangDung
                 ? R.drawable.ic_baseline_event_seat_40                  // Icon ghế đã có người ngồi
                 : R.drawable.ic_baseline_airline_seat_legroom_normal_40); // Icon ghế trống
+        hienAnhBan(holder, ban);
 
         GradientDrawable badge = (GradientDrawable) ContextCompat
                 .getDrawable(context, R.drawable.round_corner_textview).mutate();
@@ -158,42 +177,158 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         // Bật/tắt nút xóa bàn dành cho Admin
         if (isAdmin) {
             holder.img_Delete.setVisibility(View.VISIBLE);
-            holder.img_Delete.setOnClickListener(v -> {
-                if (dangDung) {
-                    Toast.makeText(context, "Bàn đang dùng không thể xóa!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                new AlertDialog.Builder(context)
-                        .setTitle("Xác nhận xóa")
-                        .setMessage("Bạn có chắc chắn muốn xóa bàn này?")
-                        .setPositiveButton("Xóa", (dialog, which) -> {
-                            ApiService apiService = ApiClient.getClient().create(ApiService.class);
-                            // Gọi API xóa bàn ăn khỏi hệ thống
-                            apiService.deleteTable(ban.getMaBan()).enqueue(new Callback<OrderResponse>() {
-                                @Override
-                                public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                                    if (response.isSuccessful()) {
-                                        banAnDTOList.remove(position);
-                                        notifyItemRemoved(position);
-                                        notifyItemRangeChanged(position, banAnDTOList.size());
-                                        Toast.makeText(context, "Đã xóa bàn trên Cloud", Toast.LENGTH_SHORT).show();
-                                    }
-                                }
-                                @Override
-                                public void onFailure(Call<OrderResponse> call, Throwable t) {
-                                    Toast.makeText(context, "Lỗi xóa: " + t.getMessage(), Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        })
-                        .setNegativeButton("Hủy", null)
-                        .show();
+            holder.img_Delete.setOnClickListener(v -> xacNhanXoaBan(ban));
+            // Nhấn giữ: sửa tên & ảnh, bảo trì, xóa. Nhấn thường vẫn là gọi món.
+            holder.itemView.setOnLongClickListener(v -> {
+                moMenuQuanLyBan(ban);
+                return true;
             });
         } else {
             holder.img_Delete.setVisibility(View.GONE);
+            holder.itemView.setOnLongClickListener(null);
+            holder.itemView.setLongClickable(false);
         }
 
         // Đăng ký click sự kiện chọn bàn ăn
         holder.itemView.setOnClickListener(v -> xuLyClickBan(position));
+    }
+
+    /* ═══════════════════════ Quản lý bàn (chỉ quản lý) ═══════════════════════ */
+
+    private void moMenuQuanLyBan(BanAnDTO ban) {
+        boolean dangBaoTri = "false".equals(ban.getHoatDong());
+        String[] muc = {
+                "Sửa tên & ảnh bàn",
+                dangBaoTri ? "Cho bàn hoạt động lại" : "Chuyển sang bảo trì",
+                "Xóa bàn"
+        };
+        new AlertDialog.Builder(context)
+                .setTitle(ban.getTenBan())
+                .setItems(muc, (d, which) -> {
+                    if (which == 0) {
+                        if (thaoTacBan != null) thaoTacBan.suaBan(ban);
+                    } else if (which == 1) {
+                        doiBaoTri(ban, dangBaoTri);
+                    } else {
+                        xacNhanXoaBan(ban);
+                    }
+                })
+                .setNegativeButton("Đóng", null)
+                .show();
+    }
+
+    private void doiBaoTri(BanAnDTO ban, boolean dangBaoTri) {
+        ApiClient.getClient().create(ApiService.class)
+                .doiHoatDongBan("toggle", ban.getMaBan(), dangBaoTri ? "true" : "false")
+                .enqueue(new Callback<OrderResponse>() {
+                    @Override
+                    public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                        boolean ok = response.isSuccessful() && response.body() != null
+                                && "success".equals(response.body().getStatus());
+                        String msg = ok ? response.body().getMessage()
+                                : ViewUtils.docLoiMayChu(response, "Không đổi được trạng thái bàn");
+                        // Câu dài (còn phiếu đặt sắp tới) thì hiện hộp thoại cho đọc kịp.
+                        new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
+                        if (ok) daDoiBan();
+                    }
+
+                    @Override
+                    public void onFailure(Call<OrderResponse> call, Throwable t) {
+                        Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+    }
+
+    private void xacNhanXoaBan(BanAnDTO ban) {
+        if ("true".equals(ban.getTinhTrang())) {
+            Toast.makeText(context, "Bàn đang dùng không thể xóa!", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        new AlertDialog.Builder(context)
+                .setTitle("Xóa " + ban.getTenBan() + "?")
+                .setMessage("Chỉ xóa được bàn chưa từng có đơn hay phiếu đặt (tạo nhầm). "
+                        + "Bàn đã dùng thì hãy chuyển sang bảo trì để giữ lịch sử.")
+                .setPositiveButton("Xóa", (dialog, which) -> xoaBan(ban))
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void xoaBan(BanAnDTO ban) {
+        ApiClient.getClient().create(ApiService.class).deleteTable(ban.getMaBan()).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                if (response.isSuccessful() && response.body() != null
+                        && "success".equals(response.body().getStatus())) {
+                    Toast.makeText(context, "Đã xóa " + ban.getTenBan(), Toast.LENGTH_SHORT).show();
+                    daDoiBan();
+                    return;
+                }
+                // 409: bàn đã có đơn/phiếu đặt — máy chủ nói rõ và gợi ý bảo trì.
+                new AlertDialog.Builder(context)
+                        .setTitle("Không xóa được bàn")
+                        .setMessage(ViewUtils.docLoiMayChu(response, "Không xóa được bàn (mã " + response.code() + ")"))
+                        .setPositiveButton("Đã hiểu", null)
+                        .show();
+            }
+
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                Toast.makeText(context, "Lỗi xóa: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    /**
+     * Sau khi đổi bàn thành công: nạp lại sơ đồ từ máy chủ (không vá tay theo
+     * vị trí — vị trí đã cũ nếu danh sách vừa đổi) và báo các máy khác.
+     */
+    private void daDoiBan() {
+        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (socket != null && socket.connected()) socket.emit("refresh_orders");
+        if (thaoTacBan != null) thaoTacBan.taiLaiDanhSach();
+    }
+
+    /**
+     * Ảnh bàn ở đầu thẻ; bàn chưa có ảnh (hoặc tải lỗi) thì hiện icon ghế.
+     *
+     * Luôn gọi Glide.clear() khi không có ảnh: RecyclerView tái sử dụng thẻ,
+     * nên một thẻ từng mang ảnh bàn VIP có thể được dùng lại cho bàn chưa có
+     * ảnh — không xóa thì ảnh cũ vẫn nằm đó, sai bàn.
+     */
+    private void hienAnhBan(ViewHolder holder, BanAnDTO ban) {
+        String url = ViewUtils.getImageUrl(ban.getAnhNho());
+        if (url.isEmpty()) {
+            Glide.with(context).clear(holder.img_Photo);
+            holder.img_Photo.setVisibility(View.GONE);
+            holder.img_TableImage.setVisibility(View.VISIBLE);
+            return;
+        }
+        holder.img_Photo.setVisibility(View.VISIBLE);
+        holder.img_TableImage.setVisibility(View.GONE);
+        Glide.with(context)
+                .load(url)
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .centerCrop()
+                .listener(new com.bumptech.glide.request.RequestListener<android.graphics.drawable.Drawable>() {
+                    @Override
+                    public boolean onLoadFailed(com.bumptech.glide.load.engine.GlideException e, Object model,
+                            com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                            boolean isFirstResource) {
+                        // Tải lỗi (mất mạng, tệp bị xóa) thì quay về icon ghế
+                        // thay vì để một khung kem trống.
+                        holder.img_Photo.setVisibility(View.GONE);
+                        holder.img_TableImage.setVisibility(View.VISIBLE);
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onResourceReady(android.graphics.drawable.Drawable resource, Object model,
+                            com.bumptech.glide.request.target.Target<android.graphics.drawable.Drawable> target,
+                            com.bumptech.glide.load.DataSource dataSource, boolean isFirstResource) {
+                        return false;
+                    }
+                })
+                .into(holder.img_Photo);
     }
 
     /**
@@ -276,12 +411,13 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
      * ViewHolder chứa cấu trúc hiển thị 1 ô bàn ăn.
      */
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView img_TableImage, img_Delete;
+        ImageView img_TableImage, img_Delete, img_Photo;
         TextView txt_TableName, txt_Status, txt_ActionHint;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             img_TableImage  = itemView.findViewById(R.id.img_customtable_TableImage);
+            img_Photo       = itemView.findViewById(R.id.img_customtable_Photo);
             txt_TableName   = itemView.findViewById(R.id.txt_customtable_TableName);
             txt_Status      = itemView.findViewById(R.id.txt_customtable_Status);
             txt_ActionHint  = itemView.findViewById(R.id.txt_customtable_ActionHint);
@@ -316,9 +452,11 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             // Phải so cả HOATDONG: thiếu nó thì khi quản lý bật/tắt bảo trì
             // từ web, DiffUtil sẽ coi hai bản ghi là giống nhau và KHÔNG vẽ
             // lại thẻ — giao diện đứng yên dù dữ liệu đã đổi.
+            // Và cả ảnh: quản lý đổi ảnh bàn thì thẻ phải vẽ lại.
             return oldItem.getTenBan().equals(newItem.getTenBan()) &&
                    oldItem.getTinhTrang().equals(newItem.getTinhTrang()) &&
-                   oldItem.getHoatDong().equals(newItem.getHoatDong());
+                   oldItem.getHoatDong().equals(newItem.getHoatDong()) &&
+                   java.util.Objects.equals(oldItem.getAnhNho(), newItem.getAnhNho());
         }
     }
 }

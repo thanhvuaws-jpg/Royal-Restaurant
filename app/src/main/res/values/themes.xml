@@ -26,7 +26,16 @@
     <style name="PopUpActivity" parent="Theme.MaterialComponents.Light.Dialog">
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowNoTitle">true</item>
+        <!-- Theme AppCompat/Material đọc thuộc tính KHÔNG có tiền tố android:.
+             Thiếu dòng này thì cửa sổ vẫn vẽ thanh tiêu đề (label của Activity)
+             đè lên màn phía sau. -->
+        <item name="windowNoTitle">true</item>
         <item name="android:windowMinWidthMajor">85%</item>
         <item name="android:windowMinWidthMinor">85%</item>
+        <!-- Màu thương hiệu như phần còn lại của app. Không khai báo thì theme
+             Dialog dùng tím mặc định của Material cho ô nhập và nút viền. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorPrimaryVariant">@color/colorPrimaryDark</item>
+        <item name="colorSecondary">@color/colorAccent</item>
     </style>
 </resources>

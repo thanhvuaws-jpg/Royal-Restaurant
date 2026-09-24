@@ -54,6 +54,12 @@
     <string name="add_table_title">Thêm Bàn Ăn</string>
     <string name="table_name_hint">Tên bàn ăn (VD: Bàn 6)</string>
     <string name="create_table_btn">Tạo bàn</string>
+    <string name="anh_ban_nhan">Ảnh bàn</string>
+    <string name="anh_ban_chua_co">Chưa có ảnh — chọn một ảnh mẫu bên dưới, hoặc chụp ảnh bàn thật.</string>
+    <string name="anh_ban_mau">Ảnh mẫu có sẵn</string>
+    <string name="anh_ban_chup">Chụp ảnh</string>
+    <string name="anh_ban_thu_vien">Thư viện</string>
+    <string name="anh_ban_bo">Bỏ ảnh</string>
     <string name="add_staff_title">Thêm Nhân Viên</string>
     <string name="edit_staff_title">Sửa Nhân Viên</string>
     <string name="permission_label">Quyền hạn:</string>
@@ -88,7 +94,7 @@
     <string name="total_revenue_label">Tổng Doanh Thu</string>
     <string name="zero_vnd">0 VNĐ</string>
     <string name="order_detail_label">Chi tiết đơn hàng</string>
-    <string name="edit_table_title">Sửa Tên Bàn</string>
+    <string name="edit_table_title">Sửa Bàn Ăn</string>
     <string name="new_table_name_hint">Tên bàn ăn mới</string>
     <string name="update_btn">Cập nhật</string>
     <string name="empty_list_title">Danh sách trống</string>
@@ -198,8 +204,9 @@
     <string name="booking_voucher_tieu_de">Chọn mã giảm giá</string>
     <string name="booking_voucher_giu_cho">Mã sẽ được giữ cho lịch hẹn này. Nếu bạn hủy lịch, mã được trả lại ví.</string>
     <string name="booking_toolbar_title">Đặt bàn &amp; chọn món</string>
-    <string name="booking_select_table_label">1. Chọn Bàn Ăn:</string>
-    <string name="booking_select_datetime_label">2. Chọn Ngày &amp; Giờ Hẹn:</string>
+    <string name="booking_select_table_label">2. Chọn Bàn Còn Trống:</string>
+    <string name="booking_select_datetime_label">1. Chọn Ngày &amp; Giờ Hẹn:</string>
+    <string name="booking_chon_gio_truoc">Chọn ngày và giờ trước để xem bàn nào còn trống.</string>
     <string name="booking_btn_select_date">Chọn Ngày</string>
     <string name="booking_btn_select_time">Chọn Giờ</string>
     <string name="booking_no_datetime">Chưa chọn thời gian</string>
