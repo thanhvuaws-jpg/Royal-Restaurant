@@ -31,16 +31,22 @@ public class ApiClient {
      * nên toàn hệ thống chỉ còn MỘT cổng vào duy nhất cho cả app lẫn web.
      * Trước đây app gọi thẳng cổng 8081 của container API, bỏ qua Apache —
      * khiến app và web đi hai đường khác nhau và khó cấu hình thống nhất.
+     *
+     * Địa chỉ lấy từ BuildConfig.MAY_CHU (app/build.gradle), mặc định
+     * "http://10.0.2.2:8000/". Build với -PmayChu=http://10.0.2.2:8097/ là
+     * được bản trỏ vào sân thử (CSDL bản sao) mà không phải sửa dòng mã nào.
      */
-    public static final String BASE_URL = "http://10.0.2.2:8000/api/";
+    public static final String BASE_URL = com.sinhvien.orderdrinkapp.BuildConfig.MAY_CHU + "api/";
 
     /**
      * Địa chỉ Socket.IO. Tách thành hằng riêng thay vì suy ra từ BASE_URL
      * bằng phép thay chuỗi như trước (BASE_URL.replace(":8081/", "")) —
      * cách cũ phụ thuộc vào việc BASE_URL phải chứa đúng ":8081/", nên chỉ
-     * cần đổi cổng là hỏng ngầm mà không báo lỗi.
+     * cần đổi cổng là hỏng ngầm mà không báo lỗi. Cùng máy chủ với BASE_URL,
+     * bỏ dấu "/" cuối.
      */
-    public static final String SOCKET_URL = "http://10.0.2.2:8000";
+    public static final String SOCKET_URL =
+            com.sinhvien.orderdrinkapp.BuildConfig.MAY_CHU.replaceAll("/+$", "");
 
     /** Đối tượng Retrofit duy nhất — dùng chung toàn app (Singleton). */
     private static Retrofit retrofit = null;
