@@ -78,8 +78,13 @@ public class CustomerProfileResponse {
     @SerializedName("lan_gan_nhat")
     private String lanGanNhat;
 
+    @SerializedName("hinhanh")
+    private String hinhAnh;
+
     public String getHoTen()      { return hoTen; }
     public String getEmail()      { return email; }
+    public String getHinhAnh()    { return hinhAnh; }
+    public void setHinhAnh(String hinhAnh) { this.hinhAnh = hinhAnh; }
     public int getSoDon()         { return soDon; }
     public int getSoLanDat()      { return soLanDat; }
     public int getSoHoanThanh()   { return soHoanThanh; }

@@ -511,6 +511,20 @@ public interface ApiService {
     Call<CustomerProfileResponse> getCustomerProfile(@Query("makh") int maKH);
 
     /**
+     * Cập nhật thông tin cá nhân và ảnh đại diện (Avatar).
+     */
+    @FormUrlEncoded
+    @POST("api/update_profile.php")
+    Call<UpdateProfileResponse> updateProfile(
+            @Field("manv") int maNV,
+            @Field("token") String token,
+            @Field("hoten") String hoTen,
+            @Field("sdt") String sdt,
+            @Field("email") String email,
+            @Field("hinhanh_base64") String hinhAnhBase64
+    );
+
+    /**
      * Hủy hoặc tự động cập nhật hàng loạt trạng thái các bàn đặt quá giờ (quá hẹn) mà không đến.
      */
     @FormUrlEncoded

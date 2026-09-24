@@ -254,4 +254,16 @@
     <string name="vietqr_bank_id">BIDV</string>
     <string name="vietqr_bank_acc">6151099464</string>
     <string name="vietqr_bank_name">VU THANH</string>
+
+    <!-- Chỉnh sửa hồ sơ & Tải avatar -->
+    <string name="chinh_sua_ho_so">Chỉnh sửa hồ sơ</string>
+    <string name="chon_anh_dai_dien">Chọn ảnh đại diện</string>
+    <string name="chon_anh_moi">Chọn ảnh mới</string>
+    <string name="doi_anh">Đổi ảnh</string>
+    <string name="luu_thay_doi">Lưu thay đổi</string>
+    <string name="huy">Hủy</string>
+    <string name="cap_nhat_ho_so_thanh_cong">Cập nhật hồ sơ thành công</string>
+    <string name="cap_nhat_ho_so_that_bai">Cập nhật hồ sơ thất bại</string>
+    <string name="dang_xu_ly">Đang xử lý, vui lòng chờ…</string>
+    <string name="loi_chon_anh">Không thể xử lý ảnh đã chọn</string>
 </resources>

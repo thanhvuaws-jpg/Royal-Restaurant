@@ -22,6 +22,9 @@ public class SessionManager {
     private static final String KEY_MANV = "manv";
     private static final String KEY_HOTEN = "hoten";
     private static final String KEY_TOKEN = "session_token";
+    private static final String KEY_EMAIL = "email";
+    private static final String KEY_SDT = "sdt";
+    private static final String KEY_HINHANH = "hinhanh";
 
     /**
      * Lấy token xác thực (JWT Token) của phiên đăng nhập hiện thời.
@@ -109,6 +112,33 @@ public class SessionManager {
      */
     public static void saveSession(Context context, int maquyen, int manv, String hoten) {
         saveSession(context, maquyen, manv, hoten, "");
+    }
+
+    /**
+     * Cập nhật thông tin hồ sơ (Họ tên, SĐT, Email, URL Avatar) trong SharedPreferences.
+     */
+    public static void updateProfile(Context context, String hoten, String sdt, String email, String hinhAnh) {
+        SharedPreferences.Editor editor = getPrefs(context).edit();
+        if (hoten != null && !hoten.trim().isEmpty()) {
+            editor.putString(KEY_HOTEN, hoten.trim());
+        }
+        if (sdt != null) {
+            editor.putString(KEY_SDT, sdt.trim());
+        }
+        if (email != null) {
+            editor.putString(KEY_EMAIL, email.trim());
+        }
+        if (hinhAnh != null) {
+            editor.putString(KEY_HINHANH, hinhAnh.trim());
+        }
+        editor.apply();
+    }
+
+    /**
+     * Lấy URL ảnh đại diện đã lưu của người dùng.
+     */
+    public static String getHinhAnh(Context context) {
+        return getPrefs(context).getString(KEY_HINHANH, "");
     }
 
     /**

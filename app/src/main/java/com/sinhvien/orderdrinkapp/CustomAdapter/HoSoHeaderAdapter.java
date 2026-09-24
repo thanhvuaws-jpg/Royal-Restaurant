@@ -6,6 +6,7 @@ import android.graphics.drawable.GradientDrawable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -14,6 +15,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.sinhvien.orderdrinkapp.R;
 
 import java.text.DecimalFormat;
@@ -48,16 +50,17 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
     private static final long NGUONG_VANG      = 1_000_000L;
     private static final long NGUONG_KIMCUONG  = 2_500_000L;
 
-    /** Fragment nhận lại LinearLayout chứa chip để tự dựng dãy lọc. */
+    /** Fragment nhận lại LinearLayout chứa chip để tự dựng dãy lọc và sự kiện sửa hồ sơ. */
     public interface OnHeaderSan {
         void dungChipLoc(LinearLayout khungChip);
+        void onChinhSuaHoSo();
     }
 
     private final Context context;
     private final OnHeaderSan boLangNghe;
     private final DecimalFormat dinhDangTien = new DecimalFormat("#,###");
 
-    private String hoTen = "", sdt = "", email = "";
+    private String hoTen = "", sdt = "", email = "", hinhAnh = "";
     private long chiTieu = 0;
     private int soLanDat = 0, soHoanThanh = 0, soDaHuy = 0, tongSoPhieu = 0;
 
@@ -66,17 +69,24 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
         this.boLangNghe = boLangNghe;
     }
 
-    /** Đổ dữ liệu hồ sơ vào phần đầu. */
-    public void capNhat(String hoTen, String sdt, String email, long chiTieu,
+    /** Đổ dữ liệu hồ sơ vào phần đầu (kèm ảnh đại diện). */
+    public void capNhat(String hoTen, String sdt, String email, String hinhAnh, long chiTieu,
                         int soLanDat, int soHoanThanh, int soDaHuy) {
         this.hoTen       = hoTen != null ? hoTen : "";
         this.sdt         = sdt != null ? sdt : "";
         this.email       = email != null ? email : "";
+        this.hinhAnh     = hinhAnh != null ? hinhAnh : "";
         this.chiTieu     = chiTieu;
         this.soLanDat    = soLanDat;
         this.soHoanThanh = soHoanThanh;
         this.soDaHuy     = soDaHuy;
         notifyItemChanged(0);
+    }
+
+    /** Quá tải tương thích ngược không có ảnh đại diện. */
+    public void capNhat(String hoTen, String sdt, String email, long chiTieu,
+                        int soLanDat, int soHoanThanh, int soDaHuy) {
+        capNhat(hoTen, sdt, email, this.hinhAnh, chiTieu, soLanDat, soHoanThanh, soDaHuy);
     }
 
     /** Cập nhật riêng số phiếu khớp bộ lọc (đổi mỗi lần bấm chip). */
@@ -96,7 +106,34 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
     public void onBindViewHolder(@NonNull ViewHolder h, int position) {
         h.txt_profile_name.setText(hoTen.isEmpty() ? context.getString(R.string.customer_default_name) : hoTen);
 
-        h.txt_chu_cai_dau.setText(chuCaiDaiDien(hoTen));
+        // Hiển thị ảnh Avatar nếu có; nếu không fallback về chữ cái đầu tiên của tên
+        if (h.img_profile_avatar != null) {
+            if (hinhAnh != null && !hinhAnh.trim().isEmpty()) {
+                h.img_profile_avatar.setVisibility(View.VISIBLE);
+                h.txt_chu_cai_dau.setVisibility(View.GONE);
+                Glide.with(context)
+                        .load(hinhAnh)
+                        .circleCrop()
+                        .placeholder(R.drawable.bg_tron_sang)
+                        .error(R.drawable.bg_tron_sang)
+                        .into(h.img_profile_avatar);
+            } else {
+                h.img_profile_avatar.setVisibility(View.GONE);
+                h.txt_chu_cai_dau.setVisibility(View.VISIBLE);
+                h.txt_chu_cai_dau.setText(chuCaiDaiDien(hoTen));
+            }
+        } else {
+            h.txt_chu_cai_dau.setText(chuCaiDaiDien(hoTen));
+        }
+
+        // Bấm vào khung Avatar để mở dialog chỉnh sửa hồ sơ & ảnh
+        if (h.layout_avatar_container != null) {
+            h.layout_avatar_container.setOnClickListener(v -> {
+                if (boLangNghe != null) {
+                    boLangNghe.onChinhSuaHoSo();
+                }
+            });
+        }
 
         h.txt_profile_phone.setText("SĐT: " + (sdt.isEmpty() ? "-" : sdt));
 
@@ -219,7 +256,8 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        ImageView img_card_background, img_rank_badge;
+        ImageView img_card_background, img_rank_badge, img_profile_avatar, img_edit_badge;
+        FrameLayout layout_avatar_container;
         TextView txt_chu_cai_dau, txt_profile_name, txt_profile_phone, txt_profile_email,
                  txt_profile_spending, txt_profile_badge, txt_tien_do_hang,
                  txt_so_lan_dat, txt_so_hoan_thanh, txt_so_da_huy, txt_tong_so_phieu;
@@ -228,21 +266,24 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
 
         public ViewHolder(@NonNull View v) {
             super(v);
-            img_card_background  = v.findViewById(R.id.img_card_background);
-            img_rank_badge       = v.findViewById(R.id.img_rank_badge);
-            txt_chu_cai_dau      = v.findViewById(R.id.txt_chu_cai_dau);
-            txt_profile_name     = v.findViewById(R.id.txt_profile_name);
-            txt_profile_phone    = v.findViewById(R.id.txt_profile_phone);
-            txt_profile_email    = v.findViewById(R.id.txt_profile_email);
-            txt_profile_spending = v.findViewById(R.id.txt_profile_spending);
-            txt_profile_badge    = v.findViewById(R.id.txt_profile_badge);
-            txt_tien_do_hang     = v.findViewById(R.id.txt_tien_do_hang);
-            txt_so_lan_dat       = v.findViewById(R.id.txt_so_lan_dat);
-            txt_so_hoan_thanh    = v.findViewById(R.id.txt_so_hoan_thanh);
-            txt_so_da_huy        = v.findViewById(R.id.txt_so_da_huy);
-            txt_tong_so_phieu    = v.findViewById(R.id.txt_tong_so_phieu);
-            progress_hang        = v.findViewById(R.id.progress_hang);
-            layout_chip_loc      = v.findViewById(R.id.layout_chip_loc);
+            img_card_background     = v.findViewById(R.id.img_card_background);
+            img_rank_badge          = v.findViewById(R.id.img_rank_badge);
+            layout_avatar_container = v.findViewById(R.id.layout_avatar_container);
+            img_profile_avatar      = v.findViewById(R.id.img_profile_avatar);
+            img_edit_badge          = v.findViewById(R.id.img_edit_badge);
+            txt_chu_cai_dau         = v.findViewById(R.id.txt_chu_cai_dau);
+            txt_profile_name        = v.findViewById(R.id.txt_profile_name);
+            txt_profile_phone       = v.findViewById(R.id.txt_profile_phone);
+            txt_profile_email       = v.findViewById(R.id.txt_profile_email);
+            txt_profile_spending    = v.findViewById(R.id.txt_profile_spending);
+            txt_profile_badge       = v.findViewById(R.id.txt_profile_badge);
+            txt_tien_do_hang        = v.findViewById(R.id.txt_tien_do_hang);
+            txt_so_lan_dat          = v.findViewById(R.id.txt_so_lan_dat);
+            txt_so_hoan_thanh       = v.findViewById(R.id.txt_so_hoan_thanh);
+            txt_so_da_huy           = v.findViewById(R.id.txt_so_da_huy);
+            txt_tong_so_phieu       = v.findViewById(R.id.txt_tong_so_phieu);
+            progress_hang           = v.findViewById(R.id.progress_hang);
+            layout_chip_loc         = v.findViewById(R.id.layout_chip_loc);
         }
     }
 }

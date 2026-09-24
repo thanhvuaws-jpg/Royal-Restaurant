@@ -1,14 +1,20 @@
 package com.sinhvien.orderdrinkapp.Fragments;
 
+import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -18,11 +24,13 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.bumptech.glide.Glide;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.BookingPageResponse;
 import com.sinhvien.orderdrinkapp.Api.BookingResponse;
 import com.sinhvien.orderdrinkapp.Api.CustomerProfileResponse;
+import com.sinhvien.orderdrinkapp.Api.UpdateProfileResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.BookingHistoryAdapter;
 import com.sinhvien.orderdrinkapp.CustomAdapter.HoSoHeaderAdapter;
 import com.sinhvien.orderdrinkapp.R;
@@ -102,6 +110,37 @@ public class CustomerProfileFragment extends Fragment
     private int tongSoTrang  = 1;
     private boolean dangTai  = false;
 
+    private ActivityResultLauncher<String> chonAnhLauncher;
+    private Uri selectedAvatarUri = null;
+    private ImageView imgDialogPreviewRef = null;
+    private TextView txtDialogInitialRef = null;
+
+    private String hoTenHienTai = "";
+    private String sdtHienTai = "";
+    private String emailHienTai = "";
+    private String hinhAnhhHienTai = "";
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        chonAnhLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        selectedAvatarUri = uri;
+                        if (imgDialogPreviewRef != null) {
+                            imgDialogPreviewRef.setVisibility(View.VISIBLE);
+                            if (txtDialogInitialRef != null) txtDialogInitialRef.setVisibility(View.GONE);
+                            Glide.with(this)
+                                    .load(uri)
+                                    .circleCrop()
+                                    .into(imgDialogPreviewRef);
+                        }
+                    }
+                }
+        );
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
@@ -128,8 +167,10 @@ public class CustomerProfileFragment extends Fragment
                 ContextCompat.getColor(requireContext(), R.color.colorPrimary));
         swipe_ho_so.setOnRefreshListener(this::taiLaiTatCa);
 
-        // Tên hiển thị ngay từ phiên đã lưu, không phải chờ mạng.
-        headerAdapter.capNhat(SessionManager.getFullName(getContext()), "", "", 0, 0, 0, 0);
+        // Tên và ảnh đại diện hiển thị ngay từ phiên đã lưu, không phải chờ mạng.
+        String savedName = SessionManager.getFullName(getContext());
+        String savedAvatar = SessionManager.getHinhAnh(getContext());
+        headerAdapter.capNhat(savedName, "", "", savedAvatar, 0, 0, 0, 0);
 
         return view;
     }
@@ -181,7 +222,178 @@ public class CustomerProfileFragment extends Fragment
         return chip;
     }
 
-    /* ══════════════════════════ Cuộn vô hạn ═════════════════════════════ */
+    /* ═══════════════════ Chỉnh sửa hồ sơ & Tải avatar ═════════════════ */
+
+    @Override
+    public void onChinhSuaHoSo() {
+        if (getContext() == null) return;
+        selectedAvatarUri = null;
+
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_chinh_sua_ho_so, null);
+        androidx.appcompat.app.AlertDialog dialog = new com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
+
+        if (dialog.getWindow() != null) {
+            dialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
+        }
+
+        FrameLayout layoutAvatarClick = dialogView.findViewById(R.id.layout_dialog_avatar_click);
+        TextView btnChooseAvatar = dialogView.findViewById(R.id.btn_dialog_choose_avatar);
+        ImageView imgPreview = dialogView.findViewById(R.id.img_dialog_avatar_preview);
+        TextView txtInitial = dialogView.findViewById(R.id.txt_dialog_avatar_initial);
+
+        com.google.android.material.textfield.TextInputEditText edtHoTen = dialogView.findViewById(R.id.edt_edit_hoten);
+        com.google.android.material.textfield.TextInputEditText edtSdt = dialogView.findViewById(R.id.edt_edit_sdt);
+        com.google.android.material.textfield.TextInputEditText edtEmail = dialogView.findViewById(R.id.edt_edit_email);
+        ProgressBar progressDialog = dialogView.findViewById(R.id.progress_dialog_edit);
+        Button btnCancel = dialogView.findViewById(R.id.btn_dialog_cancel);
+        Button btnSave = dialogView.findViewById(R.id.btn_dialog_save);
+
+        imgDialogPreviewRef = imgPreview;
+        txtDialogInitialRef = txtInitial;
+
+        String currentName = !hoTenHienTai.isEmpty() ? hoTenHienTai : SessionManager.getFullName(getContext());
+        edtHoTen.setText(currentName);
+        edtSdt.setText(sdtHienTai);
+        edtEmail.setText(emailHienTai);
+
+        String currentAvatar = !hinhAnhhHienTai.isEmpty() ? hinhAnhhHienTai : SessionManager.getHinhAnh(getContext());
+        if (currentAvatar != null && !currentAvatar.trim().isEmpty()) {
+            imgPreview.setVisibility(View.VISIBLE);
+            txtInitial.setVisibility(View.GONE);
+            Glide.with(this).load(currentAvatar).circleCrop().into(imgPreview);
+        } else {
+            imgPreview.setVisibility(View.GONE);
+            txtInitial.setVisibility(View.VISIBLE);
+            txtInitial.setText(layChuCaiDau(currentName));
+        }
+
+        View.OnClickListener clickPickImage = v -> {
+            try {
+                chonAnhLauncher.launch("image/*");
+            } catch (Exception e) {
+                Toast.makeText(getContext(), R.string.loi_chon_anh, Toast.LENGTH_SHORT).show();
+            }
+        };
+        layoutAvatarClick.setOnClickListener(clickPickImage);
+        btnChooseAvatar.setOnClickListener(clickPickImage);
+
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+
+        btnSave.setOnClickListener(v -> {
+            String newHoTen = edtHoTen.getText() != null ? edtHoTen.getText().toString().trim() : "";
+            String newSdt = edtSdt.getText() != null ? edtSdt.getText().toString().trim() : "";
+            String newEmail = edtEmail.getText() != null ? edtEmail.getText().toString().trim() : "";
+
+            if (newHoTen.isEmpty()) {
+                edtHoTen.setError(getString(R.string.not_empty));
+                edtHoTen.requestFocus();
+                return;
+            }
+
+            if (!newEmail.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
+                edtEmail.setError(getString(R.string.enter_email));
+                edtEmail.requestFocus();
+                return;
+            }
+
+            progressDialog.setVisibility(View.VISIBLE);
+            btnSave.setEnabled(false);
+            btnCancel.setEnabled(false);
+            btnChooseAvatar.setEnabled(false);
+            layoutAvatarClick.setEnabled(false);
+
+            java.util.concurrent.Executors.newSingleThreadExecutor().execute(() -> {
+                String base64Image = "";
+                if (selectedAvatarUri != null && getContext() != null) {
+                    android.graphics.Bitmap bmp = com.sinhvien.orderdrinkapp.Utils.AnhHelper.docBitmapTuUri(getContext(), selectedAvatarUri);
+                    if (bmp != null) {
+                        base64Image = com.sinhvien.orderdrinkapp.Utils.AnhHelper.nenVaChuyenBase64(bmp);
+                    }
+                }
+
+                final String finalBase64 = base64Image;
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    thucHienCapNhatHoSo(dialog, progressDialog, btnSave, btnCancel,
+                            newHoTen, newSdt, newEmail, finalBase64);
+                });
+            });
+        });
+
+        dialog.show();
+    }
+
+    private void thucHienCapNhatHoSo(
+            androidx.appcompat.app.AlertDialog dialog,
+            ProgressBar progressDialog,
+            Button btnSave,
+            Button btnCancel,
+            String newHoTen,
+            String newSdt,
+            String newEmail,
+            String hinhanhBase64
+    ) {
+        if (!isAdded() || getContext() == null) return;
+
+        int manv = SessionManager.getMaNV(getContext());
+        String token = SessionManager.getToken(getContext());
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+
+        apiService.updateProfile(manv, token, newHoTen, newSdt, newEmail, hinhanhBase64)
+                .enqueue(new Callback<UpdateProfileResponse>() {
+                    @Override
+                    public void onResponse(Call<UpdateProfileResponse> call, Response<UpdateProfileResponse> response) {
+                        if (!isAdded()) return;
+
+                        if (response.isSuccessful() && response.body() != null
+                                && "success".equals(response.body().getStatus())) {
+                            UpdateProfileResponse res = response.body();
+                            Toast.makeText(getContext(), R.string.cap_nhat_ho_so_thanh_cong, Toast.LENGTH_SHORT).show();
+
+                            hoTenHienTai = res.getHoTen();
+                            sdtHienTai = res.getSdt();
+                            emailHienTai = res.getEmail();
+                            if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
+                                hinhAnhhHienTai = res.getHinhAnh();
+                            }
+
+                            SessionManager.updateProfile(getContext(), hoTenHienTai, sdtHienTai, emailHienTai, hinhAnhhHienTai);
+                            dialog.dismiss();
+
+                            taiHoSo();
+                        } else {
+                            progressDialog.setVisibility(View.GONE);
+                            btnSave.setEnabled(true);
+                            btnCancel.setEnabled(true);
+                            String msg = (response.body() != null && response.body().getMessage() != null)
+                                    ? response.body().getMessage()
+                                    : getString(R.string.cap_nhat_ho_so_that_bai);
+                            Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(Call<UpdateProfileResponse> call, Throwable t) {
+                        if (!isAdded()) return;
+                        progressDialog.setVisibility(View.GONE);
+                        btnSave.setEnabled(true);
+                        btnCancel.setEnabled(true);
+                        Toast.makeText(getContext(), R.string.cap_nhat_ho_so_that_bai, Toast.LENGTH_LONG).show();
+                    }
+                });
+    }
+
+    private String layChuCaiDau(String hoTen) {
+        if (hoTen == null) return "?";
+        String sach = hoTen.trim();
+        if (sach.isEmpty()) return "?";
+        String[] tu = sach.split("\\s+");
+        String cuoi = tu[tu.length - 1];
+        return cuoi.isEmpty() ? "?" : cuoi.substring(0, 1).toUpperCase();
+    }
 
     private void ganCuonVoHan() {
         rv_history_bookings.addOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -238,8 +450,18 @@ public class CustomerProfileFragment extends Fragment
                 // Ưu tiên tên từ máy chủ; nếu thiếu thì dùng tên trong phiên.
                 String ten = (p.getHoTen() != null && !p.getHoTen().isEmpty())
                         ? p.getHoTen() : SessionManager.getFullName(getContext());
+                String sdt = p.getSdt() != null ? p.getSdt() : "";
+                String email = p.getEmail() != null ? p.getEmail() : "";
+                String hinhanh = p.getHinhAnh() != null ? p.getHinhAnh() : "";
 
-                headerAdapter.capNhat(ten, p.getSdt(), p.getEmail(), chiTieu,
+                hoTenHienTai = ten;
+                sdtHienTai = sdt;
+                emailHienTai = email;
+                hinhAnhhHienTai = hinhanh;
+
+                SessionManager.updateProfile(getContext(), ten, sdt, email, hinhanh);
+
+                headerAdapter.capNhat(ten, sdt, email, hinhanh, chiTieu,
                         p.getSoLanDat(), p.getSoHoanThanh(), p.getSoDaHuy());
             }
 
