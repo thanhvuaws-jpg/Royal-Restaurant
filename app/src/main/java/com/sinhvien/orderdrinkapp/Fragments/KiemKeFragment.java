@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
+import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.KiemKeActionResponse;
@@ -65,6 +66,11 @@ public class KiemKeFragment extends Fragment {
         progressBar = v.findViewById(R.id.progress_loading_kiem_ke);
         btnGuiKiemKe = v.findViewById(R.id.btn_gui_kiem_ke);
 
+        // Yêu cầu 11: chỉ Quản lý gửi kiểm kê (kiểm kê ghi lại tồn kho).
+        // Nút mở màn này đã ẩn với người khác; ở đây chỉ khóa nút gửi, vẫn
+        // cho xem vì quyền 2 và 3 được đọc tồn.
+        final boolean laQuanLy = SessionManager.isAdmin(requireContext());
+
         rcvKiemKe.setLayoutManager(new LinearLayoutManager(getContext()));
         rcvKiemKe.setHasFixedSize(true);
         adapter = new AdapterKiemKe(getContext());
@@ -76,7 +82,12 @@ public class KiemKeFragment extends Fragment {
             }
         });
 
-        btnGuiKiemKe.setOnClickListener(view -> submitKiemKe());
+        if (laQuanLy) {
+            btnGuiKiemKe.setOnClickListener(view -> submitKiemKe());
+        } else {
+            btnGuiKiemKe.setEnabled(false);
+            btnGuiKiemKe.setText("CHỈ QUẢN LÝ ĐƯỢC KIỂM KÊ");
+        }
 
         loadNguyenLieuList();
 

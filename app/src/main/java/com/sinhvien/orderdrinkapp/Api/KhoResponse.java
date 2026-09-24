@@ -47,6 +47,26 @@ public class KhoResponse {
         public int getDu() { return du; }
     }
 
+    /**
+     * Số lô nhập đã / sắp hết hạn (kho_dem_canh_bao_han). Bản đầu không khai
+     * trường này, nên thẻ "Cảnh báo hạn" trên màn Kho luôn hiện 0.
+     */
+    @SerializedName("canh_bao_han")
+    private CanhBaoHan canhBaoHan;
+
+    public static class CanhBaoHan {
+        @SerializedName("het_han")
+        private int hetHan;
+
+        @SerializedName("sap_het_han")
+        private int sapHetHan;
+
+        public int getHetHan() { return hetHan; }
+        public int getSapHetHan() { return sapHetHan; }
+    }
+
+    public CanhBaoHan getCanhBaoHan() { return canhBaoHan; }
+
     public List<NguyenLieuResponse> getDanhSach() { return danhSach; }
     public int getTongSo() { return tongSo; }
     public int getTrang() { return trang; }

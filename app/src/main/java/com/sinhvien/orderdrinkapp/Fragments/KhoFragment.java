@@ -34,6 +34,7 @@ import com.sinhvien.orderdrinkapp.Api.NguyenLieuResponse;
 import com.sinhvien.orderdrinkapp.Api.NhomNguyenLieuResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterKhoNguyenLieu;
 import com.sinhvien.orderdrinkapp.R;
+import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.ViewModel.KhoViewModel;
 
 import java.util.ArrayList;
@@ -105,6 +106,14 @@ public class KhoFragment extends Fragment {
         chkChiCanhBao = view.findViewById(R.id.chk_chi_canh_bao);
         btnLapPhieu = view.findViewById(R.id.btn_lap_phieu);
         btnKiemKe = view.findViewById(R.id.btn_kiem_ke);
+
+        // Yêu cầu 11: chỉ Quản lý (quyền 1) lập phiếu và kiểm kê; nhân viên
+        // chỉ xem tồn. Máy chủ đã chặn 403, nhưng để nút hiện thì nhân viên
+        // điền hết biểu mẫu, chụp ảnh, rồi mới biết mình không có quyền.
+        if (!SessionManager.isAdmin(requireContext())) {
+            btnLapPhieu.setVisibility(View.GONE);
+            btnKiemKe.setVisibility(View.GONE);
+        }
 
         // Spinner nhóm nguyên liệu
         listNhom.clear();

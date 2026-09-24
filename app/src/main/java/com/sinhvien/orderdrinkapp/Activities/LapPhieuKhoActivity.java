@@ -33,6 +33,7 @@ import com.sinhvien.orderdrinkapp.Api.NguyenLieuResponse;
 import com.sinhvien.orderdrinkapp.Api.PhieuKhoActionResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.AnhHelper;
+import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 
 import org.json.JSONObject;
 
@@ -79,6 +80,15 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Yêu cầu 11: chỉ Quản lý lập phiếu xuất/hủy. Nút mở màn này đã ẩn
+        // với người khác; chặn cả ở đây phòng khi màn được mở từ nơi khác.
+        if (!SessionManager.isAdmin(this)) {
+            Toast.makeText(this, "Chỉ Quản lý mới lập được phiếu kho.", Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
         setContentView(R.layout.activity_lap_phieu_kho);
 
         loai = getIntent().getStringExtra("loai");
@@ -155,33 +165,42 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
         btnXacNhan.setOnClickListener(v -> submitPhieu());
     }
 
+    /*
+     * Mã lý do PHẢI khớp danh sách máy chủ nhận (kho_lap_phieu_xuat/huy trong
+     * api/kho.php) — cùng bộ mã với web quản trị. Bản đầu gửi "het_han",
+     * "roi_vo", "noi_bo": máy chủ không có mã nào như vậy, nên chọn "Hết hạn"
+     * hay "Rơi vỡ" là phiếu bị từ chối 400. Khóa và nhãn đặt cạnh nhau để
+     * thêm một lý do không thể lệch vị trí.
+     */
+    private static final String[][] LY_DO_HUY = {
+            {"hethan", "Hết hạn sử dụng"},
+            {"hong",   "Hư hỏng / ôi thiu"},
+            {"vosinh", "Không đảm bảo vệ sinh"},
+            {"roivo",  "Rơi vỡ / đổ tràn"},
+            {"khac",   "Khác"},
+    };
+    private static final String[][] LY_DO_XUAT = {
+            {"bep",    "Giao cho bếp"},
+            {"sukien", "Tiệc / sự kiện"},
+            {"khac",   "Khác"},
+    };
+
+    private String[][] lyDoHienTai() {
+        return loai.equals("huy") ? LY_DO_HUY : LY_DO_XUAT;
+    }
+
     private void setupLyDoSpinner() {
-        String[] lyDoArray;
-        if (loai.equals("huy")) {
-            lyDoArray = new String[]{"Hỏng hóc / ôi thiu", "Hết hạn sử dụng", "Rơi vỡ / đổ tràn", "Khác"};
-        } else {
-            lyDoArray = new String[]{"Giao cho bếp", "Sử dụng nội bộ", "Khác"};
-        }
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, lyDoArray);
+        String[][] ds = lyDoHienTai();
+        String[] nhan = new String[ds.length];
+        for (int i = 0; i < ds.length; i++) nhan[i] = ds[i][1];
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, nhan);
         spnLyDo.setAdapter(adapter);
     }
 
     private String getSelectedLyDoKey() {
+        String[][] ds = lyDoHienTai();
         int pos = spnLyDo.getSelectedItemPosition();
-        if (loai.equals("huy")) {
-            switch (pos) {
-                case 0: return "hong";
-                case 1: return "het_han";
-                case 2: return "roi_vo";
-                default: return "khac";
-            }
-        } else {
-            switch (pos) {
-                case 0: return "bep";
-                case 1: return "noi_bo";
-                default: return "khac";
-            }
-        }
+        return (pos >= 0 && pos < ds.length) ? ds[pos][0] : "khac";
     }
 
     private void loadDanhSachNguyenLieu() {

@@ -159,6 +159,8 @@ public class KhoViewModel extends AndroidViewModel {
 
                     demTonLiveData.setValue(data.getDemTon());
                     giaTriTonLiveData.setValue(data.getGiaTriTon());
+                    KhoResponse.CanhBaoHan cb = data.getCanhBaoHan();
+                    canhBaoHanLiveData.setValue(cb == null ? 0 : cb.getHetHan() + cb.getSapHetHan());
 
                     List<NguyenLieuResponse> newItems = data.getDanhSach();
                     if (newItems == null) {

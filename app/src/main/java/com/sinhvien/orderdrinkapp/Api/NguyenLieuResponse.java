@@ -58,5 +58,10 @@ public class NguyenLieuResponse {
     public String getUrlAnhNho() { return (urlAnhNho != null && !urlAnhNho.isEmpty()) ? urlAnhNho : urlAnh; }
     public String getLoaiAnh() { return loaiAnh; }
     public String getTinhTrangTon() { return tinhTrangTon != null ? tinhTrangTon : "du"; }
-    public boolean isHoatDong() { return "true".equalsIgnoreCase(hoatDong); }
+    /**
+     * Danh sách tồn chỉ gồm nguyên liệu ĐANG DÙNG và không trả cột HOATDONG.
+     * Bản đầu coi thiếu trường là "đã ngừng", nên mọi dòng đều mang huy hiệu
+     * "Ngừng dùng". Thiếu trường thì là đang dùng; chỉ "false" mới là ngừng.
+     */
+    public boolean isHoatDong() { return hoatDong == null || !"false".equalsIgnoreCase(hoatDong); }
 }
