@@ -68,7 +68,7 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
 
         holder.txt_OrderId.setText("Mã đơn: " + don.getMaDonDat());
         holder.txt_OrderDate.setText(don.getNgayDat());
-        holder.txt_TotalAmount.setText(don.getTongTien() + " VNĐ");
+        holder.txt_TotalAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(don.getTongTien()));
         holder.txt_StaffName.setText(don.getTenNV());
         
         // Tạo chuỗi văn bản bàn ăn đi kèm phương thức thanh toán

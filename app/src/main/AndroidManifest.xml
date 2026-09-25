@@ -16,6 +16,7 @@
     </queries>
 
     <application
+        android:name=".RoyalApplication"
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"

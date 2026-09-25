@@ -58,7 +58,7 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
 
     private final Context context;
     private final OnHeaderSan boLangNghe;
-    private final DecimalFormat dinhDangTien = new DecimalFormat("#,###");
+    private final DecimalFormat dinhDangTien = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
 
     private String hoTen = "", sdt = "", email = "", hinhAnh = "";
     private long chiTieu = 0;

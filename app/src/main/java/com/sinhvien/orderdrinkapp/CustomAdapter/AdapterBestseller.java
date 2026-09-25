@@ -34,7 +34,7 @@ public class AdapterBestseller extends RecyclerView.Adapter<AdapterBestseller.Vi
     private final Context context;
     private final List<BestsellerResponse.BestsellerItem> list = new ArrayList<>();
     private final OnBestsellerItemClickListener listener;
-    private final DecimalFormat priceDf = new DecimalFormat("#,###");
+    private final DecimalFormat priceDf = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
     private final DecimalFormat tbDf = new DecimalFormat("#0.#");
 
     public AdapterBestseller(Context context, OnBestsellerItemClickListener listener) {
@@ -63,7 +63,7 @@ public class AdapterBestseller extends RecyclerView.Adapter<AdapterBestseller.Vi
 
         holder.txtRankBadge.setText("#" + (position + 1));
         holder.txtName.setText(item.getTenMon());
-        holder.txtPrice.setText(priceDf.format(item.getGiaTien()) + " VNĐ");
+        holder.txtPrice.setText(priceDf.format(item.getGiaTien()) + " đ");
         holder.txtTb.setText("TB: " + tbDf.format(item.getTbMoiNgay()) + " phần/ngày");
 
         // Xu hướng bán

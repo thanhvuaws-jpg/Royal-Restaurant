@@ -76,7 +76,7 @@ public class PreorderDishesAdapter extends RecyclerView.Adapter<PreorderDishesAd
         try {
             price = Long.parseLong(dish.getGiaTien());
         } catch (NumberFormatException ignored) {}
-        DecimalFormat formatter = new DecimalFormat("#,###");
+        DecimalFormat formatter = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
         holder.txt_dish_price.setText(formatter.format(price) + " đ");
 
         // Nạp ảnh bằng Glide (hoặc SQLite bytes làm phương án dự phòng)

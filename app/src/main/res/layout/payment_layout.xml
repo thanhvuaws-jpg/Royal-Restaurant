@@ -187,7 +187,7 @@
                     android:id="@+id/txt_payment_TotalAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="780,000 VNĐ"
+                    tools:text="780.000 đ"
                     android:paddingTop="4dp"
                     android:textColor="@color/black"
                     android:fontFamily="@font/muli_black"

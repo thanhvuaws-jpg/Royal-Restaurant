@@ -88,6 +88,16 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 R.string.open, R.string.close);
         drawerLayout.addDrawerListener(drawerToggle);
+        drawerLayout.addDrawerListener(new androidx.drawerlayout.widget.DrawerLayout.SimpleDrawerListener() {
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+                if (viecSauKhiDongMenu != null) {
+                    Runnable viec = viecSauKhiDongMenu;
+                    viecSauKhiDongMenu = null;
+                    viec.run();
+                }
+            }
+        });
         drawerToggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
@@ -158,10 +168,16 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                 navigateTo(new CustomerContactFragment(), "CustomerContactFragment");
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle("Hỗ trợ khách hàng");
             } else if (id == R.id.nav_logout) {
-                logout();
+                // Trả false: chưa chọn mục "Đăng xuất" — nếu người dùng bấm
+                // "Ở lại" thì thanh dưới vẫn sáng đúng màn đang mở.
+                com.sinhvien.orderdrinkapp.Utils.DialogHelper.xacNhanDangXuat(this, this::logout);
+                return false;
             }
             return true;
         });
+        // Hiện nhãn cho mọi mục, không chỉ mục đang chọn (H13).
+        bottomNav.setLabelVisibilityMode(
+                com.google.android.material.navigation.NavigationBarView.LABEL_VISIBILITY_LABELED);
 
         // Khôi phục Fragment đang chạy hoặc nạp Fragment mặc định
         if (savedInstanceState == null) {
@@ -317,6 +333,26 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
 
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        if (drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)
+                && item.getItemId() != R.id.nav_logout) {
+            viecSauKhiDongMenu = () -> xuLyMucMenu(item);
+            drawerLayout.closeDrawers();
+            return true;
+        }
+        return xuLyMucMenu(item);
+    }
+
+    /**
+     * Việc chuyển màn chờ ngăn kéo menu đóng hẳn rồi mới chạy (tối ưu 25/09).
+     *
+     * Trước đây bấm một mục trong menu bên là dựng màn mới NGAY trong lúc
+     * ngăn kéo đang trượt đóng: tạo fragment, nạp bố cục, gọi dữ liệu cùng
+     * tranh luồng giao diện với hoạt ảnh, nên ngăn kéo đóng giật cục. Đóng
+     * trước, trượt xong (~250 ms) mới chuyển — nhìn liền mạch hơn hẳn.
+     */
+    private Runnable viecSauKhiDongMenu;
+
+    private boolean xuLyMucMenu(@NonNull MenuItem item) {
         int id = item.getItemId();
 
         if (id == R.id.nav_customer_booking) {
@@ -336,8 +372,9 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             bottomNav.setSelectedItemId(R.id.nav_customer_contact);
             if (getSupportActionBar() != null) getSupportActionBar().setTitle("Hỗ trợ khách hàng");
         } else if (id == R.id.nav_logout) {
-            logout();
-            return true;
+            drawerLayout.closeDrawers();
+            com.sinhvien.orderdrinkapp.Utils.DialogHelper.xacNhanDangXuat(this, this::logout);
+            return false;
         }
 
         drawerLayout.closeDrawers();

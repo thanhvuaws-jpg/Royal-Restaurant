@@ -96,11 +96,15 @@
 
                 <TextView
                     android:id="@+id/txt_statistic_TotalRevenue"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
                     android:text="@string/zero_vnd"
                     android:textColor="@color/white"
+                    android:maxLines="1"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="11sp"
+                    app:autoSizeMaxTextSize="16sp"
                     android:textSize="16sp"
                     android:fontFamily="@font/muli_black" />
             </LinearLayout>

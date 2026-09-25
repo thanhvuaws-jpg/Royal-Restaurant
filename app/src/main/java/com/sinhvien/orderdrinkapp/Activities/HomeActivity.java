@@ -69,7 +69,6 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private BottomNavigationView bottomNav;
     private ImageView btnToggleNav;
     private boolean useBottomNav;
-    private boolean bypassMoreSheet = false; // Bỏ qua hiển thị bottom sheet khi chọn menu phụ
     private boolean isSyncingNav = false; // Tránh vòng lặp chọn item khi đồng bộ thanh menu
     private BottomSheetDialog moreBottomSheet;
     private Fragment currentFragment;
@@ -111,6 +110,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             @Override
             public void onDrawerClosed(View drawerView) {
                 super.onDrawerClosed(drawerView);
+                if (viecSauKhiDongMenu != null) {
+                    Runnable viec = viecSauKhiDongMenu;
+                    viecSauKhiDongMenu = null;
+                    viec.run();
+                }
             }
         };
 
@@ -180,7 +184,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 return true;
             }
             int id = item.getItemId();
-            if (id == R.id.nav_home) {
+            if (id == R.id.nav_home && SessionManager.isCashier(this)) {
+                // Với thu ngân, mục đầu là màn thu ngân (xem phân quyền bên dưới).
+                Fragment f = fragmentManager.findFragmentByTag("CashierFragment");
+                navigateTo(f != null ? f : new DisplayCashierFragment(), "CashierFragment");
+            } else if (id == R.id.nav_home) {
                 Fragment f = fragmentManager.findFragmentByTag("HomeFragment");
                 navigateTo(f != null ? f : new DisplayHomeFragment(), "HomeFragment");
             } else if (id == R.id.nav_table) {
@@ -193,14 +201,20 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Fragment f = fragmentManager.findFragmentByTag("StatisticFragment");
                 navigateTo(f != null ? f : new DisplayStatisticFragment(), "StatisticFragment");
             } else if (id == R.id.nav_more) {
-                if (bypassMoreSheet) {
-                    bypassMoreSheet = false;
-                } else {
-                    showMoreBottomSheet();
-                }
+                showMoreBottomSheet();
             }
             return true;
         });
+        // Đang ở một màn thuộc "Thêm" (Kho, Nhân viên…) mà bấm lại "Thêm" là
+        // "chọn lại", không kích hoạt listener trên — trước đây bấm không có
+        // gì xảy ra, không chuyển được sang mục khác trong bảng (H12).
+        bottomNav.setOnItemReselectedListener(item -> {
+            if (item.getItemId() == R.id.nav_more) showMoreBottomSheet();
+        });
+        // Hiện nhãn cho MỌI mục, không chỉ mục đang chọn: chỉ có biểu tượng thì
+        // người mới dùng phải đoán (H13).
+        bottomNav.setLabelVisibilityMode(
+                com.google.android.material.navigation.NavigationBarView.LABEL_VISIBILITY_LABELED);
 
         // Thực thi phân quyền giao diện (Ẩn bớt các mục menu không được quyền truy cập)
         if (SessionManager.isCashier(this)) {
@@ -213,7 +227,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
             
             bottomNav.getMenu().findItem(R.id.nav_table).setVisible(false);
-            bottomNav.getMenu().findItem(R.id.nav_more).setVisible(false);
+            // Thanh dưới của thu ngân khớp menu bên: mục đầu là màn thu ngân
+            // (trước đây là trang chủ của nhân viên phục vụ), và giữ "Thêm" để
+            // còn đường đăng xuất (trước đây bị ẩn — H13).
+            MenuItem mucDau = bottomNav.getMenu().findItem(R.id.nav_home);
+            mucDau.setTitle("Thu ngân");
+            mucDau.setIcon(R.drawable.ic_baseline_payments_24);
             
             if (savedInstanceState == null) {
                 navigateTo(new DisplayCashierFragment(), "CashierFragment");
@@ -412,7 +431,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
     private void syncNavSelection() {
         isSyncingNav = true;
         try {
-            if (currentFragment instanceof DisplayHomeFragment) {
+            if (currentFragment instanceof DisplayCashierFragment) {
+                bottomNav.setSelectedItemId(R.id.nav_home);
+                navigationView.setCheckedItem(R.id.nav_cashier);
+            } else if (currentFragment instanceof DisplayHomeFragment) {
                 bottomNav.setSelectedItemId(R.id.nav_home);
                 navigationView.setCheckedItem(R.id.nav_home);
             } else if (currentFragment instanceof DisplayTableFragment) {
@@ -425,15 +447,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 bottomNav.setSelectedItemId(R.id.nav_statistic);
                 navigationView.setCheckedItem(R.id.nav_statistic);
             } else if (currentFragment instanceof DisplayStaffFragment) {
-                bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 navigationView.setCheckedItem(R.id.nav_staff);
             } else if (currentFragment instanceof com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment) {
-                bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 navigationView.setCheckedItem(R.id.nav_manage_bookings);
             } else if (currentFragment instanceof com.sinhvien.orderdrinkapp.Fragments.KhoFragment) {
-                bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 navigationView.setCheckedItem(R.id.nav_kho);
             }
@@ -451,14 +470,12 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 Fragment f = fragmentManager.findFragmentByTag("StaffFragment");
                 navigateTo(f != null ? f : new DisplayStaffFragment(), "StaffFragment");
                 isSyncingNav = true;
-                bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 isSyncingNav = false;
             } else if (menuId == R.id.nav_manage_bookings) {
                 Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
                 navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
                 isSyncingNav = true;
-                bypassMoreSheet = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 isSyncingNav = false;
             } else {
@@ -527,11 +544,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             }
             itemLogout.setOnClickListener(v -> {
                 moreBottomSheet.dismiss();
-                logout();
+                com.sinhvien.orderdrinkapp.Utils.DialogHelper.xacNhanDangXuat(this, this::logout);
             });
             moreBottomSheet.setContentView(view);
+            // Đóng bảng mà không chọn gì: trả dấu chọn về đúng màn đang mở,
+            // thay vì để "Thêm" sáng trong khi đang ở Trang chủ.
+            moreBottomSheet.setOnDismissListener(d -> syncNavSelection());
         }
-        moreBottomSheet.show();
+        if (!moreBottomSheet.isShowing()) moreBottomSheet.show();
     }
 
     /**
@@ -554,6 +574,26 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         if (isSyncingNav) {
             return true;
         }
+        if (drawerLayout.isDrawerOpen(androidx.core.view.GravityCompat.START)
+                && item.getItemId() != R.id.nav_logout) {
+            viecSauKhiDongMenu = () -> xuLyMucMenu(item);
+            drawerLayout.closeDrawers();
+            return true;
+        }
+        return xuLyMucMenu(item);
+    }
+
+    /**
+     * Việc chuyển màn chờ ngăn kéo menu đóng hẳn rồi mới chạy (tối ưu 25/09).
+     *
+     * Trước đây bấm một mục trong menu bên là dựng màn mới NGAY trong lúc
+     * ngăn kéo đang trượt đóng: tạo fragment, nạp bố cục, gọi dữ liệu cùng
+     * tranh luồng giao diện với hoạt ảnh, nên ngăn kéo đóng giật cục. Đóng
+     * trước, trượt xong (~250 ms) mới chuyển — nhìn liền mạch hơn hẳn.
+     */
+    private Runnable viecSauKhiDongMenu;
+
+    private boolean xuLyMucMenu(@NonNull MenuItem item) {
         int id = item.getItemId();
         isSyncingNav = true;
         try {
@@ -587,8 +627,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.KhoFragment(), "KhoFragment");
             } else if (id == R.id.nav_logout) {
                 isSyncingNav = false;
-                logout();
-                return true;
+                drawerLayout.closeDrawers();
+                com.sinhvien.orderdrinkapp.Utils.DialogHelper.xacNhanDangXuat(this, this::logout);
+                return false;
             }
 
         } finally {
@@ -658,9 +699,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                         if (isFinishing() || isDestroyed()) return;
                         
                         boolean isSessionValid = false;
+                        String lyDo = "Tài khoản của bạn đã được đăng nhập từ thiết bị khác!";
                         if (response.isSuccessful() && response.body() != null) {
                             if ("success".equals(response.body().getStatus())) {
                                 isSessionValid = true;
+                            } else if (response.body().getMessage() != null) {
+                                // Máy chủ nói rõ: đăng nhập nơi khác, hay phiên bị
+                                // hủy vì quản lý đổi mật khẩu/quyền (QĐ-096).
+                                lyDo = response.body().getMessage();
                             }
                         }
                         
@@ -668,7 +714,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                         if (!isSessionValid) {
                             stopSessionCheck();
                             SessionManager.clearSession(HomeActivity.this);
-                            Toast.makeText(HomeActivity.this, "Tài khoản của bạn đã được đăng nhập từ thiết bị khác!", Toast.LENGTH_LONG).show();
+                            Toast.makeText(HomeActivity.this, lyDo, Toast.LENGTH_LONG).show();
                             
                             Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);

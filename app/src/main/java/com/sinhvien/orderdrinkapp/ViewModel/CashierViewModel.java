@@ -91,8 +91,6 @@ public class CashierViewModel extends AndroidViewModel {
                 isLoadingLiveData.setValue(false);
                 if (response.isSuccessful() && response.body() != null) {
                     List<DonDatDTO> list = new ArrayList<>();
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
 
                     for (OrderResponse res : response.body()) {
                         DonDatDTO dto = new DonDatDTO();
@@ -104,12 +102,10 @@ public class CashierViewModel extends AndroidViewModel {
                         dto.setTenNV(res.getHoTenNV());
                         dto.setTenBan(res.getTenBan());
                         dto.setPhuongThucTT(res.getPhuongThuc());
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            dto.setNgayDat(appFormat.format(d));
-                        } catch (Exception e) {
-                            dto.setNgayDat(res.getNgayDat());
-                        }
+                        dto.setMaCode(res.getMaCode());
+                        dto.setTienGiam(res.getTienGiam());
+                        // Cắt chuỗi thay cho SimpleDateFormat: vòng này chạy trên luồng giao diện.
+                        dto.setNgayDat(com.sinhvien.orderdrinkapp.Utils.NgayGio.sangNgayGio(res.getNgayDat()));
                         list.add(dto);
                     }
                     pendingOrdersLiveData.postValue(list);
@@ -143,8 +139,6 @@ public class CashierViewModel extends AndroidViewModel {
                     long totalCash = 0;
                     long totalTransfer = 0;
 
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    SimpleDateFormat appFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault());
 
                     for (OrderResponse res : response.body()) {
                         DonDatDTO dto = new DonDatDTO();
@@ -156,12 +150,10 @@ public class CashierViewModel extends AndroidViewModel {
                         dto.setTenNV(res.getHoTenNV());
                         dto.setTenBan(res.getTenBan());
                         dto.setPhuongThucTT(res.getPhuongThuc());
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            dto.setNgayDat(appFormat.format(d));
-                        } catch (Exception e) {
-                            dto.setNgayDat(res.getNgayDat());
-                        }
+                        dto.setMaCode(res.getMaCode());
+                        dto.setTienGiam(res.getTienGiam());
+                        // Cắt chuỗi thay cho SimpleDateFormat: vòng này chạy trên luồng giao diện.
+                        dto.setNgayDat(com.sinhvien.orderdrinkapp.Utils.NgayGio.sangNgayGio(res.getNgayDat()));
 
                         list.add(dto);
 

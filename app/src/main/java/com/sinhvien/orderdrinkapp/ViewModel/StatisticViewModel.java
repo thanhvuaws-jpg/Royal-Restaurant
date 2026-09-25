@@ -109,9 +109,13 @@ public class StatisticViewModel extends AndroidViewModel {
             public void onResponse(Call<List<OrderResponse>> call, Response<List<OrderResponse>> response) {
                 isLoadingLiveData.setValue(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    List<DonDatDTO> list = new ArrayList<>();
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-                    for (OrderResponse res : response.body()) {
+                  // Hàng nghìn đơn ("30 ngày" ~2.700, "Tất cả" nhiều hơn): chuyển
+                  // đổi trên luồng nền. onResponse của Retrofit chạy trên luồng
+                  // giao diện — làm ở đó là màn hình khựng ~0,5 giây mỗi lần tải.
+                  final List<OrderResponse> duLieu = response.body();
+                  com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper.getExecutor().execute(() -> {
+                    List<DonDatDTO> list = new ArrayList<>(duLieu.size());
+                    for (OrderResponse res : duLieu) {
                         DonDatDTO dto = new DonDatDTO();
                         dto.setMaDonDat(res.getMaDonDat());
                         dto.setMaNV(res.getMaNV());
@@ -122,15 +126,11 @@ public class StatisticViewModel extends AndroidViewModel {
                         dto.setTenBan(res.getTenBan());
 
                         // Chuyển định dạng từ "yyyy-MM-dd HH:mm:ss" sang "dd-MM-yyyy"
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            dto.setNgayDat(DB_FORMAT.format(d));
-                        } catch (Exception e) {
-                            dto.setNgayDat(res.getNgayDat());
-                        }
+                        dto.setNgayDat(com.sinhvien.orderdrinkapp.Utils.NgayGio.sangNgay(res.getNgayDat()));
                         list.add(dto);
                     }
                     statisticOrdersLiveData.postValue(list);
+                  });
                 } else {
                     errorLiveData.postValue("Lỗi lấy dữ liệu từ máy chủ");
                 }

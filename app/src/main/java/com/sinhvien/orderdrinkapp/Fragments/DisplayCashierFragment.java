@@ -187,7 +187,7 @@ public class DisplayCashierFragment extends Fragment {
         });
 
         // Cập nhật các thông số doanh thu từ LiveData lên màn hình
-        java.text.DecimalFormat formatter = new java.text.DecimalFormat("#,###");
+        java.text.DecimalFormat formatter = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
         cashierViewModel.getTodayRevenue().observe(getViewLifecycleOwner(), revenue -> {
             txt_cashier_TodayRevenue.setText(formatter.format(revenue) + "đ");
         });
@@ -231,6 +231,8 @@ public class DisplayCashierFragment extends Fragment {
                     intent.putExtra("tennv", don.getTenNV());
                     intent.putExtra("tenban", don.getTenBan());
                     intent.putExtra("phuongthuc", don.getPhuongThucTT());
+                    intent.putExtra("macode", don.getMaCode());
+                    intent.putExtra("tiengiam", don.getTienGiam());
                     startActivity(intent);
                 } else {
                     Intent intent = new Intent(getActivity(), DetailStatisticActivity.class);

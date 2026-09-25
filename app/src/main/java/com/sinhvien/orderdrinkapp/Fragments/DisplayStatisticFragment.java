@@ -198,13 +198,9 @@ public class DisplayStatisticFragment extends Fragment {
         long trungBinh = soDon > 0 ? tongDoanhThu / soDon : 0;
 
         // Gán văn bản hiển thị lên các CardView tổng quan
-        txt_statistic_TotalRevenue.setText(
-                String.format("%,d", tongDoanhThu) + " " +
-                        getString(R.string.currency_vnd));
+        txt_statistic_TotalRevenue.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tongDoanhThu));
         txt_statistic_OrderCount.setText(String.valueOf(soDon));
-        txt_statistic_AvgOrder.setText(
-                String.format("%,d", trungBinh) + " " +
-                        getString(R.string.currency_vnd));
+        txt_statistic_AvgOrder.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(trungBinh));
 
         // Cập nhật RecyclerView danh sách hóa đơn
         if (adapterDisplayStatistic == null) {
@@ -249,7 +245,9 @@ public class DisplayStatisticFragment extends Fragment {
 
         // Gom nhóm doanh thu theo ngày
         Map<String, Long> doanhThuTheoNgay = new LinkedHashMap<>();
-        int maxDays = (currentFilter == FILTER_ALL || currentFilter == FILTER_30DAYS) ? 10 : 7;
+        // "30 ngày" vẽ đủ 30 cột: bản cũ chỉ vẽ 10 ngày cuối trong khi ô tổng
+        // doanh thu phía trên tính cả 30 ngày — hai con số không khớp nhau.
+        int maxDays = (currentFilter == FILTER_ALL || currentFilter == FILTER_30DAYS) ? 30 : 7;
 
         // Khởi tạo trục thời gian từ xa đến gần
         Calendar cal = Calendar.getInstance();
@@ -305,6 +303,8 @@ public class DisplayStatisticFragment extends Fragment {
         dataSet.setColor(primaryColor);
         dataSet.setValueTextColor(Color.DKGRAY);
         dataSet.setValueTextSize(9f);
+        // Quá 10 cột thì số trên đầu cột chồng lên nhau, chỉ còn là nhiễu.
+        dataSet.setDrawValues(entries.size() <= 10);
         
         // Quy đổi giá trị hiển thị trên đỉnh cột gọn gàng (tr cho triệu, k cho nghìn)
         dataSet.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
@@ -312,7 +312,8 @@ public class DisplayStatisticFragment extends Fragment {
             public String getFormattedValue(float value) {
                 if (value <= 0) return "";
                 if (value >= 1000000) {
-                    return String.format(Locale.US, "%.1ftr", value / 1000000f);
+                    // Dấu phẩy thập phân như cách viết tiếng Việt: "18,6tr".
+                    return String.format(Locale.US, "%.1f", value / 1000000f).replace('.', ',') + "tr";
                 } else if (value >= 1000) {
                     return String.format(Locale.US, "%.0fk", value / 1000f);
                 }
@@ -330,7 +331,10 @@ public class DisplayStatisticFragment extends Fragment {
         chart_statistic_Revenue.getDescription().setEnabled(false);
         chart_statistic_Revenue.getLegend().setEnabled(false);
         chart_statistic_Revenue.setTouchEnabled(false);
-        chart_statistic_Revenue.setExtraBottomOffset(8f);
+        // Nhãn ngày xoay 45° cần chỗ phía dưới; thiếu thì chân nhãn bị cắt
+        // ("19/09" chỉ còn "9/09") — lỗi H20.
+        boolean xoayNhan = labels.length > 7;
+        chart_statistic_Revenue.setExtraBottomOffset(xoayNhan ? 18f : 6f);
 
         // Định dạng trục X (Trục Hoành)
         XAxis xAxis = chart_statistic_Revenue.getXAxis();
@@ -340,8 +344,10 @@ public class DisplayStatisticFragment extends Fragment {
         xAxis.setDrawGridLines(false);
         xAxis.setTextColor(Color.DKGRAY);
         xAxis.setTextSize(9f);
-        xAxis.setLabelRotationAngle(-45f); // Xoay nghiêng 45 độ tránh đè nhãn lên nhau
-        xAxis.setLabelCount(Math.min(labels.length, 7), false); 
+        // ≤ 7 cột thì nhãn nằm ngang vẫn đủ chỗ; nhiều hơn mới xoay nghiêng.
+        xAxis.setLabelRotationAngle(xoayNhan ? -45f : 0f);
+        xAxis.setLabelCount(Math.min(labels.length, 7), false);
+        xAxis.setAvoidFirstLastClipping(true);
 
         // Định dạng trục Y bên trái
         YAxis leftAxis = chart_statistic_Revenue.getAxisLeft();
@@ -350,6 +356,20 @@ public class DisplayStatisticFragment extends Fragment {
         leftAxis.setAxisMinimum(0f);
         leftAxis.setTextColor(Color.GRAY);
         leftAxis.setTextSize(9f);
+        // Dạng gọn như nhãn trên đỉnh cột: "18tr", "500k". Để mặc định thì ra
+        // "18,000,000" — dài, chiếm chỗ biểu đồ, lại dùng dấu phẩy (H16/H20).
+        leftAxis.setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
+            @Override
+            public String getFormattedValue(float value) {
+                if (value <= 0) return "0";
+                if (value >= 1000000) {
+                    String s = String.format(Locale.US, "%.1f", value / 1000000f).replace(".0", "");
+                    return s.replace('.', ',') + "tr";
+                }
+                if (value >= 1000) return String.format(Locale.US, "%.0fk", value / 1000f);
+                return String.format(Locale.US, "%.0f", value);
+            }
+        });
 
         // Ẩn trục Y bên phải để biểu đồ gọn gàng hơn
         chart_statistic_Revenue.getAxisRight().setEnabled(false);

@@ -33,7 +33,7 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
 
     private final Context context;
     private final List<LoyaltyResponse.MaGiamGia> danhSach = new ArrayList<>();
-    private final DecimalFormat dinhDangTien = new DecimalFormat("#,###");
+    private final DecimalFormat dinhDangTien = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
 
     public MaCuaToiAdapter(Context context) {
         this.context = context;
@@ -132,6 +132,10 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
             h.img_ve_voucher.setImageResource(resVe);
             h.img_ve_voucher.setAlpha(conDung ? 1.0f : 0.4f);
         }
+        if (h.txt_nhan_ve != null) {
+            h.txt_nhan_ve.setText(VoucherDoiAdapter.nhanVe(m.getTen()));
+            h.txt_nhan_ve.setAlpha(conDung ? 1.0f : 0.4f);
+        }
     }
 
     /** '2026-09-19 08:15:00' thành '19/09/2026'. Giờ phút không giúp gì ở đây. */
@@ -147,12 +151,14 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img_ve_voucher;
+        TextView txt_nhan_ve;
         TextView txt_ten_ma, txt_trang_thai_ma, txt_macode, txt_han_ma, txt_dk_ma;
         View dai_mau_ma;
 
         public ViewHolder(@NonNull View v) {
             super(v);
             img_ve_voucher    = v.findViewById(R.id.img_ve_voucher);
+            txt_nhan_ve       = v.findViewById(R.id.txt_nhan_ve);
             txt_ten_ma        = v.findViewById(R.id.txt_ten_ma);
             txt_trang_thai_ma = v.findViewById(R.id.txt_trang_thai_ma);
             txt_macode        = v.findViewById(R.id.txt_macode);

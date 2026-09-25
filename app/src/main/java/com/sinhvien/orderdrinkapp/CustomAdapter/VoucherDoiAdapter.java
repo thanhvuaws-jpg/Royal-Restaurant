@@ -111,7 +111,32 @@ public class VoucherDoiAdapter extends RecyclerView.Adapter<VoucherDoiAdapter.Vi
             h.img_ve_voucher.setImageResource(resVe);
             h.img_ve_voucher.setAlpha(duocDoi ? 1.0f : 0.5f);
         }
+        if (h.txt_nhan_ve != null) {
+            h.txt_nhan_ve.setText("phantram".equals(v.getLoaiGiam())
+                    ? v.getGiaTri() + "%"
+                    : (v.getGiaTri() >= 1000 ? (v.getGiaTri() / 1000) + "K" : nhanVe(v.getTen())));
+            h.txt_nhan_ve.setAlpha(duocDoi ? 1.0f : 0.5f);
+        }
     }
+
+    /**
+     * Nhãn in lên vé: "10K", "5%". Lấy từ tên phiếu ("Giảm 10.000đ",
+     * "Quà tuần hạng Đồng - Giảm 5%") vì mã của khách không mang loại/giá trị
+     * giảm riêng. Không đọc được thì để trống — vé vẫn là vé.
+     */
+    static String nhanVe(String ten) {
+        if (ten == null) return "";
+        java.util.regex.Matcher pt = java.util.regex.Pattern.compile("(\\d+)\\s*%").matcher(ten);
+        if (pt.find()) return pt.group(1) + "%";
+        java.util.regex.Matcher tien = java.util.regex.Pattern.compile("(\\d{1,3}(?:[.,]\\d{3})+|\\d{4,})\\s*(?:đ|d|vnđ)",
+                java.util.regex.Pattern.CASE_INSENSITIVE).matcher(ten);
+        if (tien.find()) {
+            long so = Long.parseLong(tien.group(1).replaceAll("[.,]", ""));
+            return so >= 1000 ? (so / 1000) + "K" : String.valueOf(so);
+        }
+        return "";
+    }
+
 
     private String tenHang(String ma) {
         if ("kimcuong".equals(ma)) return "Thành viên Kim Cương";
@@ -127,12 +152,14 @@ public class VoucherDoiAdapter extends RecyclerView.Adapter<VoucherDoiAdapter.Vi
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView img_ve_voucher;
+        TextView txt_nhan_ve;
         TextView txt_ten_voucher, txt_mota_voucher, txt_dieu_kien;
         MaterialButton btn_doi;
 
         public ViewHolder(@NonNull View v) {
             super(v);
             img_ve_voucher   = v.findViewById(R.id.img_ve_voucher);
+            txt_nhan_ve      = v.findViewById(R.id.txt_nhan_ve);
             txt_ten_voucher  = v.findViewById(R.id.txt_ten_voucher);
             txt_mota_voucher = v.findViewById(R.id.txt_mota_voucher);
             txt_dieu_kien    = v.findViewById(R.id.txt_dieu_kien);

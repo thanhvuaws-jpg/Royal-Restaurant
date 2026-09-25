@@ -167,10 +167,17 @@ public class DisplayCategoryFragment extends Fragment {
             ((HomeActivity) getActivity()).navigateToSubFragment(displayMenuFragment, "hienthiloai");
         });
 
-        // Floating Action Button cho phép Admin mở màn hình thêm danh mục
-        view.findViewById(R.id.fab_add_category).setOnClickListener(v -> {
-            resultLauncherCategory.launch(new Intent(getActivity(), AddCategoryActivity.class));
-        });
+        // Nút nổi thêm danh mục CHỈ cho quản lý — máy chủ chỉ cho quản lý ghi
+        // (update_category.php). Trước đây nút hiện với cả thu ngân và nhân
+        // viên: điền xong form mới nhận 403 (H11).
+        View fabAddCategory = view.findViewById(R.id.fab_add_category);
+        if (SessionManager.isAdmin(getActivity())) {
+            fabAddCategory.setVisibility(View.VISIBLE);
+            fabAddCategory.setOnClickListener(v ->
+                    resultLauncherCategory.launch(new Intent(getActivity(), AddCategoryActivity.class)));
+        } else {
+            fabAddCategory.setVisibility(View.GONE);
+        }
 
         // Cài đặt SwipeRefreshLayout để vuốt xuống làm mới danh sách
         SwipeRefreshLayout swipeRefreshLayout = view.findViewById(R.id.swipeRefreshLayout);

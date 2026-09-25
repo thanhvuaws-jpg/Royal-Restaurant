@@ -467,7 +467,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             } catch (NumberFormatException ignored) {}
         }
 
-        DecimalFormat formatter = new DecimalFormat("#,###");
+        DecimalFormat formatter = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
         txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
         capNhatThanhPhanTrang();
     }
@@ -867,7 +867,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             return;
         }
 
-        final java.text.DecimalFormat dt = new java.text.DecimalFormat("#,###");
+        final java.text.DecimalFormat dt = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
         String[] nhan = new String[maKhaDung.size()];
         for (int i = 0; i < maKhaDung.size(); i++) {
             com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia m = maKhaDung.get(i);

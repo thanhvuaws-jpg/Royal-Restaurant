@@ -71,6 +71,7 @@ public class ApiClient {
     public static void setAuth(int manv, String token) {
         authManv  = manv > 0 ? String.valueOf(manv) : "";
         authToken = token != null ? token : "";
+        com.sinhvien.orderdrinkapp.Utils.PhienHetHan.datLai();
     }
 
     /** Xóa phiên khi đăng xuất. */
@@ -103,7 +104,12 @@ public class ApiClient {
                                 .header("X-Manv", authManv)
                                 .header("X-Token", authToken)
                                 .build();
-                        return chain.proceed(coXacThuc);
+                        okhttp3.Response phanHoi = chain.proceed(coXacThuc);
+                        // Yêu cầu CÓ phiên mà vẫn 401 = phiên đã bị máy chủ hủy.
+                        if (phanHoi.code() == 401) {
+                            com.sinhvien.orderdrinkapp.Utils.PhienHetHan.baoHieu();
+                        }
+                        return phanHoi;
                     })
                     .build();
 

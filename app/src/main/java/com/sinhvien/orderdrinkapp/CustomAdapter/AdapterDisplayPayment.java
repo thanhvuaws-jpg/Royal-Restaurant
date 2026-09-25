@@ -54,10 +54,7 @@ public class AdapterDisplayPayment extends RecyclerView.Adapter<AdapterDisplayPa
         holder.txt_Quantity.setText(String.valueOf(item.getSoLuong()));
 
         // Định dạng số tiền (Ví dụ: 10.000 VNĐ)
-        String formattedPrice = java.text.NumberFormat
-                .getIntegerInstance(java.util.Locale.GERMANY)
-                .format(item.getGiaTien());
-        holder.txt_Price.setText(formattedPrice + " " + context.getString(R.string.currency_vnd));
+        holder.txt_Price.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(item.getGiaTien()));
 
         // Tải ảnh món ăn bo tròn bằng Glide
         if (item.getHinhAnhPath() != null && !item.getHinhAnhPath().isEmpty()) {

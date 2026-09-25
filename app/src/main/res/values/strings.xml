@@ -69,7 +69,7 @@
     <string name="add_staff_btn">Thêm nhân viên</string>
     <string name="edit_staff_btn">Sửa nhân viên</string>
     <string name="welcome_back">Chào mừng bạn quay trở lại!</string>
-    <string name="remember_me">Ghi nhớ đăng nhập</string>
+    <string name="remember_me">Ghi nhớ tên đăng nhập</string>
     <string name="forgot_password">Quên mật khẩu?</string>
     <string name="start_journey">Bắt đầu hành trình cùng chúng tôi!</string>
     <string name="step_1_2">1/2</string>
@@ -88,11 +88,11 @@
     <string name="order_detail_title">Chi Tiết Đơn Đặt</string>
     <string name="order_id_prefix">Mã đơn: </string>
     <string name="total_label">Tổng tiền:</string>
-    <string name="currency_vnd">VNĐ</string>
+    <string name="currency_vnd">đ</string>
     <string name="category_title">Thực đơn các loại</string>
     <string name="menu_list_title">Thực đơn các món</string>
     <string name="total_revenue_label">Tổng Doanh Thu</string>
-    <string name="zero_vnd">0 VNĐ</string>
+    <string name="zero_vnd">0 đ</string>
     <string name="order_detail_label">Chi tiết đơn hàng</string>
     <string name="edit_table_title">Sửa Bàn Ăn</string>
     <string name="new_table_name_hint">Tên bàn ăn mới</string>
@@ -118,7 +118,7 @@
     <string name="receipt_subtotal">Thành tiền</string>
     <string name="receipt_total">TỔNG CỘNG</string>
     <string name="receipt_thank_you">Cảm ơn quý khách!</string>
-    <string name="receipt_share">Chia sẻ hóa đơn</string>
+    <string name="receipt_share">Chia sẻ</string>
     <string name="receipt_save">Lưu hóa đơn</string>
     <string name="receipt_close">Đóng</string>
     <string name="payment_success_msg">Thanh toán thành công!</string>
@@ -190,10 +190,9 @@
     <string name="tt_nhap_ma">Nhập mã giảm giá</string>
     <string name="tt_ap_ma">ÁP MÃ</string>
     <string name="tt_go_ma">GỠ MÃ</string>
-    <string name="tt_ma_hop_le">✓ %1$s · giảm %2$s đ</string>
+    <string name="tt_ma_hop_le">✓ Mã hợp lệ · giảm %1$s đ</string>
     <string name="tt_dang_kiem_tra">Đang kiểm tra mã…</string>
     <string name="tt_chua_nhap_ma">Vui lòng nhập mã giảm giá</string>
-    <string name="tt_tong_sau_giam">%1$s VNĐ  (đã giảm %2$s đ)</string>
 
     <!-- Chọn mã giảm giá khi đặt bàn -->
     <string name="booking_voucher_label">4. Mã Giảm Giá (Tùy chọn):</string>

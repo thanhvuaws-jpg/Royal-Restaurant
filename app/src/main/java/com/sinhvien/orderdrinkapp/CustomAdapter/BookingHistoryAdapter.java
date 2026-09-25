@@ -63,7 +63,7 @@ public class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAd
 
     private final SimpleDateFormat dinhDangCsdl =
             new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-    private final DecimalFormat dinhDangTien = new DecimalFormat("#,###");
+    private final DecimalFormat dinhDangTien = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
 
     public BookingHistoryAdapter(Context context, List<BookingResponse> bookingList) {
         this(context, bookingList, null);

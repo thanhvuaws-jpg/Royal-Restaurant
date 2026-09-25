@@ -49,7 +49,7 @@ public class AdapterRecycleViewStatistic extends RecyclerView.Adapter<AdapterRec
             holder.txt_customstatistic_TotalAmount.setVisibility(View.INVISIBLE);
         } else {
             holder.txt_customstatistic_TotalAmount.setVisibility(View.VISIBLE);
-            holder.txt_customstatistic_TotalAmount.setText(donDatDTO.getTongTien() + " VNĐ");
+            holder.txt_customstatistic_TotalAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(donDatDTO.getTongTien()));
         }
 
         // Dịch trạng thái thanh toán đơn hàng sang văn bản tiếng Việt

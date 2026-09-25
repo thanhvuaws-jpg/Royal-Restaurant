@@ -120,6 +120,20 @@
                     android:textSize="14sp" />
             </LinearLayout>
 
+            <!-- Dòng giảm giá: chỉ hiện khi đơn có áp mã. -->
+            <TextView
+                android:id="@+id/txt_cashier_Discount"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:gravity="end"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="Tạm tính 110.000 đ · Giảm (ROYAL-AB12CD) −10.000 đ"
+                android:textColor="@color/status_available"
+                android:fontFamily="@font/muli"
+                android:textSize="14sp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -139,7 +153,7 @@
                     android:id="@+id/txt_cashier_TotalAmount"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    tools:text="780,000 VNĐ"
+                    tools:text="780.000 đ"
                     android:textColor="@color/colorPrimary"
                     android:fontFamily="@font/muli_black"
                     android:textSize="22sp" />

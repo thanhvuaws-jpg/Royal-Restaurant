@@ -188,7 +188,7 @@ public class DisplayStaffFragment extends Fragment {
     private void xoaNhanVien(int manv, int position) {
         new AlertDialog.Builder(getActivity())
                 .setTitle("Xóa nhân viên")
-                .setMessage("Bạn có chắc chắn muốn xóa nhân viên này không?")
+                .setMessage("Chỉ xóa được tài khoản chưa có đơn hàng, phiếu đặt hay lịch sử nào (tạo nhầm). Xóa tài khoản này?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
                     androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(getActivity(), "Đang xóa...");
                     progressDialog.show();
@@ -205,7 +205,12 @@ public class DisplayStaffFragment extends Fragment {
                         public void onError(String errorMsg) {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (isAdded() && getActivity() != null) {
-                                Toast.makeText(getActivity(), "Lỗi xóa Cloud: " + errorMsg, Toast.LENGTH_SHORT).show();
+                                // Lý do thường dài (tài khoản đã có N đơn…) nên dùng hộp thoại.
+                                new AlertDialog.Builder(getActivity())
+                                        .setTitle("Không xóa được")
+                                        .setMessage(errorMsg)
+                                        .setPositiveButton("Đã hiểu", null)
+                                        .show();
                             }
                         }
                     });

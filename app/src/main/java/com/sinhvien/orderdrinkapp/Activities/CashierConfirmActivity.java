@@ -97,9 +97,20 @@ public class CashierConfirmActivity extends AppCompatActivity {
             try {
                 // Định dạng tiền tệ hiển thị ngăn cách phần nghìn
                 long total = (long) Double.parseDouble(tongtien);
-                txt_cashier_TotalAmount.setText(String.format("%,d", total) + " VNĐ");
+                txt_cashier_TotalAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(total));
+                // TONGTIEN đã trừ giảm giá. Không có dòng này, thu ngân thấy
+                // 2 × 55.000 mà tổng 100.000 và không biết 10.000 đi đâu (H17).
+                long tienGiam = intent.getLongExtra("tiengiam", 0);
+                if (tienGiam > 0) {
+                    String ma = intent.getStringExtra("macode");
+                    TextView txtGiam = findViewById(R.id.txt_cashier_Discount);
+                    txtGiam.setText("Tạm tính " + com.sinhvien.orderdrinkapp.Utils.TienTe.dong(total + tienGiam)
+                            + " · Giảm" + (ma != null && !ma.isEmpty() ? " (" + ma + ")" : "")
+                            + " −" + com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tienGiam));
+                    txtGiam.setVisibility(android.view.View.VISIBLE);
+                }
             } catch (Exception e) {
-                txt_cashier_TotalAmount.setText(tongtien + " VNĐ");
+                txt_cashier_TotalAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tongtien));
             }
 
             // Gọi hàm tải danh sách chi tiết các món ăn trong hóa đơn

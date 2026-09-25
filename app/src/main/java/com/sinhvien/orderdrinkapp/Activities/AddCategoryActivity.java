@@ -61,9 +61,17 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
     TextInputLayout TXTL_addcategory_CategoryName;
     
     int maloai = 0; // ID loại món ăn cần chỉnh sửa (nếu = 0 là chế độ Thêm mới)
-    Bitmap bitmapold; // Lưu giữ ảnh mặc định ban đầu để so sánh kiểm tra tính hợp lệ
     private String selectedImageUriStr; // Đường dẫn URI của ảnh đã chọn từ bộ nhớ
     private String cloudImageUrl; // URL ảnh đám mây tải từ Cloudinary về
+    /**
+     * Người dùng đã chọn/chụp ảnh MỚI chưa. Chỉ khi có ảnh mới mới gửi lên.
+     *
+     * Trước đây app mã hóa BẤT KỲ ảnh nào đang hiện (kể cả ảnh cũ vừa tải về)
+     * và gửi lên mỗi lần lưu: mỗi lần sửa tên lại đẩy thêm một bản ảnh trùng
+     * lên Cloudinary. Và khi danh mục không có ảnh, ô ảnh rỗng làm phép ép
+     * kiểu `(BitmapDrawable) getDrawable()` văng NullPointerException (H10).
+     */
+    private boolean daChonAnhMoi = false;
 
     /**
      * Bộ đăng ký kết quả Activity (ActivityResultLauncher) để mở và nhận ảnh chọn từ Thư viện thiết bị.
@@ -79,6 +87,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                             InputStream inputStream = getContentResolver().openInputStream(uri);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                             IMG_addcategory_AddImage.setImageBitmap(bitmap);
+                            daChonAnhMoi = bitmap != null;
                         }catch (FileNotFoundException e){
                             e.printStackTrace();
                         }
@@ -99,6 +108,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                             Bitmap imageBitmap = (Bitmap) extras.get("data");
                             IMG_addcategory_AddImage.setImageBitmap(imageBitmap);
                             selectedImageUriStr = null; // Đặt về null vì ảnh này là dữ liệu trực tiếp chứ không có URI cục bộ
+                            daChonAnhMoi = true;
                         }
                     }
                 }
@@ -115,10 +125,6 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         IMG_addcategory_back = (ImageView)findViewById(R.id.img_addcategory_back);
         IMG_addcategory_AddImage = (ImageView)findViewById(R.id.img_addcategory_AddImage);
         TXT_addcategory_title = (TextView)findViewById(R.id.txt_addcategory_title);
-
-        // Lấy Bitmap hiện tại của ImageView làm mốc so sánh xem người dùng đã chọn ảnh mới hay chưa
-        BitmapDrawable olddrawable = (BitmapDrawable)IMG_addcategory_AddImage.getDrawable();
-        bitmapold = olddrawable.getBitmap();
 
         // Nhận diện mã loại món ăn được gửi qua Intent (chỉ có khi mở màn hình để Sửa)
         maloai = getIntent().getIntExtra("maloai", 0);
@@ -164,6 +170,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     InputStream inputStream = getContentResolver().openInputStream(uri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     IMG_addcategory_AddImage.setImageBitmap(bitmap);
+                    daChonAnhMoi = bitmap != null;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -231,7 +238,8 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
 
             String sTenLoai = TXTL_addcategory_CategoryName.getEditText().getText().toString();
             String action = (maloai != 0) ? "edit" : "add"; // Xác định là sửa hay thêm
-            String imageBase64 = imageToBase64(IMG_addcategory_AddImage); // Mã hóa ảnh thành Base64
+            // Chỉ gửi ảnh khi người dùng chọn ảnh mới; chuỗi rỗng = giữ ảnh cũ.
+            String imageBase64 = daChonAnhMoi ? imageToBase64(IMG_addcategory_AddImage) : "";
 
             // Hiển thị vòng xoay xử lý
             androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddCategoryActivity.this, "Đang xử lý...");
@@ -244,7 +252,21 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (isFinishing() || isDestroyed()) return;
-                    if (response.isSuccessful()) {
+                    if (!response.isSuccessful() || response.body() == null
+                            || !"success".equals(response.body().getStatus())) {
+                    // Máy chủ trả 4xx/5xx kèm lý do (tên trùng, ảnh không tải lên
+                    // được…). Trước đây phản hồi lỗi bị bỏ qua: màn hình im lặng.
+                    String msg = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : ViewUtils.docLoiMayChu(response, "Không lưu được (mã " + response.code() + ")");
+                    new androidx.appcompat.app.AlertDialog.Builder(AddCategoryActivity.this)
+                            .setTitle("Chưa lưu được")
+                            .setMessage(msg)
+                            .setPositiveButton("Đã hiểu", null)
+                            .show();
+                        return;
+                    }
+                    {
                         Log.d(TAG, "Quản lý loại thành công: action=" + action + ", maloai=" + maloai);
                         Intent intent = new Intent();
                         intent.putExtra("ktra", true);
@@ -303,15 +325,10 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
      * Xác thực xem người dùng đã chọn hình ảnh danh mục chưa.
      */
     private boolean validateImage(){
-        BitmapDrawable drawable = (BitmapDrawable)IMG_addcategory_AddImage.getDrawable();
-        Bitmap bitmap = drawable.getBitmap();
-
-        if(bitmap == bitmapold){
-            Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
-            return false;
-        }else {
-            return true;
-        }
+        // Sửa danh mục: không bắt chọn lại ảnh (giữ ảnh cũ, kể cả khi chưa có).
+        if (maloai != 0 || daChonAnhMoi) return true;
+        Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
+        return false;
     }
 
     /**
@@ -328,4 +345,4 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
             return true;
         }
     }
-}
+}

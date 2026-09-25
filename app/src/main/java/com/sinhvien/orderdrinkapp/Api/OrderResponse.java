@@ -51,6 +51,21 @@ public class OrderResponse {
     @SerializedName("TENBAN")
     private String tenBan;
 
+    // Mã giảm giá đã áp vào đơn (null nếu không có) và số tiền đã giảm.
+    // TONGTIEN là số SAU khi giảm — cần hai trường này để giải thích chênh lệch.
+    @SerializedName("MACODE")
+    private String maCode;
+
+    @SerializedName("TIENGIAM")
+    private String tienGiam;
+
+    public String getMaCode() { return maCode; }
+
+    public long getTienGiam() {
+        try { return tienGiam == null ? 0 : Math.round(Double.parseDouble(tienGiam)); }
+        catch (NumberFormatException e) { return 0; }
+    }
+
     public String getStatus() {
         return status;
     }

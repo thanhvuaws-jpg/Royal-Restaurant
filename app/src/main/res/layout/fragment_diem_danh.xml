@@ -224,11 +224,14 @@
 
             </LinearLayout>
 
-            <!-- ══════════ HAI NÚT ══════════ -->
+            <!-- ══════════ HAI NÚT ══════════
+                 baselineAligned=false: một nút chữ 2 dòng, một nút 1 dòng thì
+                 LinearLayout căn theo đường chân chữ và đẩy lệch hai nút (H31). -->
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:baselineAligned="false"
                 android:layout_marginTop="14dp">
 
                 <com.google.android.material.button.MaterialButton
@@ -238,6 +241,10 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     android:text="@string/dd_nut_diem_danh"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:letterSpacing="0"
+                    android:maxLines="1"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/white"
@@ -251,6 +258,10 @@
                     android:layout_weight="1"
                     android:layout_marginStart="6dp"
                     android:text="@string/dd_nut_doi_phieu"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:letterSpacing="0"
+                    android:maxLines="1"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     android:textColor="@color/colorPrimaryDark"

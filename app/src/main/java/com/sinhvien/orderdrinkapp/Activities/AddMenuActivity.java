@@ -65,11 +65,16 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
     
     // Lưu thông tin phục vụ xử lý
     String tenloai, sTenMon, sGiaTien, sTinhTrang;
-    Bitmap bitmapold; // Ảnh mặc định để kiểm tra người dùng đã đổi ảnh chưa
     int maloai; // Mã danh mục món ăn
     int mamon = 0; // ID món ăn (nếu = 0 là Thêm mới, > 0 là sửa món)
     private String selectedImageUriStr; // Lưu URI ảnh cục bộ
     private String cloudImageUrl; // URL ảnh tải từ Cloud
+    /**
+     * Người dùng đã chọn/chụp ảnh MỚI chưa — chỉ khi đó mới gửi ảnh lên.
+     * Trước đây app gửi lại ảnh đang hiện (kể cả ảnh cũ tải về) mỗi lần lưu,
+     * nên mỗi lần sửa giá lại tải thêm một bản ảnh trùng lên Cloudinary.
+     */
+    private boolean daChonAnhMoi = false;
 
     /**
      * Bộ chọn hình ảnh từ Thư viện (Gallery) hệ thống.
@@ -85,6 +90,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             InputStream inputStream = getContentResolver().openInputStream(uri);
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                             img_add_DishImage.setImageBitmap(bitmap);
+                            daChonAnhMoi = bitmap != null;
                         }catch (FileNotFoundException e){
                             e.printStackTrace();
                         }
@@ -105,6 +111,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             Bitmap imageBitmap = (Bitmap) extras.get("data");
                             img_add_DishImage.setImageBitmap(imageBitmap);
                             selectedImageUriStr = null;
+                            daChonAnhMoi = true;
                         }
                     }
                 }
@@ -133,9 +140,6 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         maloai = intent.getIntExtra("maloai",-1);
         tenloai = intent.getStringExtra("tenloai");
         txtl_add_DishType.getEditText().setText(tenloai);
-
-        BitmapDrawable olddrawable = (BitmapDrawable)img_add_DishImage.getDrawable();
-        bitmapold = olddrawable.getBitmap();
 
         // Kiểm tra xem có nhận ID món ăn để chuyển chế độ sang Sửa hay không
         mamon = getIntent().getIntExtra("mamon",0);
@@ -221,6 +225,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                     InputStream inputStream = getContentResolver().openInputStream(uri);
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     img_add_DishImage.setImageBitmap(bitmap);
+                    daChonAnhMoi = bitmap != null;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -295,7 +300,8 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
             }
 
             String actionMon = (mamon != 0) ? "edit" : "add";
-            String imageBase64Mon = imageToBase64(img_add_DishImage); // Encode Base64 cho ảnh
+            // Chỉ gửi ảnh khi người dùng chọn ảnh mới; chuỗi rỗng = giữ ảnh cũ.
+            String imageBase64Mon = daChonAnhMoi ? imageToBase64(img_add_DishImage) : "";
 
             // Loading dialog xử lý
             androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(AddMenuActivity.this, "Đang xử lý...");
@@ -326,11 +332,11 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             finish();
                         } else {
                             Log.w(TAG, "Lỗi quản lý món: " + res.getMessage());
-                            Toast.makeText(AddMenuActivity.this, "Lỗi: " + res.getMessage(), Toast.LENGTH_LONG).show();
+                            hienLoiLuu(res.getMessage());
                         }
                     } else {
-                        Log.w(TAG, "Server không phản hồi đúng định dạng khi quản lý món");
-                        Toast.makeText(AddMenuActivity.this, "Lỗi Server không phản hồi đúng định dạng", Toast.LENGTH_SHORT).show();
+                        // 4xx/5xx (ảnh không tải lên được, giá sai…) — lý do trong errorBody.
+                        hienLoiLuu(ViewUtils.docLoiMayChu(response, "Không lưu được món (mã " + response.code() + ")"));
                     }
                 }
 
@@ -396,15 +402,20 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
     /**
      * Xác thực hình ảnh món ăn đã được cung cấp (Khi thêm mới bắt buộc phải chọn).
      */
+    private void hienLoiLuu(String msg) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Chưa lưu được món")
+                .setMessage(msg)
+                .setPositiveButton("Đã hiểu", null)
+                .show();
+    }
+
     private boolean validateImage(){
         if (mamon != 0) {
             return true; // Nếu là sửa món thì cho phép bỏ qua không cần chọn lại ảnh mới
         }
 
-        BitmapDrawable drawable = (BitmapDrawable)img_add_DishImage.getDrawable();
-        Bitmap bitmap = drawable.getBitmap();
-
-        if(bitmap == bitmapold){
+        if(!daChonAnhMoi){
             Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
             return false;
         }else {
@@ -478,4 +489,4 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         outState.putInt("maloai", maloai);
         outState.putInt("status_id", rg_add_DishStatus.getCheckedRadioButtonId());
     }
-}
+}

@@ -80,6 +80,8 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     private androidx.appcompat.app.AlertDialog waitingDialog; // Dialog hiển thị chờ thu ngân duyệt
     private boolean isPolling = false;
     private boolean isReceiptShowing = false;
+    /** Phương thức khách đã chọn khi gửi thanh toán — in lên hóa đơn (H18). */
+    private String phuongThucDaChon;
     private boolean shouldShowReceipt = false;
     private android.os.Parcelable savedLayoutState;
 
@@ -121,6 +123,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             savedLayoutState = savedInstanceState.getParcelable("list_state");
             wasPolling = savedInstanceState.getBoolean("is_polling", false);
             shouldShowReceipt = savedInstanceState.getBoolean("is_receipt_showing", false);
+            phuongThucDaChon = savedInstanceState.getString("phuong_thuc_da_chon");
         }
 
         // Nhận dữ liệu truyền sang từ màn hình chính
@@ -235,8 +238,10 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 maDaAp   = r.getMaCode();
                 tienGiam = r.getTienGiam() != null ? r.getTienGiam() : 0;
 
+                // Chỉ nói số tiền giảm: tên mã thường đã là "Giảm 10.000đ", ghép
+                // vào ra "✓ Giảm 10.000đ · giảm 10.000 đ" (H17).
                 hienKetQuaMa(getString(R.string.tt_ma_hop_le,
-                        r.getTen(), String.format("%,d", tienGiam)), true);
+                        com.sinhvien.orderdrinkapp.Utils.TienTe.so(tienGiam)), true);
 
                 // Khóa ô nhập lại: mã đã chốt, sửa tiếp chỉ gây nhầm lẫn
                 // giữa cái đang gõ và cái thực sự sẽ được áp.
@@ -297,13 +302,22 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         // tranh cãi ở quầy. Con số to nhất trên màn hình phải đúng bằng số
         // tiền khách sắp đưa.
         if (tienGiam > 0) {
-            txt_payment_TotalAmount.setText(getString(R.string.tt_tong_sau_giam,
-                    String.format("%,d", Math.max(0, tongtien - tienGiam)),
-                    String.format("%,d", tienGiam)));
+            // Hai dòng: số phải trả to, phần "đã giảm" nhỏ bên dưới. Gộp một
+            // dòng 22sp như trước thì bị cắt mất phần sau (H17).
+            String phaiTra = com.sinhvien.orderdrinkapp.Utils.TienTe.dong(Math.max(0, tongtien - tienGiam));
+            String daGiam = "(đã giảm " + com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tienGiam) + ")";
+            android.text.SpannableString hienThi = new android.text.SpannableString(phaiTra + "\n" + daGiam);
+            hienThi.setSpan(new android.text.style.RelativeSizeSpan(0.6f), phaiTra.length() + 1,
+                    hienThi.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            hienThi.setSpan(new android.text.style.ForegroundColorSpan(
+                            androidx.core.content.ContextCompat.getColor(this, R.color.status_available)),
+                    phaiTra.length() + 1, hienThi.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            txt_payment_TotalAmount.setSingleLine(false);
+            txt_payment_TotalAmount.setMaxLines(2);
+            txt_payment_TotalAmount.setText(hienThi);
         } else {
-            txt_payment_TotalAmount.setText(
-                    String.format("%,d", tongtien) + " " +
-                            getResources().getString(R.string.currency_vnd));
+            txt_payment_TotalAmount.setSingleLine(true);
+            txt_payment_TotalAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tongtien));
         }
 
         if (savedLayoutState != null && rv_payment_DishList.getLayoutManager() != null) {
@@ -359,25 +373,31 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         Button btnConfirm = dialogView.findViewById(R.id.btn_dialogqr_Confirm);
         Button btnCancel = dialogView.findViewById(R.id.btn_dialogqr_Cancel);
 
-        // Tạo nội dung chuyển khoản động
-        String message = "Thanh toan Ban " + tenban + " Don " + madondat;
+        // Nội dung chuyển khoản: KHÔNG DẤU, chữ hoa, ngắn. Bản cũ là
+        // "Thanh toan Ban " + tên bàn — tên bàn đã có chữ "bàn" nên ra
+        // "Ban bàn 1", lại còn dấu tiếng Việt mà nhiều ngân hàng cắt hoặc từ
+        // chối (H19). Mã đơn đứng đầu để thu ngân dò sao kê cho nhanh.
+        String message = noiDungChuyenKhoan();
+        // Số tiền trên mã QR là số SAU khi trừ mã giảm giá. Bản cũ dùng tổng
+        // các món — khách có mã vẫn quét ra số tiền đầy đủ và chuyển dư.
+        long canTra = Math.max(0, tongtien - tienGiam);
         String qrUrl = "";
         try {
             String encodedMsg = java.net.URLEncoder.encode(message, "UTF-8");
             String encodedName = java.net.URLEncoder.encode(getString(R.string.vietqr_bank_name), "UTF-8");
             qrUrl = "https://img.vietqr.io/image/" + getString(R.string.vietqr_bank_id) + "-" + getString(R.string.vietqr_bank_acc) + "-compact2.png"
-                    + "?amount=" + tongtien
+                    + "?amount=" + canTra
                     + "&addInfo=" + encodedMsg
                     + "&accountName=" + encodedName;
         } catch (Exception e) {
             qrUrl = "https://img.vietqr.io/image/" + getString(R.string.vietqr_bank_id) + "-" + getString(R.string.vietqr_bank_acc) + "-compact2.png"
-                    + "?amount=" + tongtien
+                    + "?amount=" + canTra
                     + "&addInfo=" + message;
         }
 
         txtBank.setText(getString(R.string.vietqr_bank_id));
         txtAccount.setText(getString(R.string.vietqr_bank_acc));
-        txtAmount.setText(String.format("%,d", tongtien) + " VNĐ");
+        txtAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(canTra));
         txtMessage.setText(message);
 
         // Nạp ảnh QR trực tuyến bằng Glide
@@ -410,6 +430,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
      * Gọi API yêu cầu thanh toán (checkoutOrder) gửi lên phía thu ngân phê duyệt.
      */
     private void thucHienThanhToan(String phuongthuc) {
+        phuongThucDaChon = phuongthuc;
         androidx.appcompat.app.AlertDialog progressDialog = com.sinhvien.orderdrinkapp.Utils.DialogHelper.getLoadingDialog(this, "Đang gửi yêu cầu thanh toán...");
         progressDialog.show();
 
@@ -578,6 +599,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         // Lưu giữ trạng thái màn hình
         outState.putBoolean("is_polling", isPolling);
         outState.putBoolean("is_receipt_showing", isReceiptShowing);
+        outState.putString("phuong_thuc_da_chon", phuongThucDaChon);
         if (rv_payment_DishList != null && rv_payment_DishList.getLayoutManager() != null) {
             outState.putParcelable("list_state", rv_payment_DishList.getLayoutManager().onSaveInstanceState());
         }
@@ -592,6 +614,35 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     /**
      * Hiển thị biên lai Hóa đơn (Receipt Layout) và hỗ trợ chia sẻ thông qua ReceiptHelper.
      */
+    /** "ROYAL DON 17976 BAN VIP 7" — tối đa 50 ký tự, chỉ chữ số và chữ không dấu. */
+    private String noiDungChuyenKhoan() {
+        String ban = java.text.Normalizer.normalize(tenban == null ? "" : tenban, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('đ', 'd').replace('Đ', 'D')
+                .replaceAll("[^A-Za-z0-9 ]", " ")
+                .replaceAll("\\s+", " ")
+                .trim()
+                .toUpperCase(java.util.Locale.ROOT);
+        String kq = ("ROYAL DON " + madondat + " " + ban).trim();
+        return kq.length() > 50 ? kq.substring(0, 50).trim() : kq;
+    }
+
+    /** "bàn 1" -> "Bàn 1": tên bàn đã nói rõ là bàn, không cần nhãn "Bàn:" đứng trước. */
+    private static String vietHoaChuDau(String s) {
+        if (s == null || s.isEmpty()) return "";
+        return s.substring(0, 1).toUpperCase(new java.util.Locale("vi")) + s.substring(1);
+    }
+
+    /** "2026-09-24 13:05:00" -> "13:05 · 24/09/2026"; chuỗi lạ thì trả nguyên. */
+    private static String ngayGioDep(String raw) {
+        try {
+            java.util.Date d = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).parse(raw);
+            return new java.text.SimpleDateFormat("HH:mm · dd/MM/yyyy", java.util.Locale.US).format(d);
+        } catch (Exception e) {
+            return raw == null ? "" : raw;
+        }
+    }
+
     private void HienThiHoaDon() {
         isReceiptShowing = true;
         View receiptView = LayoutInflater.from(this)
@@ -606,13 +657,25 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         Button btn_receipt_Close       = receiptView.findViewById(R.id.btn_receipt_Close);
 
         // Gán thông tin hóa đơn
-        txt_receipt_TableName.setText(
-                getString(R.string.receipt_table) + tenban);
-        txt_receipt_Date.setText(
-                getString(R.string.receipt_date) + ngaydat);
-        txt_receipt_Total.setText(
-                String.format("%,d", tongtien) + " " +
-                        getString(R.string.currency_vnd));
+        // Trước đây: getString("Bàn: ") + tên — Android cắt khoảng trắng cuối
+        // của chuỗi tài nguyên nên ra "Bàn:bàn 1"; "Ngày:" cũng dính liền (H18).
+        txt_receipt_TableName.setText(vietHoaChuDau(tenban));
+        txt_receipt_Date.setText(ngayGioDep(ngaydat));
+        // tongtien là tổng các món; số khách trả là sau khi trừ mã giảm giá.
+        long canTra = Math.max(0, tongtien - tienGiam);
+        txt_receipt_Total.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(canTra));
+        TextView txtGiam = receiptView.findViewById(R.id.txt_receipt_Discount);
+        if (tienGiam > 0) {
+            txtGiam.setText("Tạm tính " + com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tongtien)
+                    + " · Giảm" + (maDaAp != null ? " (" + maDaAp + ")" : "")
+                    + " −" + com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tienGiam));
+            txtGiam.setVisibility(View.VISIBLE);
+        }
+        TextView txtPhuongThuc = receiptView.findViewById(R.id.txt_receipt_Method);
+        if (phuongThucDaChon != null && !phuongThucDaChon.isEmpty()) {
+            txtPhuongThuc.setText("Thanh toán: " + phuongThucDaChon);
+            txtPhuongThuc.setVisibility(View.VISIBLE);
+        }
 
         // Nạp động danh sách món ăn vào Layout hóa đơn
         LayoutInflater inflater = LayoutInflater.from(this);
@@ -626,7 +689,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                     .setText("x" + item.getSoLuong());
             long subtotal = (long) item.getSoLuong() * item.getGiaTien();
             ((TextView) rowView.findViewById(R.id.txt_receiptItem_Subtotal))
-                    .setText(String.format("%,d", subtotal) + "đ");
+                    .setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(subtotal));
 
             layout_receipt_ItemList.addView(rowView);
         }

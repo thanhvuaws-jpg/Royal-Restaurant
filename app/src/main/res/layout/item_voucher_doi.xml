@@ -17,13 +17,32 @@
         android:gravity="center_vertical"
         android:padding="14dp">
 
-        <ImageView
-            android:id="@+id/img_ve_voucher"
-            android:layout_width="56dp"
-            android:layout_height="36dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ve_vang"
-            android:contentDescription="@string/dd_nut_doi_phieu"/>
+        <!-- Vé ưu đãi: ảnh nền 1200×420 (tỉ lệ ~2,86) KÈM mức giảm in đè.
+             Trước đây ảnh bị ép vào ô 56×36dp không chữ nên chỉ còn một
+             thanh màu tối, không ai hiểu là gì (H31). -->
+        <FrameLayout
+            android:layout_width="80dp"
+            android:layout_height="28dp">
+
+            <ImageView
+                android:id="@+id/img_ve_voucher"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:scaleType="fitXY"
+                android:src="@drawable/ve_vang"
+                android:importantForAccessibility="no" />
+
+            <TextView
+                android:id="@+id/txt_nhan_ve"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:textColor="@color/gold_300"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:maxLines="1"
+                android:importantForAccessibility="no" />
+        </FrameLayout>
 
         <LinearLayout
             android:orientation="vertical"

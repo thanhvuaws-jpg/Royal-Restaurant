@@ -90,7 +90,7 @@ public class DetailStatisticActivity extends AppCompatActivity {
         if (madon != 0){
             txt_detail_OrderId.setText(getResources().getString(R.string.order_id_prefix) + "#" + madon);
             txt_detail_OrderDate.setText(ngaydat);
-            txt_detail_TotalAmount.setText(tongtien + " " + getResources().getString(R.string.currency_vnd));
+            txt_detail_TotalAmount.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(tongtien));
 
             if (tenNv != null) {
                 txt_detail_StaffName.setText(tenNv);

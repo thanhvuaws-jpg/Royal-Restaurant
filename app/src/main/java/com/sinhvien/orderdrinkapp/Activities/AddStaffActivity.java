@@ -108,7 +108,9 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                             txtl_add_StaffUserName.getEditText().setText(res.getTenDN());
                             txtl_add_StaffEmail.getEditText().setText(res.getEmail());
                             txtl_add_StaffPhone.getEditText().setText(res.getSdt());
-                            txtl_add_StaffPassword.getEditText().setText(res.getMatKhau());
+                            // KHÔNG điền mật khẩu: máy chủ không còn trả hash (QĐ-096).
+                            // Để trống = giữ nguyên mật khẩu cũ; gõ vào = đặt mật khẩu mới.
+                            txtl_add_StaffPassword.setHelperText("Để trống nếu giữ nguyên mật khẩu cũ");
 
                             // Thiết lập Radio Button giới tính
                             if("Nam".equals(res.getGioiTinh())) rd_add_StaffMale.setChecked(true);
@@ -238,7 +240,21 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     if (isFinishing() || isDestroyed()) return;
-                    if (response.isSuccessful()) {
+                    if (!response.isSuccessful() || response.body() == null
+                            || !"success".equals(response.body().getStatus())) {
+                        // Trùng tên đăng nhập, tự hạ quyền mình… — máy chủ trả 4xx
+                        // kèm lý do. Trước đây mọi phản hồi đều đóng màn hình.
+                        String msg = response.body() != null && response.body().getMessage() != null
+                                ? response.body().getMessage()
+                                : ViewUtils.docLoiMayChu(response, "Không lưu được (mã " + response.code() + ")");
+                        new androidx.appcompat.app.AlertDialog.Builder(AddStaffActivity.this)
+                                .setTitle("Chưa lưu được")
+                                .setMessage(msg)
+                                .setPositiveButton("Đã hiểu", null)
+                                .show();
+                        return;
+                    }
+                    {
                         Log.d(TAG, "Quản lý nhân viên thành công: action=" + actionStaff + ", manv=" + manv + ", hoten=" + hoTen);
                         Intent intent = new Intent();
                         intent.putExtra("ketquaktra", (long) 1);
@@ -344,6 +360,12 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
      */
     private boolean validatePassWord(){
         String val = txtl_add_StaffPassword.getEditText().getText().toString().trim();
+        // Khi sửa: bỏ trống là giữ mật khẩu cũ (máy chủ hiểu chuỗi rỗng như vậy).
+        if (val.isEmpty() && manv != 0) {
+            txtl_add_StaffPassword.setError(null);
+            txtl_add_StaffPassword.setErrorEnabled(false);
+            return true;
+        }
         if(val.isEmpty()){
             txtl_add_StaffPassword.setError(getResources().getString(R.string.not_empty));
             return false;

@@ -80,14 +80,10 @@ public class HomeViewModel extends AndroidViewModel {
                 isLoadingLiveData.setValue(false);
                 if (response.isSuccessful() && response.body() != null) {
                     List<DonDatDTO> list = new ArrayList<>();
-                    SimpleDateFormat cloudFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
                     
                     for (OrderResponse res : response.body()) {
-                        String orderDateStr = res.getNgayDat();
-                        try {
-                            Date d = cloudFormat.parse(res.getNgayDat());
-                            orderDateStr = dateFormat.format(d);
-                        } catch (Exception ignored) {}
+                        // Cắt chuỗi thay cho SimpleDateFormat: vòng này chạy trên luồng giao diện.
+                        String orderDateStr = com.sinhvien.orderdrinkapp.Utils.NgayGio.sangNgay(res.getNgayDat());
 
                         // Lọc các đơn hàng đúng trong ngày hôm nay
                         if (ngaydat.equals(orderDateStr)) {

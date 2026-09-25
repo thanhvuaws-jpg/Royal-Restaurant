@@ -106,12 +106,19 @@ public class StaffViewModel extends AndroidViewModel {
         apiService.manageStaff("delete", manv, "", "", "", "", "", "", "", 0).enqueue(new Callback<com.sinhvien.orderdrinkapp.Api.OrderResponse>() {
             @Override
             public void onResponse(Call<com.sinhvien.orderdrinkapp.Api.OrderResponse> call, Response<com.sinhvien.orderdrinkapp.Api.OrderResponse> response) {
-                if (response.isSuccessful()) {
+                // Phải xem cả `status`: máy chủ cũ trả HTTP 200 kèm status=error
+                // khi CSDL từ chối xóa, và app báo "Xóa thành công!" trong khi
+                // tài khoản vẫn còn. Máy chủ mới trả 409 kèm lý do (QĐ-096).
+                if (response.isSuccessful() && response.body() != null
+                        && "success".equals(response.body().getStatus())) {
                     if (callback != null) callback.onSuccess();
                     // Tải lại danh sách sau khi xóa thành công
                     syncStaffFromServer(null);
                 } else {
-                    if (callback != null) callback.onError("Xóa thất bại");
+                    String lyDo = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : com.sinhvien.orderdrinkapp.Utils.ViewUtils.docLoiMayChu(response, "Xóa thất bại");
+                    if (callback != null) callback.onError(lyDo);
                 }
             }
 

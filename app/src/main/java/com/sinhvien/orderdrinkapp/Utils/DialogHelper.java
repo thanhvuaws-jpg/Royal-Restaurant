@@ -42,4 +42,19 @@ public class DialogHelper {
         builder.setCancelable(false); // Khóa, không cho bấm ra ngoài để tắt dialog
         return builder.create();
     }
+
+    /**
+     * Hỏi lại trước khi đăng xuất (lỗi H29).
+     *
+     * Ở thanh dưới của khách, "Đăng xuất" nằm sát "Hỗ trợ": chạm lệch một chút
+     * là bị đưa ra ngoài, phải gõ lại mật khẩu. Dùng chung cho mọi vai.
+     */
+    public static void xacNhanDangXuat(Context context, Runnable dangXuat) {
+        new AlertDialog.Builder(context)
+                .setTitle("Đăng xuất?")
+                .setMessage("Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng.")
+                .setPositiveButton("Đăng xuất", (d, w) -> dangXuat.run())
+                .setNegativeButton("Ở lại", null)
+                .show();
+    }
 }

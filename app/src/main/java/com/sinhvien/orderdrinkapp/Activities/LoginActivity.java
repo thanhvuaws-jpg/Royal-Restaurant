@@ -68,47 +68,53 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         cb_login_RememberMe = findViewById(R.id.cb_login_RememberMe);
         img_login_BackBtn = findViewById(R.id.img_login_BackBtn);
 
-        // Đọc thông tin ghi nhớ đăng nhập đã lưu trong SharedPreferences (nếu có)
+        // Đọc tên đăng nhập đã ghi nhớ (nếu có).
+        //
+        // CHỈ NHỚ TÊN, KHÔNG NHỚ MẬT KHẨU (sửa 25/09/2026, QĐ-096). Bản cũ lưu
+        // mật khẩu mã hóa AES với khóa ghi cứng trong APK — ai có tệp APK là
+        // giải ra được — rồi tự điền nguyên văn vào ô mật khẩu. Không cần tới
+        // mật khẩu để giữ đăng nhập: phiên đã được giữ bằng token (SessionManager).
         SharedPreferences sharedPreferences = getSharedPreferences("remember_login", Context.MODE_PRIVATE);
-        String user = sharedPreferences.getString("username", "");
-        String encodedPass = sharedPreferences.getString("password", "");
-        String pass = "";
-        try {
-            if (!encodedPass.isEmpty()) {
-                // Giải mã mật khẩu bằng AES để hiển thị lên trường nhập liệu
-                pass = com.sinhvien.orderdrinkapp.Utils.AESUtils.decrypt(encodedPass);
-            }
-        } catch (Exception e) {
-            Log.e(TAG, "Lỗi giải mã mật khẩu đã lưu: " + e.getMessage());
+        if (sharedPreferences.contains("password")) {
+            // Xóa mật khẩu mà bản cũ đã lưu trên máy.
+            sharedPreferences.edit().remove("password").apply();
         }
+        String user = sharedPreferences.getString("username", "");
         boolean isRemember = sharedPreferences.getBoolean("isRemember", false);
 
         String savedUsername = "";
-        String savedPassword = "";
         boolean savedRememberMe = false;
 
         // Ưu tiên khôi phục dữ liệu từ InstanceState nếu Activity bị reload (xoay màn hình)
         if (savedInstanceState != null) {
             savedUsername = savedInstanceState.getString("username", "");
-            savedPassword = savedInstanceState.getString("password", "");
             savedRememberMe = savedInstanceState.getBoolean("remember_me", false);
-        } else {
-            // Ngược lại thì điền thông tin đăng nhập tự động từ dữ liệu "Ghi nhớ" trước đó
-            if (isRemember) {
-                savedUsername = user;
-                savedPassword = pass;
-                savedRememberMe = true;
-            }
+        } else if (isRemember) {
+            savedUsername = user;
+            savedRememberMe = true;
         }
 
         // Đưa dữ liệu khôi phục lên giao diện người dùng
         if (txtl_login_UserName.getEditText() != null) {
             txtl_login_UserName.getEditText().setText(savedUsername);
         }
-        if (txtl_login_Password.getEditText() != null) {
-            txtl_login_Password.getEditText().setText(savedPassword);
-        }
         cb_login_RememberMe.setChecked(savedRememberMe);
+
+        // "Quên mật khẩu?" trước đây không có dòng xử lý nào (bấm không có gì
+        // xảy ra — H14). Hệ thống không có máy chủ thư để gửi liên kết đặt lại,
+        // nên chỉ đúng cách thật: nhân viên nhờ quản lý đặt mật khẩu mới (màn
+        // Nhân viên → sửa), khách gọi hotline để nhà hàng hỗ trợ.
+        View nutQuenMatKhau = findViewById(R.id.btn_login_ForgotPassword);
+        if (nutQuenMatKhau != null) {
+            nutQuenMatKhau.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this)
+                    .setTitle("Quên mật khẩu")
+                    .setMessage("• Nhân viên: nhờ quản lý đặt lại mật khẩu trong mục Nhân viên.\n\n"
+                            + "• Khách hàng: gọi hotline 0856 761 038, nhà hàng sẽ xác minh và đặt lại mật khẩu cho bạn.")
+                    .setPositiveButton("Gọi hotline", (d, w) -> startActivity(new Intent(Intent.ACTION_DIAL,
+                            android.net.Uri.parse("tel:0856761038"))))
+                    .setNegativeButton("Đóng", null)
+                    .show());
+        }
 
         // Gán sự kiện lắng nghe thao tác Click cho các nút
         btn_login_SignIn.setOnClickListener(this);
@@ -162,14 +168,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         SharedPreferences sharedPreferences = getSharedPreferences("remember_login", Context.MODE_PRIVATE);
                         SharedPreferences.Editor editor = sharedPreferences.edit();
                         if (cb_login_RememberMe.isChecked()) {
-                            try {
-                                // Mã hóa AES trước khi lưu mật khẩu để đảm bảo an toàn
-                                String encoded = com.sinhvien.orderdrinkapp.Utils.AESUtils.encrypt(finalPass);
-                                editor.putString("username", finalUser);
-                                editor.putString("password", encoded);
-                            } catch (Exception e) {
-                                Log.e(TAG, "Lỗi mã hóa mật khẩu: " + e.getMessage());
-                            }
+                            // Chỉ nhớ tên đăng nhập — xem chú thích ở onCreate.
+                            editor.putString("username", finalUser);
+                            editor.remove("password");
                             editor.putBoolean("isRemember", true);
                         } else {
                             // Xóa sạch dữ liệu nếu người dùng không chọn ghi nhớ
@@ -219,16 +220,12 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         // Lưu giữ tạm thời dữ liệu biểu mẫu khi ứng dụng bị xoay dọc/ngang tránh mất thông tin đã gõ
+        // (Không tự lưu mật khẩu vào Bundle: ô nhập tự giữ nội dung khi xoay.)
         String user = "";
-        String pass = "";
         if (txtl_login_UserName.getEditText() != null) {
             user = txtl_login_UserName.getEditText().getText().toString();
         }
-        if (txtl_login_Password.getEditText() != null) {
-            pass = txtl_login_Password.getEditText().getText().toString();
-        }
         outState.putString("username", user);
-        outState.putString("password", pass);
         outState.putBoolean("remember_me", cb_login_RememberMe.isChecked());
     }
 }

@@ -65,4 +65,13 @@ public class DonDatDTO {
     public void setTenBan(String tenBan) { TenBan = tenBan; }
     public String getPhuongThucTT() { return phuongThucTT; }
     public void setPhuongThucTT(String phuongThucTT) { this.phuongThucTT = phuongThucTT; }
+
+    // Mã giảm giá đã áp và số tiền đã giảm — thu ngân cần để giải thích vì
+    // sao tổng nhỏ hơn cộng các món (H17).
+    String maCode;
+    long tienGiam;
+    public String getMaCode() { return maCode; }
+    public void setMaCode(String maCode) { this.maCode = maCode; }
+    public long getTienGiam() { return tienGiam; }
+    public void setTienGiam(long tienGiam) { this.tienGiam = tienGiam; }
 }

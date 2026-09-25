@@ -141,6 +141,18 @@
             android:layout_marginTop="8dp"
             android:layout_marginBottom="8dp" />
 
+        <!-- Giảm giá: chỉ hiện khi đơn có áp mã (H18) -->
+        <TextView
+            android:id="@+id/txt_receipt_Discount"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="6dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="13sp"
+            android:fontFamily="@font/muli"
+            android:textColor="@color/status_available" />
+
         <!-- Tổng cộng -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -165,6 +177,19 @@
                 android:fontFamily="@font/muli_black"
                 android:textColor="@color/colorPrimary" />
         </LinearLayout>
+
+        <!-- Phương thức thanh toán (H18) -->
+        <TextView
+            android:id="@+id/txt_receipt_Method"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="-10dp"
+            android:layout_marginBottom="14dp"
+            android:gravity="end"
+            android:visibility="gone"
+            android:textSize="13sp"
+            android:fontFamily="@font/muli"
+            android:textColor="@color/grey" />
 
         <!-- Đường kẻ đứt dưới -->
         <View
@@ -199,6 +224,7 @@
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
                 android:text="@string/receipt_share"
+                android:singleLine="true"
                 android:textColor="@color/colorPrimary"
                 android:fontFamily="@font/muli_black"
                 android:textAllCaps="false"

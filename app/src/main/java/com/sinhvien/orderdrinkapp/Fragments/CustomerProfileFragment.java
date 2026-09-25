@@ -293,6 +293,20 @@ public class CustomerProfileFragment extends Fragment
                 return;
             }
 
+            // Ô số điện thoại chỉ nhận chữ số, nên gõ nhầm chữ cái là ô bị trống
+            // lặng lẽ — trước đây vẫn lưu và XÓA TRẮNG số của khách. Nhà hàng
+            // cần số này để gọi xác nhận đặt bàn, nên không cho lưu rỗng.
+            if (newSdt.isEmpty()) {
+                edtSdt.setError("Vui lòng nhập số điện thoại để nhà hàng liên hệ khi cần");
+                edtSdt.requestFocus();
+                return;
+            }
+            if (!newSdt.matches("^0\\d{9}$")) {
+                edtSdt.setError("Số điện thoại gồm 10 chữ số, bắt đầu bằng 0");
+                edtSdt.requestFocus();
+                return;
+            }
+
             if (!newEmail.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail).matches()) {
                 edtEmail.setError(getString(R.string.enter_email));
                 edtEmail.requestFocus();
@@ -368,9 +382,12 @@ public class CustomerProfileFragment extends Fragment
                             progressDialog.setVisibility(View.GONE);
                             btnSave.setEnabled(true);
                             btnCancel.setEnabled(true);
+                            // Lỗi 4xx/5xx (ảnh không tải lên được, số điện thoại sai…)
+                            // có lý do trong errorBody — body() lúc đó là null.
                             String msg = (response.body() != null && response.body().getMessage() != null)
                                     ? response.body().getMessage()
-                                    : getString(R.string.cap_nhat_ho_so_that_bai);
+                                    : com.sinhvien.orderdrinkapp.Utils.ViewUtils.docLoiMayChu(
+                                            response, getString(R.string.cap_nhat_ho_so_that_bai));
                             Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
                         }
                     }

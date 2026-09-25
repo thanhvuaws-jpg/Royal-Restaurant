@@ -30,6 +30,7 @@ import com.sinhvien.orderdrinkapp.Api.TableResponse;
 import com.sinhvien.orderdrinkapp.CustomAdapter.AdapterDisplayTable;
 import com.sinhvien.orderdrinkapp.Database.LocalDatabaseHelper;
 import com.sinhvien.orderdrinkapp.DTO.BanAnDTO;
+import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import com.sinhvien.orderdrinkapp.R;
 
 import com.google.android.material.tabs.TabLayout;
@@ -147,9 +148,16 @@ public class DisplayTableFragment extends Fragment {
             HienThiDSBan(swipeRefreshLayout, true);
         });
 
-        // FAB thêm bàn mới dành cho Admin/Nhân viên
-        view.findViewById(R.id.fab_add_table).setOnClickListener(v ->
-                resultLauncherAdd.launch(new Intent(getActivity(), AddTableActivity.class)));
+        // Nút nổi thêm bàn CHỈ cho quản lý — update_table_admin.php chỉ nhận
+        // quyền 1. Trước đây nút hiện với mọi vai (H11).
+        View fabAddTable = view.findViewById(R.id.fab_add_table);
+        if (SessionManager.isAdmin(getActivity())) {
+            fabAddTable.setVisibility(View.VISIBLE);
+            fabAddTable.setOnClickListener(v ->
+                    resultLauncherAdd.launch(new Intent(getActivity(), AddTableActivity.class)));
+        } else {
+            fabAddTable.setVisibility(View.GONE);
+        }
 
         // Khởi tạo ViewModel bàn ăn và đăng ký lắng nghe thay đổi
         tableViewModel = new ViewModelProvider(this).get(TableViewModel.class);
@@ -213,6 +221,7 @@ public class DisplayTableFragment extends Fragment {
     @Override
     public void onCreateOptionsMenu(@NonNull Menu menu, @NonNull MenuInflater inflater) {
         super.onCreateOptionsMenu(menu, inflater);
+        if (!SessionManager.isAdmin(getActivity())) return;
         MenuItem itAddTable = menu.add(1, R.id.itAddTable, 1, R.string.addTable);
         itAddTable.setIcon(R.drawable.ic_baseline_add_24);
         itAddTable.setShowAsAction(MenuItem.SHOW_AS_ACTION_IF_ROOM);

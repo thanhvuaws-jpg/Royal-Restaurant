@@ -31,20 +31,31 @@
             android:layout_height="wrap_content">
 
             <!-- Hình nền thẻ thành viên VIP chuẩn CR80 (the_dong / the_bac / the_vang / the_kimcuong) -->
+            <!-- Ảnh nền BÁM THEO khối nội dung (alignTop/alignBottom), không tự
+                 quyết chiều cao. Để match_parent trong khung wrap_content như
+                 trước thì khung lấy chiều cao gốc của ảnh (900×570 phóng theo
+                 mật độ màn hình): thẻ dài gần hết màn hình, họa tiết bị phóng
+                 to, hàng số liệu bị đẩy xuống đáy (H24). -->
             <ImageView
                 android:id="@+id/img_card_background"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/khung_noi_dung_the"
+                android:layout_alignBottom="@+id/khung_noi_dung_the"
                 android:scaleType="centerCrop"
+                android:importantForAccessibility="no"
                 android:src="@drawable/the_dong" />
 
             <!-- Lớp phủ bán trong suốt làm nổi bật chữ màu trắng -->
             <View
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_alignTop="@+id/khung_noi_dung_the"
+                android:layout_alignBottom="@+id/khung_noi_dung_the"
                 android:background="#5A000000" />
 
             <LinearLayout
+                android:id="@+id/khung_noi_dung_the"
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

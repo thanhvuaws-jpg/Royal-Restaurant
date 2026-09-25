@@ -105,14 +105,17 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
             holder.img_Delete.setOnClickListener(v -> {
                 new AlertDialog.Builder(context)
                         .setTitle("Xác nhận xóa")
-                        .setMessage("Xóa loại thực đơn này sẽ xóa tất cả món ăn bên trong. Bạn chắc chứ?")
+                        .setMessage("Chỉ xóa được danh mục không còn món nào. Xóa danh mục này?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
                             ApiService apiService = ApiClient.getClient().create(ApiService.class);
                             // Gọi API xóa danh mục
                             apiService.manageCategory("delete", loaiMonDTO.getMaLoai(), "", "").enqueue(new Callback<OrderResponse>() {
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                                    if (response.isSuccessful()) {
+                                    // Máy chủ từ chối (còn món) trả 409 + lý do; trước đây
+                                    // app chỉ nhìn mã HTTP và hiện "Lỗi xóa Cloud".
+                                    if (response.isSuccessful() && response.body() != null
+                                            && "success".equals(response.body().getStatus())) {
                                         int currentPos = loaiMonDTOList.indexOf(loaiMonDTO);
                                         if (currentPos >= 0) {
                                             loaiMonDTOList.remove(currentPos);
@@ -122,7 +125,13 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                                         }
                                         Toast.makeText(context, "Đã xóa loại thực đơn", Toast.LENGTH_SHORT).show();
                                     } else {
-                                        Toast.makeText(context, "Lỗi xóa Cloud", Toast.LENGTH_SHORT).show();
+                                        new AlertDialog.Builder(context)
+                                                .setTitle("Không xóa được")
+                                                .setMessage(response.body() != null && response.body().getMessage() != null
+                                                        ? response.body().getMessage()
+                                                        : com.sinhvien.orderdrinkapp.Utils.ViewUtils.docLoiMayChu(response, "Không xóa được danh mục"))
+                                                .setPositiveButton("Đã hiểu", null)
+                                                .show();
                                     }
                                 }
                                 @Override

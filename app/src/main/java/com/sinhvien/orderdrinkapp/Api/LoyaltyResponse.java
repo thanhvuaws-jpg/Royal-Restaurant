@@ -87,6 +87,9 @@ public class LoyaltyResponse {
         public String getTen()        { return ten; }
         public String getMoTa()       { return moTa; }
         public int getDiemDoi()       { return diemDoi; }
+        /** 'tienmat' | 'phantram' */
+        public String getLoaiGiam()   { return loaiGiam; }
+        public int getGiaTri()        { return giaTri; }
         public int getDonToiThieu()   { return donToiThieu; }
         public String getHangToiThieu() { return hangToiThieu; }
         public boolean isDuDiem()     { return duDiem; }

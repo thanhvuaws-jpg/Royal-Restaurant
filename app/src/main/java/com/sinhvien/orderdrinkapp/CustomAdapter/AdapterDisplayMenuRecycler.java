@@ -81,9 +81,9 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
         // Định dạng hiển thị giá tiền (ví dụ: 25.000 VNĐ)
         try {
             long gia = Long.parseLong(monDTO.getGiaTien().replace(",", "").replace(".", "").trim());
-            holder.txt_DishPrice.setText(String.format("%,d VNĐ", gia).replace(",", "."));
+            holder.txt_DishPrice.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(gia));
         } catch (Exception e) {
-            holder.txt_DishPrice.setText(monDTO.getGiaTien() + " VNĐ");
+            holder.txt_DishPrice.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(monDTO.getGiaTien()));
         }
 
         // Tạo Background bo góc cho Badge trạng thái Còn/Hết món
@@ -165,14 +165,28 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             holder.img_Delete.setOnClickListener(v -> {
                 new AlertDialog.Builder(context)
                         .setTitle("Xác nhận xóa")
-                        .setMessage("Bạn có chắc chắn muốn xóa món này?")
+                        .setMessage("Chỉ xóa được món chưa từng bán (tạo nhầm). Món đã bán hãy chuyển sang \"Hết món\". Xóa món này?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
                             ApiService apiService = ApiClient.getClient().create(ApiService.class);
                             // Gọi API xóa món ăn
                             apiService.manageDish("delete", monDTO.getMaMon(), "", "", 0, "", "").enqueue(new Callback<OrderResponse>() {
                                 @Override
                                 public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
-                                    if (response.isSuccessful()) {
+                                    // Phải xem `status`: bản máy chủ cũ trả HTTP 200 kèm
+                                    // status=error khi món đã bán, và app báo "Đã xóa món"
+                                    // trong khi món vẫn còn (H7). Máy chủ mới trả 409 + lý do.
+                                    if (!response.isSuccessful() || response.body() == null
+                                            || !"success".equals(response.body().getStatus())) {
+                                        new AlertDialog.Builder(context)
+                                                .setTitle("Không xóa được")
+                                                .setMessage(response.body() != null && response.body().getMessage() != null
+                                                        ? response.body().getMessage()
+                                                        : com.sinhvien.orderdrinkapp.Utils.ViewUtils.docLoiMayChu(response, "Không xóa được món"))
+                                                .setPositiveButton("Đã hiểu", null)
+                                                .show();
+                                        return;
+                                    }
+                                    {
                                         int currentPos = monDTOList.indexOf(monDTO);
                                         if (currentPos >= 0) {
                                             monDTOList.remove(currentPos);
