@@ -17,14 +17,12 @@
         android:background="@color/white"
         android:elevation="2dp">
 
-        <TextView
+        <!-- Chỗ trống đẩy hai nút sang phải. Bản cũ in lại chữ "Kho nguyên
+             liệu" ngay dưới thanh tiêu đề cũng ghi "Kho nguyên liệu". -->
+        <View
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Kho nguyên liệu"
-            android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"/>
+            android:layout_height="1dp"
+            android:layout_weight="1"/>
 
         <Button
             android:id="@+id/btn_lap_phieu"
@@ -50,27 +48,26 @@
             android:paddingEnd="12dp"/>
     </LinearLayout>
 
-    <!-- Summary Cards -->
-    <HorizontalScrollView
+    <!-- Thẻ tóm tắt: 5 thẻ CHIA ĐỀU một hàng. Trước đây là dải cuộn ngang
+         thẻ rộng 95dp: thẻ "Đầy đủ" bị cắt ở mép, thẻ "Cảnh báo hạn" nằm hẳn
+         ngoài màn hình mà không có gì gợi ý phải vuốt (H21). -->
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:scrollbars="none"
         android:paddingTop="8dp"
         android:paddingBottom="8dp"
-        android:clipToPadding="false"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
-
-        <LinearLayout
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal">
+        android:paddingStart="6dp"
+        android:paddingEnd="6dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
 
             <!-- Card Âm kho -->
             <androidx.cardview.widget.CardView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
                 app:cardBackgroundColor="@color/white">
@@ -78,7 +75,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
                     android:gravity="center">
                     <TextView
                         android:id="@+id/txt_card_am"
@@ -93,15 +93,19 @@
                         android:layout_height="wrap_content"
                         android:text="Âm kho"
                         android:textSize="11sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:textColor="@color/grey"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Card Hết hàng -->
             <androidx.cardview.widget.CardView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
                 app:cardBackgroundColor="@color/white">
@@ -109,7 +113,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
                     android:gravity="center">
                     <TextView
                         android:id="@+id/txt_card_het"
@@ -124,15 +131,19 @@
                         android:layout_height="wrap_content"
                         android:text="Hết hàng"
                         android:textSize="11sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:textColor="@color/grey"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Card Sắp hết -->
             <androidx.cardview.widget.CardView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
                 app:cardBackgroundColor="@color/white">
@@ -140,7 +151,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
                     android:gravity="center">
                     <TextView
                         android:id="@+id/txt_card_sap_het"
@@ -155,15 +169,19 @@
                         android:layout_height="wrap_content"
                         android:text="Sắp hết"
                         android:textSize="11sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:textColor="@color/grey"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Card Đầy đủ -->
             <androidx.cardview.widget.CardView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
-                android:layout_marginEnd="6dp"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
+                android:layout_marginStart="2dp"
+                android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
                 app:cardBackgroundColor="@color/white">
@@ -171,7 +189,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
                     android:gravity="center">
                     <TextView
                         android:id="@+id/txt_card_du"
@@ -186,14 +207,17 @@
                         android:layout_height="wrap_content"
                         android:text="Đầy đủ"
                         android:textSize="11sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:textColor="@color/grey"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
             <!-- Card Cảnh báo hạn -->
             <androidx.cardview.widget.CardView
-                android:layout_width="95dp"
-                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:layout_weight="1"
+                android:layout_height="match_parent"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
                 app:cardBackgroundColor="@color/white">
@@ -201,7 +225,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:padding="8dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="8dp"
+                    android:paddingStart="2dp"
+                    android:paddingEnd="2dp"
                     android:gravity="center">
                     <TextView
                         android:id="@+id/txt_card_canh_bao_han"
@@ -214,14 +241,15 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hạn &lt; 7 ngày"
+                        android:text="Cận hạn"
                         android:textSize="11sp"
+                        android:maxLines="1"
+                        android:ellipsize="end"
                         android:textColor="@color/grey"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
-        </LinearLayout>
-    </HorizontalScrollView>
+    </LinearLayout>
 
     <!-- Filter & Search Section -->
     <LinearLayout

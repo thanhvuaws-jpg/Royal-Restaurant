@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bản cho Android < 6.0: layer-list chưa hỗ trợ đặt vị trí mục (gravity,
+     width) nên không vẽ được mũi tên gọn; chỉ giữ nền bo góc. Bản đầy đủ ở
+     drawable-v23/bg_o_chon.xml. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="@color/white" />
+    <stroke android:width="1dp" android:color="#D7CCC8" />
+    <corners android:radius="12dp" />
+</shape>

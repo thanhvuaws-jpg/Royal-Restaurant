@@ -118,8 +118,11 @@
             <Spinner
                 android:id="@+id/spinner_tables"
                 android:layout_width="match_parent"
-                android:layout_height="48dp"
-                android:background="@android:drawable/btn_dropdown"
+                android:layout_height="52dp"
+                android:paddingStart="8dp"
+                android:paddingEnd="44dp"
+                android:popupBackground="@color/white"
+                android:background="@drawable/bg_o_chon"
                 android:enabled="false"
                 android:layout_marginBottom="16dp"/>
 

@@ -67,4 +67,27 @@ public class ViewUtils {
         }
         return macDinh;
     }
+
+    /**
+     * Xóa thông báo lỗi của ô nhập ngay khi người dùng gõ lại (H22).
+     *
+     * Các form kiểm tra khi bấm Lưu và đặt setError(). Trước đây lỗi chỉ được
+     * xóa ở lần bấm Lưu kế tiếp, nên đã nhập đúng rồi mà dòng đỏ "Không được
+     * để trống!" vẫn nằm đó, như thể ô vẫn còn sai.
+     */
+    public static void xoaLoiKhiGo(com.google.android.material.textfield.TextInputLayout... cacO) {
+        for (com.google.android.material.textfield.TextInputLayout o : cacO) {
+            if (o == null || o.getEditText() == null) continue;
+            o.getEditText().addTextChangedListener(new android.text.TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) { }
+                @Override public void onTextChanged(CharSequence s, int a, int b, int c) { }
+                @Override public void afterTextChanged(android.text.Editable e) {
+                    if (o.getError() != null) {
+                        o.setError(null);
+                        o.setErrorEnabled(false);
+                    }
+                }
+            });
+        }
+    }
 }

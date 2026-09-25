@@ -29,10 +29,10 @@
     <string name="addTable">Thêm bàn ăn</string>
     <string name="tablename">Tên bàn ăn</string>
     <string name="addMenu">Thêm thực đơn</string>
-    <string name="addmenu">Thêm \n thực đơn</string>
+    <string name="addmenu">Thêm món</string>
     <string name="addCategory">Thêm loại</string>
-    <string name="addcategory">Thêm \n loại</string>
-    <string name="editcategory">Sửa \n loại</string>
+    <string name="addcategory">Thêm loại</string>
+    <string name="editcategory">Sửa loại</string>
     <string name="choseimg">Chọn hình</string>
     <string name="select_gender">Chọn Giới tính</string>
     <string name="gender_male">Nam</string>

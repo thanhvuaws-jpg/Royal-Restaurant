@@ -90,7 +90,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                 (sdtNguoiDat != null && !sdtNguoiDat.trim().isEmpty())
                         ? tenNguoiDat + " · " + sdtNguoiDat
                         : tenNguoiDat);
-        holder.txt_booking_time.setText("Giờ hẹn: " + booking.getThoigianhen());
+        holder.txt_booking_time.setText("Giờ hẹn: " + com.sinhvien.orderdrinkapp.Utils.NgayGio.gioHen(booking.getThoigianhen()));
 
         // Hiển thị số tiền đặt trước món ăn nếu có
         if (booking.getTongTien() != null && !booking.getTongTien().isEmpty() && !"0".equals(booking.getTongTien())) {

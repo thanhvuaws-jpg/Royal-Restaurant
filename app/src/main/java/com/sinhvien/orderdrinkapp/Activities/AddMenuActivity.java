@@ -91,6 +91,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                             img_add_DishImage.setImageBitmap(bitmap);
                             daChonAnhMoi = bitmap != null;
+                            capNhatGoiYAnh();
                         }catch (FileNotFoundException e){
                             e.printStackTrace();
                         }
@@ -112,6 +113,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             img_add_DishImage.setImageBitmap(imageBitmap);
                             selectedImageUriStr = null;
                             daChonAnhMoi = true;
+                            capNhatGoiYAnh();
                         }
                     }
                 }
@@ -127,6 +129,8 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         img_add_DishBack = findViewById(R.id.img_add_DishBack);
         txtl_add_DishName = findViewById(R.id.txtl_add_DishName);
         txtl_add_DishPrice = findViewById(R.id.txtl_add_DishPrice);
+        // Xóa dòng lỗi ngay khi người dùng gõ lại (H22).
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.xoaLoiKhiGo(txtl_add_DishName, txtl_add_DishPrice);
         txtl_add_DishType = findViewById(R.id.txtl_add_DishType);
         btn_add_DishCreate = findViewById(R.id.btn_add_DishCreate);
         txt_add_DishTitle = findViewById(R.id.txt_add_DishTitle);
@@ -189,6 +193,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                             if (res.getHinhAnh() != null && !res.getHinhAnh().isEmpty()) {
                                 String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(res.getHinhAnh());
                                 cloudImageUrl = imageUrl;
+                                capNhatGoiYAnh();
                                 Glide.with(AddMenuActivity.this)
                                         .load(imageUrl)
                                         .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -214,6 +219,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         if (savedInstanceState != null) {
             selectedImageUriStr = savedInstanceState.getString("selected_image_uri");
             cloudImageUrl = savedInstanceState.getString("cloud_image_url");
+            capNhatGoiYAnh();
             maloai = savedInstanceState.getInt("maloai", maloai);
             int statusId = savedInstanceState.getInt("status_id", -1);
             if (statusId != -1) {
@@ -226,6 +232,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     img_add_DishImage.setImageBitmap(bitmap);
                     daChonAnhMoi = bitmap != null;
+                    capNhatGoiYAnh();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -488,5 +495,13 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         outState.putString("cloud_image_url", cloudImageUrl);
         outState.putInt("maloai", maloai);
         outState.putInt("status_id", rg_add_DishStatus.getCheckedRadioButtonId());
+    }
+
+    /** Ẩn nhãn "Ảnh mẫu" khi đã có ảnh thật (vừa chọn, hoặc ảnh cũ của bản ghi). */
+    private void capNhatGoiYAnh() {
+        View goiY = findViewById(R.id.txt_goi_y_anh);
+        if (goiY == null) return;
+        boolean coAnh = daChonAnhMoi || (cloudImageUrl != null && !cloudImageUrl.isEmpty());
+        goiY.setVisibility(coAnh ? View.GONE : View.VISIBLE);
     }
 }

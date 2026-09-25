@@ -69,7 +69,9 @@
 
             <TextView
                 android:id="@+id/txt_custom_staff_Email"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
+                android:maxLines="1"
+                android:ellipsize="middle"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
                 tools:text="staff@example.com"

@@ -88,6 +88,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                             IMG_addcategory_AddImage.setImageBitmap(bitmap);
                             daChonAnhMoi = bitmap != null;
+                            capNhatGoiYAnh();
                         }catch (FileNotFoundException e){
                             e.printStackTrace();
                         }
@@ -109,6 +110,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                             IMG_addcategory_AddImage.setImageBitmap(imageBitmap);
                             selectedImageUriStr = null; // Đặt về null vì ảnh này là dữ liệu trực tiếp chứ không có URI cục bộ
                             daChonAnhMoi = true;
+                            capNhatGoiYAnh();
                         }
                     }
                 }
@@ -122,6 +124,8 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         // Ánh xạ các thành phần View
         BTN_addcategory_CreateCategory = (Button)findViewById(R.id.btn_addcategory_CreateCategory);
         TXTL_addcategory_CategoryName = (TextInputLayout)findViewById(R.id.txtl_addcategory_CategoryName);
+        // Xóa dòng lỗi ngay khi người dùng gõ lại (H22).
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.xoaLoiKhiGo(TXTL_addcategory_CategoryName);
         IMG_addcategory_back = (ImageView)findViewById(R.id.img_addcategory_back);
         IMG_addcategory_AddImage = (ImageView)findViewById(R.id.img_addcategory_AddImage);
         TXT_addcategory_title = (TextView)findViewById(R.id.txt_addcategory_title);
@@ -146,6 +150,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                             // Lấy link ảnh từ Cloud và dùng Glide hiển thị lên ImageView
                             String imageUrl = com.sinhvien.orderdrinkapp.Utils.ViewUtils.getImageUrl(response.body().getHinhAnh());
                             cloudImageUrl = imageUrl;
+                            capNhatGoiYAnh();
                             Glide.with(AddCategoryActivity.this)
                                     .load(imageUrl)
                                     .diskCacheStrategy(DiskCacheStrategy.ALL)
@@ -164,6 +169,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
         if (savedInstanceState != null) {
             selectedImageUriStr = savedInstanceState.getString("selected_image_uri");
             cloudImageUrl = savedInstanceState.getString("cloud_image_url");
+            capNhatGoiYAnh();
             if (selectedImageUriStr != null) {
                 try {
                     Uri uri = Uri.parse(selectedImageUriStr);
@@ -171,6 +177,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
                     IMG_addcategory_AddImage.setImageBitmap(bitmap);
                     daChonAnhMoi = bitmap != null;
+                    capNhatGoiYAnh();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -344,5 +351,13 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
             TXTL_addcategory_CategoryName.setErrorEnabled(false);
             return true;
         }
+    }
+
+    /** Ẩn nhãn "Ảnh mẫu" khi đã có ảnh thật (vừa chọn, hoặc ảnh cũ của bản ghi). */
+    private void capNhatGoiYAnh() {
+        View goiY = findViewById(R.id.txt_goi_y_anh);
+        if (goiY == null) return;
+        boolean coAnh = daChonAnhMoi || (cloudImageUrl != null && !cloudImageUrl.isEmpty());
+        goiY.setVisibility(coAnh ? View.GONE : View.VISIBLE);
     }
 }

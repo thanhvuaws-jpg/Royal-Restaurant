@@ -97,6 +97,8 @@ public class AddTableActivity extends AppCompatActivity {
 
         // Ánh xạ các thành phần View từ XML layout
         TXTL_addtable_TableName = findViewById(R.id.txtl_addtable_TableName);
+        // Xóa dòng lỗi ngay khi người dùng gõ lại (H22).
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.xoaLoiKhiGo(TXTL_addtable_TableName);
         BTN_addtable_CreateTable = findViewById(R.id.btn_addtable_CreateTable);
         IMG_addtable_back = findViewById(R.id.img_addtable_back);
         imgAnh = findViewById(R.id.img_addtable_anh);

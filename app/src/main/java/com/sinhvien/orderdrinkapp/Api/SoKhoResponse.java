@@ -35,6 +35,11 @@ public class SoKhoResponse {
         @SerializedName("MAPHIEU")
         private String maPhieu;
 
+        /** Số chứng từ để tra: "PN-20260924-000159", "Đơn #17976" (null: kiểm kê…). */
+        @SerializedName("SO_PHIEU")
+        private String soPhieu;
+        public String getSoPhieu() { return soPhieu; }
+
         @SerializedName("LOAI_PHIEU")
         private String loaiPhieu;
 

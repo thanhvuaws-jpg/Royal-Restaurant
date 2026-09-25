@@ -51,19 +51,22 @@ public class AdapterDongSoKho extends RecyclerView.Adapter<AdapterDongSoKho.View
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         SoKhoResponse.DongSoKho item = list.get(position);
 
-        // Loại biến động
+        // Loại biến động. Giá trị thật trong SOKHO: LOAI = nhap | xuat | kiemke,
+        // LOAI_PHIEU = PHIEU_NHAP | PHIEU_XUAT | PHIEU_HUY | DONDAT. Bản cũ so với
+        // "kiem_ke", "huy", "ban_hang" — không khớp giá trị nào, nên đơn bán và
+        // phiếu hủy đều hiện "Xuất kho", kiểm kê hiện chữ thô "kiemke" (H21).
         String loaiPhieu = item.getLoaiPhieu();
         String loaiBienDong = item.getLoai();
-        if ("nhap".equalsIgnoreCase(loaiPhieu) || "nhap".equalsIgnoreCase(loaiBienDong)) {
-            holder.txtLoaiBienDong.setText("Nhập kho");
-        } else if ("xuat".equalsIgnoreCase(loaiPhieu) || "xuat".equalsIgnoreCase(loaiBienDong)) {
-            holder.txtLoaiBienDong.setText("Xuất kho");
-        } else if ("huy".equalsIgnoreCase(loaiPhieu) || "huy".equalsIgnoreCase(loaiBienDong)) {
-            holder.txtLoaiBienDong.setText("Hủy hàng");
-        } else if ("ban_hang".equalsIgnoreCase(loaiBienDong) || "ban".equalsIgnoreCase(loaiBienDong)) {
+        if ("DONDAT".equals(loaiPhieu)) {
             holder.txtLoaiBienDong.setText("Bán hàng");
-        } else if ("kiem_ke".equalsIgnoreCase(loaiBienDong)) {
+        } else if ("PHIEU_HUY".equals(loaiPhieu)) {
+            holder.txtLoaiBienDong.setText("Hủy hàng");
+        } else if ("kiemke".equals(loaiBienDong)) {
             holder.txtLoaiBienDong.setText("Kiểm kê điều chỉnh");
+        } else if ("nhap".equals(loaiBienDong)) {
+            holder.txtLoaiBienDong.setText("Nhập kho");
+        } else if ("xuat".equals(loaiBienDong)) {
+            holder.txtLoaiBienDong.setText("Xuất kho");
         } else {
             holder.txtLoaiBienDong.setText(loaiBienDong);
         }
@@ -82,9 +85,16 @@ public class AdapterDongSoKho extends RecyclerView.Adapter<AdapterDongSoKho.View
         holder.txtTonSau.setText("Tồn sau: " + df.format(item.getTonSau()) + " " + donVi);
 
         // Mã phiếu chứng từ
+        // Ưu tiên số chứng từ đầy đủ (PN-…, "Đơn #…") máy chủ trả; mã số trần
+        // không cho biết là phiếu gì (H21).
+        String soPhieu = item.getSoPhieu();
         String maPhieu = item.getMaPhieu();
-        if (maPhieu != null && !maPhieu.isEmpty()) {
-            holder.txtMaPhieu.setText("Chứng từ: " + maPhieu);
+        if (soPhieu != null && !soPhieu.isEmpty()) {
+            holder.txtMaPhieu.setText("Chứng từ: " + soPhieu);
+        } else if ("kiemke".equals(loaiBienDong)) {
+            holder.txtMaPhieu.setText("Chứng từ: kiểm kê");
+        } else if (maPhieu != null && !maPhieu.isEmpty()) {
+            holder.txtMaPhieu.setText("Chứng từ: #" + maPhieu);
         } else {
             holder.txtMaPhieu.setText("Chứng từ: -");
         }
@@ -99,7 +109,8 @@ public class AdapterDongSoKho extends RecyclerView.Adapter<AdapterDongSoKho.View
         }
 
         // Ngày tạo
-        holder.txtNgayTao.setText(item.getNgayTao());
+        // "2026-09-24 13:05:00" -> "24-09-2026 13:05"
+        holder.txtNgayTao.setText(com.sinhvien.orderdrinkapp.Utils.NgayGio.sangNgayGio(item.getNgayTao()));
     }
 
     @Override

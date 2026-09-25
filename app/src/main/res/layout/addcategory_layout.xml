@@ -84,6 +84,19 @@
                     android:scaleType="centerCrop"
                     android:contentDescription="@string/choseimg"
                     android:src="@drawable/menu" />
+                <!-- Nhãn phủ khi CHƯA có ảnh thật: ảnh nền chỉ là ảnh mẫu, không
+                     có nhãn thì tưởng món/danh mục đã có ảnh (H22). -->
+                <TextView
+                    android:id="@+id/txt_goi_y_anh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="bottom"
+                    android:background="#99000000"
+                    android:gravity="center"
+                    android:padding="10dp"
+                    android:text="Ảnh mẫu · chạm để chọn ảnh"
+                    android:textColor="@color/white"
+                    android:textSize="14sp" />
             </com.google.android.material.card.MaterialCardView>
 
             <Button

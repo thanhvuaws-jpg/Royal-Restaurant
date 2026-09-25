@@ -27,6 +27,12 @@ public final class NgayGio {
         return s.substring(8, 10) + "-" + s.substring(5, 7) + "-" + s.substring(0, 4);
     }
 
+    /** "2026-09-27 16:00:00" -> "16:00 · 27/09/2026" (giờ trước, như cách nói lịch hẹn). */
+    public static String gioHen(String s) {
+        if (!dungDang(s) || s.length() < 16) return s;
+        return s.substring(11, 16) + " · " + s.substring(8, 10) + "/" + s.substring(5, 7) + "/" + s.substring(0, 4);
+    }
+
     /** "2026-09-24 13:05:00" -> "24-09-2026 13:05"; chuỗi lạ thì trả nguyên. */
     public static String sangNgayGio(String s) {
         if (!dungDang(s)) return s;

@@ -3,11 +3,11 @@
     <group android:checkableBehavior="single">
         <item
             android:id="@+id/nav_customer_booking"
-            android:title="Đặt bàn &amp; món trước"
+            android:title="Đặt bàn &amp; món"
             android:icon="@drawable/ic_baseline_restaurant_menu_24"/>
         <item
             android:id="@+id/nav_customer_history"
-            android:title="Lịch sử đặt bàn"
+            android:title="Lịch sử &amp; chi tiêu"
             android:icon="@drawable/ic_baseline_bar_chart_24"/>
         <item
             android:id="@+id/nav_diem_danh"
@@ -15,7 +15,7 @@
             android:title="Điểm danh &amp; Quà tặng" />
         <item
             android:id="@+id/nav_customer_contact"
-            android:title="Hỗ trợ &amp; Chăm sóc"
+            android:title="Hỗ trợ khách hàng"
             android:icon="@drawable/ic_chat_ho_tro"/>
         <item
             android:id="@+id/nav_logout"

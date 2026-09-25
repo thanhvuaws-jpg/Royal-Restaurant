@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,7 +12,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@color/white"
-        android:elevation="2dp"/>
+        android:elevation="2dp"
+        app:tabMode="scrollable"
+        app:tabGravity="start"
+        app:tabTextAppearance="@style/ChuTabDatLich"
+        app:tabIndicatorColor="@color/colorPrimary"
+        app:tabSelectedTextColor="@color/colorPrimary"
+        app:tabTextColor="@color/grey"/>
+    <!-- tabMode=scrollable + cỡ chữ cố định: ở chế độ "fixed" mặc định, 5 tab
+         chia đều chiều rộng và TabLayout tự THU NHỎ chữ tab nào dài, nên các
+         tab lệch cỡ chữ nhau (H23). -->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_manage_bookings"

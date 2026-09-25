@@ -209,6 +209,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         // "chọn lại", không kích hoạt listener trên — trước đây bấm không có
         // gì xảy ra, không chuyển được sang mục khác trong bảng (H12).
         bottomNav.setOnItemReselectedListener(item -> {
+            // Bỏ qua khi CODE đang đồng bộ dấu chọn (syncNavSelection chọn lại
+            // "Thêm" sau khi vào Kho/Nhân viên…): không có dòng này thì chọn
+            // một mục trong bảng xong, bảng lại tự bật lên.
+            if (isSyncingNav) return;
             if (item.getItemId() == R.id.nav_more) showMoreBottomSheet();
         });
         // Hiện nhãn cho MỌI mục, không chỉ mục đang chọn: chỉ có biểu tượng thì
@@ -218,10 +222,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
         // Thực thi phân quyền giao diện (Ẩn bớt các mục menu không được quyền truy cập)
         if (SessionManager.isCashier(this)) {
-            // Thu ngân
+            // Thu ngân. Menu bên và thanh dưới phải cùng một danh sách (H13):
+            // Thu ngân · Thống kê · Thực đơn · Đặt lịch trước · Đăng xuất.
+            // Bỏ "Trang chủ": đó là trang của nhân viên phục vụ, có ô "Quản lý
+            // bàn" mà thu ngân không có quyền vào. Trước đây menu bên có Trang
+            // chủ và Đặt lịch nhưng thiếu Thực đơn; thanh dưới thì ngược lại.
+            navigationView.getMenu().findItem(R.id.nav_home).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_staff).setVisible(false);
             navigationView.getMenu().findItem(R.id.nav_table).setVisible(false);
-            navigationView.getMenu().findItem(R.id.nav_category).setVisible(false);
             if (navigationView.getMenu().findItem(R.id.nav_kho) != null) {
                 navigationView.getMenu().findItem(R.id.nav_kho).setVisible(false);
             }
@@ -520,7 +528,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
             // Phân quyền cho bottom sheet
             if (SessionManager.isCashier(this)) {
-                itemManageBookings.setVisibility(View.GONE);
+                // Thu ngân vẫn quản lý đặt lịch (menu bên có mục này) — chỉ ẩn
+                // Nhân viên và Kho.
                 itemStaff.setVisibility(View.GONE);
                 if (itemKho != null) itemKho.setVisibility(View.GONE);
             } else if (!SessionManager.isAdmin(this)) {

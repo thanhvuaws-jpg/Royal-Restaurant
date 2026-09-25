@@ -77,6 +77,9 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
         txtl_add_StaffEmail = (TextInputLayout)findViewById(R.id.txtl_add_StaffEmail);
         txtl_add_StaffPhone = (TextInputLayout)findViewById(R.id.txtl_add_StaffPhone);
         txtl_add_StaffPassword = (TextInputLayout)findViewById(R.id.txtl_add_StaffPassword);
+        // Xóa dòng lỗi ngay khi người dùng gõ lại (H22).
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.xoaLoiKhiGo(txtl_add_StaffFullName, txtl_add_StaffUserName,
+                txtl_add_StaffEmail, txtl_add_StaffPhone, txtl_add_StaffPassword);
         rg_add_StaffGender = (RadioGroup)findViewById(R.id.rg_add_StaffGender);
         rg_add_StaffRole = (RadioGroup)findViewById(R.id.rg_add_StaffRole);
         rd_add_StaffMale = (RadioButton)findViewById(R.id.rd_add_StaffMale);
