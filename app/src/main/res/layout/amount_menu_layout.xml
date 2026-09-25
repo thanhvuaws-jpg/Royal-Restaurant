@@ -110,10 +110,13 @@
                     app:boxStrokeColor="@color/colorPrimary"
                     app:boxStrokeWidthFocused="2dp"
                     app:endIconMode="clear_text"
-                    app:endIconTint="@color/colorPrimary">
+                    app:endIconTint="@color/colorPrimary"
+                    app:counterEnabled="true"
+                    app:counterMaxLength="120">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/et_amount_Note"
+                        android:maxLength="120"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@color/black"

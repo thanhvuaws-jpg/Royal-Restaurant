@@ -37,4 +37,11 @@ public class OrderDetailResponse {
     public long getGiaTien() { return giaTien; }
     public int getSoLuong() { return soLuong; }
     public String getHinhAnh() { return hinhAnh; }
+
+    // Ghi chú của món khi gọi ("ít đường"; "2 phần: ít đường · 1 phần: không đá"
+    // khi gọi thêm cùng món với yêu cầu khác). null: không có ghi chú.
+    @SerializedName("GHICHU")
+    private String ghiChu;
+
+    public String getGhiChu() { return ghiChu; }
 }

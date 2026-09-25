@@ -47,6 +47,20 @@ public class ViewUtils {
     }
 
     /**
+     * Chữ thường, bỏ dấu tiếng Việt: "Phở Bò" -> "pho bo". Dùng để tìm kiếm
+     * trong máy mà gõ có dấu hay không dấu đều ra — giống cách MySQL
+     * (collation _ai_ci) so khi tìm trên máy chủ.
+     */
+    public static String boDau(String s) {
+        if (s == null) return "";
+        return java.text.Normalizer.normalize(s, java.text.Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .replace('đ', 'd').replace('Đ', 'D')
+                .toLowerCase(java.util.Locale.ROOT)
+                .trim();
+    }
+
+    /**
      * Lý do máy chủ đưa ra khi từ chối yêu cầu (HTTP 4xx/5xx).
      *
      * Retrofit KHÔNG đọc thân phản hồi lỗi vào response.body() — với mã

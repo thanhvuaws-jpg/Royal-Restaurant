@@ -104,7 +104,10 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder h, int position) {
-        h.txt_profile_name.setText(hoTen.isEmpty() ? context.getString(R.string.customer_default_name) : hoTen);
+        String tenHien = hoTen.isEmpty() ? context.getString(R.string.customer_default_name) : hoTen;
+        h.txt_profile_name.setText(tenHien);
+        // Tên chủ thẻ in hoa như trên thẻ thật.
+        h.txt_ten_chu_the.setText(tenHien.toUpperCase(new java.util.Locale("vi", "VN")));
 
         // Hiển thị ảnh Avatar nếu có; nếu không fallback về chữ cái đầu tiên của tên
         if (h.img_profile_avatar != null) {
@@ -259,7 +262,7 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
         ImageView img_card_background, img_rank_badge, img_profile_avatar, img_edit_badge;
         FrameLayout layout_avatar_container;
         TextView txt_chu_cai_dau, txt_profile_name, txt_profile_phone, txt_profile_email,
-                 txt_profile_spending, txt_profile_badge, txt_tien_do_hang,
+                 txt_profile_spending, txt_profile_badge, txt_tien_do_hang, txt_ten_chu_the,
                  txt_so_lan_dat, txt_so_hoan_thanh, txt_so_da_huy, txt_tong_so_phieu;
         ProgressBar progress_hang;
         LinearLayout layout_chip_loc;
@@ -277,6 +280,7 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
             txt_profile_email       = v.findViewById(R.id.txt_profile_email);
             txt_profile_spending    = v.findViewById(R.id.txt_profile_spending);
             txt_profile_badge       = v.findViewById(R.id.txt_profile_badge);
+            txt_ten_chu_the         = v.findViewById(R.id.txt_ten_chu_the);
             txt_tien_do_hang        = v.findViewById(R.id.txt_tien_do_hang);
             txt_so_lan_dat          = v.findViewById(R.id.txt_so_lan_dat);
             txt_so_hoan_thanh       = v.findViewById(R.id.txt_so_hoan_thanh);

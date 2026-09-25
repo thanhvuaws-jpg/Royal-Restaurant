@@ -16,211 +16,272 @@
     android:paddingStart="4dp"
     android:paddingEnd="4dp">
 
-    <!-- ══════════════════ Thẻ hồ sơ ══════════════════ -->
-    <!-- ══════════════════ Thẻ hồ sơ VIP ══════════════════ -->
+    <!-- ══════════════════ Hồ sơ + thẻ thành viên ══════════════════ -->
+    <!--
+        Thông tin người dùng (ảnh, tên, SĐT, email, huy hiệu hạng) nằm trên nền
+        trắng, KHÔNG đè lên ảnh thẻ. Bản trước phủ tất cả lên ảnh thẻ và kéo
+        giãn ảnh theo khối chữ: chip, sóng NFC, vương miện, chữ in sẵn trên thẻ
+        đè vào ảnh đại diện, tên và huy hiệu (người dùng báo "vướng", 25/09).
+
+        Ảnh thẻ giữ đúng tỉ lệ gốc 900:570 (thẻ CR80) và chỉ mang những gì một
+        tấm thẻ thật in: số tích lũy dưới chip, tên chủ thẻ và hạng ở dải dưới.
+        Các đường dẫn (Guideline) đặt theo vùng trống đo trên ảnh 900×570:
+          chữ in + chip   x 8–21%,  y 13–41%
+          sóng NFC        x 25–28%, y 29–39%
+          vòng cung lớn   x 53–82%, y 33–79%
+          vương miện      x 81–91%, y 8–20%
+        => cột trái dưới chip (x 8–48%, y 50–78%) và dải đáy (y 82–93%) trống.
+    -->
     <androidx.cardview.widget.CardView
         android:id="@+id/card_profile"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="12dp"
         app:cardCornerRadius="20dp"
-        app:cardElevation="6dp">
+        app:cardElevation="3dp"
+        app:cardBackgroundColor="@color/white">
 
-        <RelativeLayout
+        <LinearLayout
+            android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:padding="16dp">
 
-            <!-- Hình nền thẻ thành viên VIP chuẩn CR80 (the_dong / the_bac / the_vang / the_kimcuong) -->
-            <!-- Ảnh nền BÁM THEO khối nội dung (alignTop/alignBottom), không tự
-                 quyết chiều cao. Để match_parent trong khung wrap_content như
-                 trước thì khung lấy chiều cao gốc của ảnh (900×570 phóng theo
-                 mật độ màn hình): thẻ dài gần hết màn hình, họa tiết bị phóng
-                 to, hàng số liệu bị đẩy xuống đáy (H24). -->
-            <ImageView
-                android:id="@+id/img_card_background"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignTop="@+id/khung_noi_dung_the"
-                android:layout_alignBottom="@+id/khung_noi_dung_the"
-                android:scaleType="centerCrop"
-                android:importantForAccessibility="no"
-                android:src="@drawable/the_dong" />
-
-            <!-- Lớp phủ bán trong suốt làm nổi bật chữ màu trắng -->
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignTop="@+id/khung_noi_dung_the"
-                android:layout_alignBottom="@+id/khung_noi_dung_the"
-                android:background="#5A000000" />
-
+            <!-- Hàng danh tính -->
             <LinearLayout
-                android:id="@+id/khung_noi_dung_the"
-                android:orientation="vertical"
+                android:orientation="horizontal"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:padding="18dp">
+                android:gravity="center_vertical">
 
-                <!-- Hàng danh tính -->
-                <LinearLayout
-                    android:orientation="horizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical">
+                <!-- Khung Avatar hỗ trợ click để sửa thông tin / đổi ảnh -->
+                <FrameLayout
+                    android:id="@+id/layout_avatar_container"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:clickable="true"
+                    android:focusable="true">
 
-                    <!-- Khung Avatar hỗ trợ click để sửa thông tin / đổi ảnh -->
-                    <FrameLayout
-                        android:id="@+id/layout_avatar_container"
-                        android:layout_width="56dp"
-                        android:layout_height="56dp"
-                        android:clickable="true"
-                        android:focusable="true">
+                    <TextView
+                        android:id="@+id/txt_chu_cai_dau"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_gravity="center"
+                        android:gravity="center"
+                        android:textSize="22sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/colorPrimaryDark"
+                        android:background="@drawable/bg_tron_sang"/>
 
-                        <TextView
-                            android:id="@+id/txt_chu_cai_dau"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            android:layout_gravity="center"
-                            android:gravity="center"
-                            android:textSize="22sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/colorPrimaryDark"
-                            android:background="@drawable/bg_tron_sang"/>
-
-                        <ImageView
-                            android:id="@+id/img_profile_avatar"
-                            android:layout_width="52dp"
-                            android:layout_height="52dp"
-                            android:layout_gravity="center"
-                            android:scaleType="centerCrop"
-                            android:visibility="gone" />
-
-                        <!-- Huy hiệu camera nhỏ ở góc phải dưới -->
-                        <ImageView
-                            android:id="@+id/img_edit_badge"
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:layout_gravity="bottom|end"
-                            android:background="@drawable/bg_tron_cam"
-                            android:padding="3.5dp"
-                            android:src="@drawable/ic_camera_white"
-                            android:contentDescription="@string/chinh_sua_ho_so" />
-                    </FrameLayout>
-
-                    <LinearLayout
-                        android:orientation="vertical"
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:layout_marginStart="14dp">
-
-                        <TextView
-                            android:id="@+id/txt_profile_name"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:text="@string/customer_default_name"
-                            android:textSize="18sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/white"
-                            android:maxLines="1"
-                            android:ellipsize="end"/>
-
-                        <TextView
-                            android:id="@+id/txt_profile_phone"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="2dp"
-                            android:text="@string/customer_default_phone"
-                            android:textSize="13sp"
-                            android:textColor="#EFE3DE"/>
-
-                        <TextView
-                            android:id="@+id/txt_profile_email"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textSize="12sp"
-                            android:textColor="#D6C4BD"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:visibility="gone"/>
-
-                    </LinearLayout>
-
-                    <!-- Huy hiệu Rank kim loại 3D ở góc trên phải -->
                     <ImageView
-                        android:id="@+id/img_rank_badge"
-                        android:layout_width="54dp"
-                        android:layout_height="54dp"
-                        android:src="@drawable/rank_dong"
-                        android:scaleType="fitCenter"
-                        android:contentDescription="Rank badge" />
+                        android:id="@+id/img_profile_avatar"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_gravity="center"
+                        android:scaleType="centerCrop"
+                        android:visibility="gone" />
+
+                    <!-- Huy hiệu camera nhỏ ở góc phải dưới -->
+                    <ImageView
+                        android:id="@+id/img_edit_badge"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_gravity="bottom|end"
+                        android:background="@drawable/bg_tron_cam"
+                        android:padding="3.5dp"
+                        android:src="@drawable/ic_camera_white"
+                        android:contentDescription="@string/chinh_sua_ho_so" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="14dp">
+
+                    <TextView
+                        android:id="@+id/txt_profile_name"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/customer_default_name"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:textColor="#3E2723"
+                        android:maxLines="1"
+                        android:ellipsize="end"/>
+
+                    <TextView
+                        android:id="@+id/txt_profile_phone"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:text="@string/customer_default_phone"
+                        android:textSize="13sp"
+                        android:textColor="#6D4C41"/>
+
+                    <TextView
+                        android:id="@+id/txt_profile_email"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="12sp"
+                        android:textColor="#8D6E63"
+                        android:maxLines="1"
+                        android:ellipsize="middle"
+                        android:visibility="gone"/>
 
                 </LinearLayout>
 
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="14dp"
-                    android:background="#40FFFFFF"/>
+                <!-- Huy hiệu hạng -->
+                <ImageView
+                    android:id="@+id/img_rank_badge"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="8dp"
+                    android:src="@drawable/rank_dong"
+                    android:scaleType="fitCenter"
+                    android:contentDescription="@string/customer_rank_bronze" />
 
-                <!-- Chi tiêu -->
+            </LinearLayout>
+
+            <!-- Thẻ thành viên: đúng tỉ lệ ảnh, chữ chỉ nằm ở vùng trống -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp">
+
+                <ImageView
+                    android:id="@+id/img_card_background"
+                    android:layout_width="0dp"
+                    android:layout_height="0dp"
+                    android:scaleType="fitXY"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/the_dong"
+                    app:layout_constraintDimensionRatio="900:570"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/gl_the_trai"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.083" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/gl_the_giua"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.5" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/gl_the_phai"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    app:layout_constraintGuide_percent="0.915" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/gl_the_duoi_chip"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.5" />
+
+                <androidx.constraintlayout.widget.Guideline
+                    android:id="@+id/gl_the_day"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    app:layout_constraintGuide_percent="0.91" />
+
+                <!-- Chi tiêu tích lũy: chỗ số thẻ của một tấm thẻ thật -->
                 <TextView
-                    android:layout_width="match_parent"
+                    android:id="@+id/txt_nhan_chi_tieu"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:text="@string/customer_total_spending"
-                    android:textSize="11sp"
+                    android:textSize="9sp"
                     android:textStyle="bold"
-                    android:letterSpacing="0.08"
-                    android:textColor="#E0E0E0"/>
+                    android:letterSpacing="0.1"
+                    android:textColor="#D7CCC8"
+                    android:maxLines="1"
+                    app:layout_constraintStart_toStartOf="@id/gl_the_trai"
+                    app:layout_constraintEnd_toEndOf="@id/gl_the_giua"
+                    app:layout_constraintTop_toTopOf="@id/gl_the_duoi_chip" />
 
                 <TextView
                     android:id="@+id/txt_profile_spending"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_width="0dp"
+                    android:layout_height="32dp"
                     android:layout_marginTop="2dp"
                     android:text="@string/customer_spending_zero"
-                    android:textSize="28sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white"
+                    android:maxLines="1"
+                    app:autoSizeTextType="uniform"
+                    app:autoSizeMinTextSize="14sp"
+                    app:autoSizeMaxTextSize="24sp"
+                    app:layout_constraintStart_toStartOf="@id/gl_the_trai"
+                    app:layout_constraintEnd_toEndOf="@id/gl_the_giua"
+                    app:layout_constraintTop_toBottomOf="@id/txt_nhan_chi_tieu" />
+
+                <!-- Dải đáy: tên chủ thẻ (trái) + hạng (phải) -->
+                <TextView
+                    android:id="@+id/txt_ten_chu_the"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:letterSpacing="0.12"
+                    android:textColor="#F5F0EC"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    app:layout_constraintStart_toStartOf="@id/gl_the_trai"
+                    app:layout_constraintEnd_toStartOf="@id/txt_profile_badge"
+                    app:layout_constraintBottom_toBottomOf="@id/gl_the_day" />
 
                 <TextView
                     android:id="@+id/txt_profile_badge"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
                     android:text="@string/customer_rank_bronze"
-                    android:textSize="12sp"
+                    android:textSize="11sp"
                     android:textStyle="bold"
                     android:textColor="@color/colorPrimaryDark"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:paddingTop="6dp"
-                    android:paddingBottom="6dp"
-                    android:background="@drawable/bg_huy_hieu_hang"/>
+                    android:paddingStart="10dp"
+                    android:paddingEnd="10dp"
+                    android:paddingTop="3dp"
+                    android:paddingBottom="3dp"
+                    android:background="@drawable/bg_huy_hieu_hang"
+                    app:layout_constraintEnd_toEndOf="@id/gl_the_phai"
+                    app:layout_constraintBaseline_toBaselineOf="@id/txt_ten_chu_the" />
 
-                <!-- Tiến độ lên hạng kế tiếp -->
-                <ProgressBar
-                    android:id="@+id/progress_hang"
-                    style="?android:attr/progressBarStyleHorizontal"
-                    android:layout_width="match_parent"
-                    android:layout_height="6dp"
-                    android:layout_marginTop="14dp"
-                    android:max="100"
-                    android:progressTint="#FFD54F"
-                    android:progressBackgroundTint="#40FFFFFF"/>
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
-                <TextView
-                    android:id="@+id/txt_tien_do_hang"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:textSize="11sp"
-                    android:textColor="#EFE3DE"/>
+            <!-- Tiến độ lên hạng kế tiếp -->
+            <ProgressBar
+                android:id="@+id/progress_hang"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="6dp"
+                android:layout_marginTop="14dp"
+                android:max="100"
+                android:progressTint="#FFB300"
+                android:progressBackgroundTint="#D7CCC8"/>
 
-            </LinearLayout>
+            <TextView
+                android:id="@+id/txt_tien_do_hang"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textSize="12sp"
+                android:textColor="#6D4C41"/>
 
-        </RelativeLayout>
+        </LinearLayout>
 
     </androidx.cardview.widget.CardView>
 

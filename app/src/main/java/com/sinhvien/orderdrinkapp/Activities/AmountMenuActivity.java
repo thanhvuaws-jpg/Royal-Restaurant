@@ -27,7 +27,9 @@ import retrofit2.Response;
  * Chức năng chính:
  * - Khi click vào món ăn trong danh sách, màn hình này xuất hiện để chọn số lượng món cần đặt.
  * - Tự động liên hệ API Server để tìm Đơn đặt bàn hiện tại (OrderByTable). Nếu chưa có đơn hàng, hệ thống tự động khởi tạo đơn mới (createOrder).
- * - Lưu chi tiết món ăn (mã món, số lượng) vào cơ sở dữ liệu cloud qua API (addOrderDetail).
+ * - Lưu chi tiết món ăn (mã món, số lượng, ghi chú) vào cơ sở dữ liệu cloud qua API (addOrderDetail).
+ *   Ghi chú ("ít đường", "không hành") hiện ở màn thanh toán và màn thu ngân (app, web).
+ *   Trước đây ô ghi chú có trên màn hình nhưng chữ nhập vào không được gửi đi (H26).
  */
 public class AmountMenuActivity extends AppCompatActivity {
 
@@ -125,17 +127,23 @@ public class AmountMenuActivity extends AppCompatActivity {
      */
     private void themMonVaoDon(androidx.appcompat.app.AlertDialog progressDialog, int sluong) {
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
-        apiService.addOrderDetail(madondatCloud, mamon, sluong).enqueue(new Callback<OrderResponse>() {
+        String ghiChu = txtl_amount_Note.getEditText() != null
+                ? txtl_amount_Note.getEditText().getText().toString().trim() : "";
+        apiService.addOrderDetail(madondatCloud, mamon, sluong, ghiChu).enqueue(new Callback<OrderResponse>() {
             @Override
             public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Thêm món thành công: mamon=" + mamon + ", soluong=" + sluong + ", madon=" + madondatCloud);
-                    Toast.makeText(AmountMenuActivity.this, "Đã gọi món lên Cloud!", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(AmountMenuActivity.this, "Đã gọi món", Toast.LENGTH_SHORT).show();
                     finish();
                 } else {
-                    Toast.makeText(AmountMenuActivity.this, "Lỗi lưu món ăn", Toast.LENGTH_SHORT).show();
+                    // Nói đúng lý do máy chủ trả (món tạm hết, đơn đã thanh toán,
+                    // ghi chú quá dài…) thay vì một câu chung chung.
+                    Toast.makeText(AmountMenuActivity.this,
+                            ViewUtils.docLoiMayChu(response, "Không gọi được món, thử lại"),
+                            Toast.LENGTH_LONG).show();
                 }
             }
 

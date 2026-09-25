@@ -163,6 +163,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                         tt.setGiaTien((int) res.getGiaTien());
                         tt.setSoLuong(res.getSoLuong());
                         tt.setHinhAnhPath(res.getHinhAnh());
+                        tt.setGhiChu(res.getGhiChu());
                         thanhToanDTOList.add(tt);
                         tongtien += ((long) res.getSoLuong() * res.getGiaTien());
                     }

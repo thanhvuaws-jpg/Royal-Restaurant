@@ -54,6 +54,17 @@ public class ThanhToanDTO {
         HinhAnh = hinhAnh;
     }
 
+    // Ghi chú của món khi gọi (null: không có)
+    String GhiChu;
+
+    public String getGhiChu() {
+        return GhiChu;
+    }
+
+    public void setGhiChu(String ghiChu) {
+        GhiChu = ghiChu;
+    }
+
     public void setHinhAnhUrl(String url) {
         this.HinhAnhPath = url;
     }

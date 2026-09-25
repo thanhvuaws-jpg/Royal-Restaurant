@@ -53,6 +53,19 @@ public class AdapterDisplayPayment extends RecyclerView.Adapter<AdapterDisplayPa
         holder.txt_DishName.setText(item.getTenMon());
         holder.txt_Quantity.setText(String.valueOf(item.getSoLuong()));
 
+        // Ghi chú khi gọi món ("ít đường"…): thu ngân và người pha chế cần thấy.
+        String ghiChu = item.getGhiChu();
+        if (ghiChu != null && !ghiChu.trim().isEmpty()) {
+            // Nhiều yêu cầu cho cùng món ("2 phần: ít đường · 1 phần: không đá")
+            // thì mỗi yêu cầu một dòng cho dễ đọc.
+            String hien = ghiChu.trim();
+            if (hien.contains(" · ")) hien = "\n• " + hien.replace(" · ", "\n• ");
+            holder.txt_Note.setText(context.getString(R.string.order_note_line, hien));
+            holder.txt_Note.setVisibility(View.VISIBLE);
+        } else {
+            holder.txt_Note.setVisibility(View.GONE);
+        }
+
         // Định dạng số tiền (Ví dụ: 10.000 VNĐ)
         holder.txt_Price.setText(com.sinhvien.orderdrinkapp.Utils.TienTe.dong(item.getGiaTien()));
 
@@ -79,12 +92,13 @@ public class AdapterDisplayPayment extends RecyclerView.Adapter<AdapterDisplayPa
     public static class ViewHolder extends RecyclerView.ViewHolder {
         // Hình ảnh món ăn dạng tròn
         CircleImageView img_DishImage;
-        TextView txt_DishName, txt_Quantity, txt_Price;
+        TextView txt_DishName, txt_Note, txt_Quantity, txt_Price;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             img_DishImage = itemView.findViewById(R.id.img_custompayment_DishImage);
             txt_DishName  = itemView.findViewById(R.id.txt_custompayment_DishName);
+            txt_Note      = itemView.findViewById(R.id.txt_custompayment_Note);
             txt_Quantity  = itemView.findViewById(R.id.txt_custompayment_Quantity);
             txt_Price     = itemView.findViewById(R.id.txt_custompayment_Price);
         }

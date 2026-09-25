@@ -160,6 +160,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                         dto.setSoLuong(res.getSoLuong());
                         dto.setGiaTien((int)res.getGiaTien());
                         dto.setHinhAnhPath(res.getHinhAnh());
+                        dto.setGhiChu(res.getGhiChu());
                         thanhToanDTOList.add(dto);
                     }
                     adapterDisplayPayment = new AdapterDisplayPayment(CashierConfirmActivity.this, thanhToanDTOList);

@@ -104,6 +104,7 @@
     <string name="search">Tìm kiếm...</string>
     <string name="order_note_hint">Ghi chú (vd: ít đường, không đá…)</string>
     <string name="order_note_label">Ghi chú</string>
+    <string name="order_note_line">Ghi chú: %1$s</string>
     <string name="note_optional">(Tùy chọn)</string>
     <string name="status_available">Còn món</string>
     <string name="status_unavailable">Hết món</string>

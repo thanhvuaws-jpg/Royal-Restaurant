@@ -184,7 +184,9 @@ public interface ApiService {
     Call<OrderResponse> addOrderDetail(
             @Field("madondat") int maDonDat,
             @Field("mamon") int maMon,
-            @Field("soluong") int soLuong
+            @Field("soluong") int soLuong,
+            // "Ít đường", "không hành"… (tối đa 120 ký tự, rỗng = không ghi chú)
+            @Field("ghichu") String ghiChu
     );
 
     /**

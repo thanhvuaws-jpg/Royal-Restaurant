@@ -768,16 +768,19 @@ public class CustomerBookingActivity extends AppCompatActivity {
      */
     private void hienThiTrangTuBoNhoDem() {
         LocalDatabaseHelper.getExecutor().execute(() -> {
+            // Lọc từ khóa ở đây chứ không bằng LIKE của SQLite: LIKE phân biệt
+            // dấu, gõ "pho" sẽ không ra "Phở Bò" (máy chủ thì có, MySQL so
+            // không phân biệt dấu) — mất mạng là kết quả tìm kiếm đổi theo.
             List<MonDTO> nguon = (maLoaiDangChon == 0)
                     ? dbHelper.getAllDishes()
-                    : dbHelper.getDishes(maLoaiDangChon, tuKhoa);
+                    : dbHelper.getDishes(maLoaiDangChon, null);
+            String khoa = com.sinhvien.orderdrinkapp.Utils.ViewUtils.boDau(tuKhoa);
 
             List<MonDTO> loc = new ArrayList<>();
             for (MonDTO m : nguon) {
                 if (!"true".equalsIgnoreCase(m.getTinhTrang())) continue;
-                if (maLoaiDangChon == 0 && !tuKhoa.isEmpty()
-                        && (m.getTenMon() == null
-                            || !m.getTenMon().toLowerCase().contains(tuKhoa.toLowerCase()))) {
+                if (!khoa.isEmpty()
+                        && !com.sinhvien.orderdrinkapp.Utils.ViewUtils.boDau(m.getTenMon()).contains(khoa)) {
                     continue;
                 }
                 loc.add(m);
