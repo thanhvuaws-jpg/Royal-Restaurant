@@ -459,7 +459,17 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                     }
                     startPollingForApproval(); // Chuyển sang chế độ chờ thu ngân duyệt đơn
                 } else {
-                    Toast.makeText(PaymentActivity.this, "Lỗi gửi yêu cầu", Toast.LENGTH_SHORT).show();
+                    // Máy chủ trả 409 kèm lý do (đơn đã thanh toán, mã giảm giá hết
+                    // hạn / đã dùng...) trong errorBody. Trước đây chỉ hiện "Lỗi gửi
+                    // yêu cầu" nên nhân viên không biết phải làm gì tiếp.
+                    String lyDo = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : ViewUtils.docLoiMayChu(response, "Không gửi được yêu cầu thanh toán.");
+                    new androidx.appcompat.app.AlertDialog.Builder(PaymentActivity.this)
+                            .setTitle("Chưa gửi được thanh toán")
+                            .setMessage(lyDo)
+                            .setPositiveButton("Đã hiểu", null)
+                            .show();
                 }
             }
 

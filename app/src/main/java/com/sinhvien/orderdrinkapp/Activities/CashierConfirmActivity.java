@@ -209,7 +209,16 @@ public class CashierConfirmActivity extends AppCompatActivity {
 
                     finish(); // Quay lại trang danh sách chờ thanh toán
                 } else {
-                    Toast.makeText(CashierConfirmActivity.this, "Lỗi xác nhận", Toast.LENGTH_SHORT).show();
+                    // Lý do thật (đơn chưa gửi thanh toán, đã thu rồi...) nằm trong
+                    // errorBody; trước đây chỉ hiện "Lỗi xác nhận".
+                    String lyDo = response.body() != null && response.body().getMessage() != null
+                            ? response.body().getMessage()
+                            : ViewUtils.docLoiMayChu(response, "Không xác nhận được thanh toán.");
+                    new androidx.appcompat.app.AlertDialog.Builder(CashierConfirmActivity.this)
+                            .setTitle("Chưa xác nhận được")
+                            .setMessage(lyDo)
+                            .setPositiveButton("Đã hiểu", null)
+                            .show();
                 }
             }
 
