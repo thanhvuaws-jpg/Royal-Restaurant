@@ -133,6 +133,25 @@
             android:textSize="18sp"
             tools:targetApi="lollipop" />
 
+        <!-- Lựa chọn thứ hai: đăng nhập bằng khuôn mặt (QĐ-103). Chỉ hiện khi máy này
+             đã đăng ký khuôn mặt cho ít nhất một tài khoản. -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_login_KhuonMat"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginTop="12dp"
+            android:text="Đăng nhập bằng khuôn mặt"
+            android:textAllCaps="false"
+            android:textColor="@color/colorPrimary"
+            android:textSize="16sp"
+            android:visibility="gone"
+            app:icon="@drawable/ic_khuon_mat_24"
+            app:iconGravity="textStart"
+            app:iconTint="@color/colorPrimary"
+            app:strokeColor="@color/colorPrimary"
+            app:cornerRadius="12dp" />
+
         <Button
             android:id="@+id/btn_login_SignUp"
             android:layout_width="match_parent"

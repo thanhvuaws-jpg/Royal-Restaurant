@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Màn quét khuôn mặt dùng chung cho đăng ký và đăng nhập bằng khuôn mặt (QĐ-103) -->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#2B1D17">
+
+    <TextView
+        android:id="@+id/txt_km_tieu_de"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:layout_marginHorizontal="24dp"
+        android:gravity="center"
+        android:text="Đăng nhập bằng khuôn mặt"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_km_phu_de"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
+        android:text="Ảnh khuôn mặt chỉ được xử lý trên máy này, không gửi đi đâu."
+        android:textColor="#BCAAA4"
+        android:textSize="13sp"
+        app:layout_constraintTop_toBottomOf="@id/txt_km_tieu_de"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.card.MaterialCardView
+        android:id="@+id/khung_km"
+        android:layout_width="280dp"
+        android:layout_height="280dp"
+        android:layout_marginTop="36dp"
+        app:cardCornerRadius="140dp"
+        app:cardElevation="0dp"
+        app:cardBackgroundColor="#000000"
+        app:layout_constraintTop_toBottomOf="@id/txt_km_phu_de"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.camera.view.PreviewView
+            android:id="@+id/preview_km"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:scaleType="fillCenter" />
+    </com.google.android.material.card.MaterialCardView>
+
+    <View
+        android:id="@+id/vien_km"
+        android:layout_width="296dp"
+        android:layout_height="296dp"
+        android:background="@drawable/vien_quet_khuon_mat"
+        app:layout_constraintTop_toTopOf="@id/khung_km"
+        app:layout_constraintBottom_toBottomOf="@id/khung_km"
+        app:layout_constraintStart_toStartOf="@id/khung_km"
+        app:layout_constraintEnd_toEndOf="@id/khung_km" />
+
+    <ProgressBar
+        android:id="@+id/tien_do_km"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="6dp"
+        android:layout_marginTop="28dp"
+        android:layout_marginHorizontal="64dp"
+        android:max="100"
+        android:progress="0"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/khung_km"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_km_huong_dan"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginHorizontal="24dp"
+        android:gravity="center"
+        android:text="Đang chuẩn bị camera..."
+        android:textColor="#FFFFFF"
+        android:textSize="19sp"
+        android:textStyle="bold"
+        app:layout_constraintTop_toBottomOf="@id/tien_do_km"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_km_chi_tiet"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:layout_marginHorizontal="32dp"
+        android:gravity="center"
+        android:textColor="#D7CCC8"
+        android:textSize="14sp"
+        app:layout_constraintTop_toBottomOf="@id/txt_km_huong_dan"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btn_km_phu"
+        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginBottom="40dp"
+        android:text="Dùng mật khẩu"
+        android:textAllCaps="false"
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        app:strokeColor="#BCAAA4"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

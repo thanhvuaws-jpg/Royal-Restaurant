@@ -26,6 +26,35 @@ public interface ApiService {
             @Field("matkhau") String matKhau
     );
 
+    /* ── Đăng nhập bằng khuôn mặt (QĐ-103). Khuôn mặt so khớp trên máy; máy chủ
+     *    chỉ cấp / kiểm / thu hồi khóa thiết bị. ── */
+
+    /** Bật cho tài khoản đang đăng nhập (phải nhập lại mật khẩu). action = "bat". */
+    @FormUrlEncoded
+    @POST("api/khuon_mat.php")
+    Call<KhuonMatResponse> batKhuonMat(
+            @Field("action") String action,
+            @Field("matkhau") String matKhau,
+            @Field("ten_thietbi") String tenThietBi
+    );
+
+    /** Tắt một khóa của tài khoản đang đăng nhập. action = "tat". */
+    @FormUrlEncoded
+    @POST("api/khuon_mat.php")
+    Call<KhuonMatResponse> tatKhuonMat(
+            @Field("action") String action,
+            @Field("makhoa") int maKhoa
+    );
+
+    /** Đăng nhập bằng khóa thiết bị sau khi khuôn mặt đã khớp. Trả về như login.php. */
+    @FormUrlEncoded
+    @POST("api/dang_nhap_khuon_mat.php")
+    Call<StaffResponse> dangNhapKhuonMat(
+            @Field("manv") int maNV,
+            @Field("makhoa") int maKhoa,
+            @Field("khoa") String khoa
+    );
+
     /**
      * Thêm nhân viên — CHỈ dành cho Quản lý.
      *

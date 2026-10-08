@@ -58,6 +58,11 @@ import retrofit2.Response;
  */
 public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
 
+    /** PaymentActivity gửi kèm mã bàn khi nhân viên bấm "Gọi thêm" — mở lại thực đơn của bàn đó. */
+    public static final String EXTRA_GOI_THEM_MABAN = "goi_them_maban";
+    /** Mã bàn chờ mở thực đơn; mở ở onPostResume vì lúc onNewIntent trạng thái đã lưu, chưa commit fragment được. */
+    private int goiThemMaBanCho = 0;
+
     // Khai báo các thuộc tính điều hướng giao diện
     DrawerLayout drawerLayout;
     NavigationView navigationView;
@@ -525,6 +530,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             View itemStaff = view.findViewById(R.id.item_staff);
             View itemKho = view.findViewById(R.id.item_kho);
             View itemLogout = view.findViewById(R.id.item_logout);
+            view.findViewById(R.id.item_khuon_mat).setOnClickListener(v -> {
+                moreBottomSheet.dismiss();
+                startActivity(new Intent(this, com.sinhvien.orderdrinkapp.KhuonMat.CaiDatKhuonMatActivity.class));
+            });
 
             // Phân quyền cho bottom sheet
             if (SessionManager.isCashier(this)) {
@@ -634,6 +643,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             } else if (id == R.id.nav_kho) {
                 Fragment f = fragmentManager.findFragmentByTag("KhoFragment");
                 navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.KhoFragment(), "KhoFragment");
+            } else if (id == R.id.nav_khuon_mat) {
+                // Mở màn riêng, không phải một tab: trả false để menu giữ mục đang chọn.
+                startActivity(new Intent(this, com.sinhvien.orderdrinkapp.KhuonMat.CaiDatKhuonMatActivity.class));
+                return false;
             } else if (id == R.id.nav_logout) {
                 isSyncingNav = false;
                 drawerLayout.closeDrawers();
@@ -656,6 +669,33 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             bookingAlertManager.startChecking();
         }
         checkMissedBookingNotifications(); // Quét các sự kiện đổi trạng thái đặt bàn bị nhỡ khi người dùng bật lại app
+    }
+
+    /**
+     * Gọi thêm món cho bàn đang có khách: nhấn bàn đang dùng thì mở màn thanh toán
+     * (AdapterDisplayTable), nên trước đây rời màn chọn món rồi là không gọi thêm được.
+     * PaymentActivity quay về đây (CLEAR_TOP | SINGLE_TOP) kèm mã bàn.
+     */
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent);
+        int maban = intent.getIntExtra(EXTRA_GOI_THEM_MABAN, 0);
+        if (maban > 0) goiThemMaBanCho = maban;
+    }
+
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        if (goiThemMaBanCho > 0) {
+            int maban = goiThemMaBanCho;
+            goiThemMaBanCho = 0;
+            DisplayCategoryFragment f = new DisplayCategoryFragment();
+            Bundle b = new Bundle();
+            b.putInt("maban", maban);
+            f.setArguments(b);
+            navigateToSubFragment(f, "hienthibanan");
+        }
     }
 
     @Override

@@ -371,6 +371,10 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             navigateTo(new CustomerContactFragment(), "CustomerContactFragment");
             bottomNav.setSelectedItemId(R.id.nav_customer_contact);
             if (getSupportActionBar() != null) getSupportActionBar().setTitle("Hỗ trợ khách hàng");
+        } else if (id == R.id.nav_khuon_mat) {
+            drawerLayout.closeDrawers();
+            startActivity(new Intent(this, com.sinhvien.orderdrinkapp.KhuonMat.CaiDatKhuonMatActivity.class));
+            return false;
         } else if (id == R.id.nav_logout) {
             drawerLayout.closeDrawers();
             com.sinhvien.orderdrinkapp.Utils.DialogHelper.xacNhanDangXuat(this, this::logout);

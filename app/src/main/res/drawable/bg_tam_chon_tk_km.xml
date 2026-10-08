@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nền tấm chọn tài khoản khi một khuôn mặt khớp nhiều tài khoản (QĐ-103) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
+    <solid android:color="#33241D" />
+    <corners android:topLeftRadius="28dp" android:topRightRadius="28dp" />
+</shape>

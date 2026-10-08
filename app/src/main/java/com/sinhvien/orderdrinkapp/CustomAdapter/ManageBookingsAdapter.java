@@ -125,9 +125,12 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else if ("overdue".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Quá giờ hẹn");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#E53935")); 
+            holder.txt_booking_status.setTextColor(Color.parseColor("#E53935"));
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
-            holder.btn_checkin_booking.setVisibility(View.VISIBLE);
+            // Phiếu quá giờ chỉ còn hủy được: confirm_booking.php chỉ nhận phiếu
+            // 'pending', checkin_booking.php chỉ nhận 'pending'/'confirmed' —
+            // hiện nút "Xác nhận đặt" thì bấm lần nào cũng bị 409.
+            holder.btn_checkin_booking.setVisibility(View.GONE);
             holder.btn_cancel_booking.setVisibility(View.VISIBLE);
             holder.btn_customer_arrived.setVisibility(View.GONE);
         } else if ("cancelled".equalsIgnoreCase(status)) {

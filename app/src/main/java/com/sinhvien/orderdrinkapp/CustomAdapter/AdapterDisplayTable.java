@@ -385,7 +385,11 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                         intent.putExtra("madondat", madondat);
                         context.startActivity(intent);
                     } else {
-                        Toast.makeText(context, "Không tìm thấy đơn hàng trên Cloud", Toast.LENGTH_SHORT).show();
+                        // Bàn "đang dùng" mà không có đơn đang phục vụ: thường là đơn đã gửi
+                        // thu ngân, máy chủ nói rõ điều đó trong message.
+                        String lyDo = response.body() != null && response.body().getMessage() != null
+                                ? response.body().getMessage() : "Không tìm thấy đơn hàng của bàn này";
+                        Toast.makeText(context, lyDo, Toast.LENGTH_LONG).show();
                     }
                 }
                 @Override

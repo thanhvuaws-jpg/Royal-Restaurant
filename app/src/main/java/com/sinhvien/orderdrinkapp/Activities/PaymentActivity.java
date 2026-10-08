@@ -144,6 +144,49 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
 
         img_payment_BackBtn.setOnClickListener(this);
         btn_payment_Pay.setOnClickListener(this);
+        findViewById(R.id.txt_payment_GoiThem).setOnClickListener(v -> {
+            if (ViewUtils.isFastDoubleClick()) return;
+            goiThemMon();
+        });
+    }
+
+    /**
+     * Gọi thêm món cho bàn đang có khách. Chỉ khi đơn còn "đang phục vụ" ('false'):
+     * đơn đã gửi thu ngân thì add_order_detail.php cũng từ chối (409), nên báo ngay
+     * ở đây thay vì để nhân viên chọn món xong mới bị chặn.
+     */
+    private void goiThemMon() {
+        if (isPolling || isReceiptShowing) return;
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.checkOrderStatus(madondat).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                String tt = response.isSuccessful() && response.body() != null ? response.body().getTinhTrang() : null;
+                if ("false".equals(tt)) {
+                    Intent i = new Intent(PaymentActivity.this, HomeActivity.class);
+                    i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    i.putExtra(HomeActivity.EXTRA_GOI_THEM_MABAN, maban);
+                    startActivity(i);
+                    finish();
+                } else {
+                    new androidx.appcompat.app.AlertDialog.Builder(PaymentActivity.this)
+                            .setTitle("Không gọi thêm được")
+                            .setMessage("pending".equals(tt)
+                                    ? "Đơn đã gửi thu ngân, đang chờ xác nhận thanh toán nên không thêm món được."
+                                    : "true".equals(tt) ? "Đơn này đã thanh toán."
+                                    : "Không kiểm tra được trạng thái đơn, vui lòng thử lại.")
+                            .setPositiveButton("Đã hiểu", null)
+                            .show();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                if (isFinishing() || isDestroyed()) return;
+                Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     /**

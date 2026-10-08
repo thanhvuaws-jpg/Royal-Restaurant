@@ -42,9 +42,15 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     
     // Khai báo các thành phần giao diện
     TextInputLayout txtl_login_UserName, txtl_login_Password;
-    Button btn_login_SignIn, btn_login_SignUp;
+    Button btn_login_SignIn, btn_login_SignUp, btn_login_KhuonMat;
     CheckBox cb_login_RememberMe;
     ImageView img_login_BackBtn;
+
+    /** Màn chính sẽ mở sau khi đăng ký khuôn mặt xong (hoặc người dùng hủy). */
+    private Intent manChinhSauDangKy;
+    private final androidx.activity.result.ActivityResultLauncher<Intent> moDangKyKhuonMat =
+            registerForActivityResult(new androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult(),
+                    kq -> moManChinh(manChinhSauDangKy));
 
     @Override
     protected void onDestroy() {
@@ -67,6 +73,9 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         btn_login_SignUp = findViewById(R.id.btn_login_SignUp);
         cb_login_RememberMe = findViewById(R.id.cb_login_RememberMe);
         img_login_BackBtn = findViewById(R.id.img_login_BackBtn);
+        btn_login_KhuonMat = findViewById(R.id.btn_login_KhuonMat);
+        btn_login_KhuonMat.setOnClickListener(v -> startActivity(
+                new Intent(this, com.sinhvien.orderdrinkapp.KhuonMat.DangNhapKhuonMatActivity.class)));
 
         // Đọc tên đăng nhập đã ghi nhớ (nếu có).
         //
@@ -186,8 +195,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                             intent = new Intent(LoginActivity.this, HomeActivity.class);
                         }
                         intent.putExtra("tendn", finalUser);
-                        startActivity(intent);
-                        finish(); // Kết thúc đăng nhập, loại bỏ khỏi ngăn xếp BackStack
+                        moiDangKyKhuonMatRoiMo(intent, res.getMaNV(), finalUser, finalPass);
                     } else {
                         // Nhận thông điệp lỗi trả về từ server
                         String msg = response.body() != null ? response.body().getMessage() : "Sai tên đăng nhập hoặc mật khẩu!";
@@ -214,6 +222,53 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             finish();
             overridePendingTransition(R.anim.slide_in_left, R.anim.slide_out_right);
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Nút "Đăng nhập bằng khuôn mặt" chỉ hiện khi máy đã đăng ký cho ít nhất một tài khoản.
+        btn_login_KhuonMat.setVisibility(
+                com.sinhvien.orderdrinkapp.KhuonMat.KhoKhuonMat.coTaiKhoan(this) ? View.VISIBLE : View.GONE);
+    }
+
+    /**
+     * Đăng nhập mật khẩu thành công: nếu tài khoản này chưa đăng ký khuôn mặt trên
+     * máy, hỏi một lần có muốn bật không (dùng luôn mật khẩu vừa gõ, khỏi hỏi lại),
+     * rồi mới mở màn chính. "Không hỏi lại" được nhớ theo từng tài khoản.
+     */
+    private void moiDangKyKhuonMatRoiMo(Intent manChinh, int maNV, String tenDN, String matKhau) {
+        SharedPreferences pref = getSharedPreferences("khuon_mat_hoi", Context.MODE_PRIVATE);
+        boolean coCamera = getPackageManager().hasSystemFeature(android.content.pm.PackageManager.FEATURE_CAMERA_ANY);
+        if (!coCamera || pref.getBoolean("khong_hoi_" + maNV, false)
+                || com.sinhvien.orderdrinkapp.KhuonMat.KhoKhuonMat.tim(this, maNV) != null) {
+            moManChinh(manChinh);
+            return;
+        }
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Đăng nhập nhanh bằng khuôn mặt?")
+                .setMessage("Lần sau chỉ cần nhìn vào camera và chớp mắt, không phải gõ mật khẩu. "
+                        + "Ảnh khuôn mặt chỉ xử lý trên máy này, không gửi đi đâu.")
+                .setCancelable(false)
+                .setPositiveButton("Bật ngay", (d, w) -> {
+                    manChinhSauDangKy = manChinh;
+                    Intent i = new Intent(this, com.sinhvien.orderdrinkapp.KhuonMat.DangKyKhuonMatActivity.class);
+                    i.putExtra(com.sinhvien.orderdrinkapp.KhuonMat.DangKyKhuonMatActivity.EXTRA_MAT_KHAU, matKhau);
+                    i.putExtra(com.sinhvien.orderdrinkapp.KhuonMat.DangKyKhuonMatActivity.EXTRA_TEN_DN, tenDN);
+                    moDangKyKhuonMat.launch(i);
+                })
+                .setNegativeButton("Để sau", (d, w) -> moManChinh(manChinh))
+                .setNeutralButton("Không hỏi lại", (d, w) -> {
+                    pref.edit().putBoolean("khong_hoi_" + maNV, true).apply();
+                    moManChinh(manChinh);
+                })
+                .show();
+    }
+
+    private void moManChinh(Intent manChinh) {
+        if (manChinh == null) return;
+        startActivity(manChinh);
+        finish(); // Kết thúc đăng nhập, loại bỏ khỏi ngăn xếp BackStack
     }
 
     @Override

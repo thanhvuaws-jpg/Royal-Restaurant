@@ -8,6 +8,11 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <!-- Đăng nhập bằng khuôn mặt (QĐ-103): camera trước. Không bắt buộc phần cứng —
+         máy không có camera vẫn cài được, chỉ không thấy tính năng này. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera.any" android:required="false" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.SENDTO" />
@@ -53,6 +58,11 @@
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".Activities.LoginActivity" android:exported="false" />
+        <activity android:name=".KhuonMat.DangNhapKhuonMatActivity" android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity android:name=".KhuonMat.DangKyKhuonMatActivity" android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity android:name=".KhuonMat.CaiDatKhuonMatActivity" android:exported="false" />
         <activity android:name=".Activities.Register2ndActivity" android:exported="false" />
         <activity android:name=".Activities.WelcomeActivity" android:exported="false" />
         <activity android:name=".Activities.RegisterActivity" android:exported="false" />

@@ -126,6 +126,8 @@ public class CustomerContactFragment extends Fragment {
 
         // Thiết lập sự kiện nhấn vào các thẻ liên hệ
         cardChat.setOnClickListener(v -> startActivity(new Intent(getContext(), ChatActivity.class)));
+        view.findViewById(R.id.card_khuon_mat).setOnClickListener(v -> startActivity(
+                new Intent(getContext(), com.sinhvien.orderdrinkapp.KhuonMat.CaiDatKhuonMatActivity.class)));
         cardContactHotline.setOnClickListener(v -> showContactOptionsDialog());
         cardContactLocation.setOnClickListener(v -> openMap());
         cardContactEmail.setOnClickListener(v -> showEmailOptionsDialog());

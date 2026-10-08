@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Vòng tròn quanh khung camera; màu được đổi trong mã theo trạng thái -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <stroke android:width="5dp" android:color="#BCAAA4" />
+    <solid android:color="@android:color/transparent" />
+</shape>
