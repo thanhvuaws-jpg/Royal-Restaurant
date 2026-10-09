@@ -60,6 +60,11 @@ public class SocketManager {
                 intentionalDisconnect = false;
             });
             
+            // Bảng điều khiển máy chủ (QĐ-107): bật/tắt bảo trì và thông báo
+            // chung. Đăng ký ở đây một lần cho mọi màn hình, mọi vai.
+            socket.on("bao_tri", args -> BaoTri.tuSocket(args.length > 0 ? args[0] : null));
+            socket.on("thong_bao_he_thong", args -> ThongBaoHeThong.tuSocket(args.length > 0 ? args[0] : null));
+
             // Lắng nghe sự kiện mất kết nối — Tự động kết nối lại sau 3 giây nếu không phải chủ ý
             socket.on(Socket.EVENT_DISCONNECT, args -> {
                 Log.d(TAG, "Socket disconnected. intentionalDisconnect=" + intentionalDisconnect);

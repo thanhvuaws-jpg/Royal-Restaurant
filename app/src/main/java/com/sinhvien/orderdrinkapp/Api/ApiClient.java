@@ -92,6 +92,16 @@ public class ApiClient {
                     .connectTimeout(30, TimeUnit.SECONDS) // Giới hạn thời gian chờ kết nối tới server
                     .readTimeout(30, TimeUnit.SECONDS)    // Giới hạn thời gian chờ đọc dữ liệu từ server
                     .writeTimeout(30, TimeUnit.SECONDS)   // Giới hạn thời gian chờ gửi dữ liệu lên server
+                    // Bảo trì (QĐ-107): Caddy trả 503 + X-Bao-Tri cho mọi lời gọi
+                    // API. Đặt TRƯỚC interceptor phiên để thấy cả lời gọi chưa
+                    // đăng nhập (login.php) — mọi màn hình chuyển sang màn bảo trì.
+                    .addInterceptor(chain -> {
+                        okhttp3.Response phanHoi = chain.proceed(chain.request());
+                        if (phanHoi.code() == 503 && phanHoi.header("X-Bao-Tri") != null) {
+                            com.sinhvien.orderdrinkapp.Utils.BaoTri.tuPhanHoi(phanHoi.peekBody(8192).string());
+                        }
+                        return phanHoi;
+                    })
                     // Tự động đính kèm thông tin phiên vào MỌI yêu cầu.
                     // Chỉ gắn khi đã có phiên: các endpoint công khai như
                     // login.php vẫn gọi được bình thường lúc chưa đăng nhập.
