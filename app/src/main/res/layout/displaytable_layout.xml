@@ -25,11 +25,15 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
+            <!-- Chừa chỗ cho nút tròn "Thêm": không có thì nút đè lên nút sửa/xóa của mục cuối. -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvDisplayTable"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:padding="8dp"
+                android:paddingStart="8dp"
+                android:paddingTop="8dp"
+                android:paddingEnd="8dp"
+                android:paddingBottom="96dp"
                 android:clipToPadding="false" />
 
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

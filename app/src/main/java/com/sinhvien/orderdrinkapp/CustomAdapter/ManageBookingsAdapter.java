@@ -19,6 +19,7 @@ import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.BookingResponse;
 import com.sinhvien.orderdrinkapp.R;
 import com.sinhvien.orderdrinkapp.Utils.SessionManager;
+import com.sinhvien.orderdrinkapp.Utils.TienTe;
 import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 
 import java.util.List;
@@ -94,7 +95,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
 
         // Hiển thị số tiền đặt trước món ăn nếu có
         if (booking.getTongTien() != null && !booking.getTongTien().isEmpty() && !"0".equals(booking.getTongTien())) {
-            holder.txt_booking_dishes.setText("Món đặt trước: " + booking.getTongTien() + " đ");
+            holder.txt_booking_dishes.setText("Món đặt trước: " + TienTe.dong(booking.getTongTien()));
         } else {
             holder.txt_booking_dishes.setText("Món đặt trước: Không có");
         }
@@ -102,7 +103,9 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
         // Định dạng trạng thái và cập nhật hiển thị giao diện tương tác động
         String status = booking.getTinhtrang();
         if ("pending".equalsIgnoreCase(status)) {
-            holder.txt_booking_status.setText("Chờ nhận bàn");
+            // Phiếu mới, nhân viên chưa gọi khách xác nhận (tab "Chờ duyệt").
+            // Trước đây ghi "Chờ nhận bàn" — trùng nghĩa với phiếu đã xác nhận đang chờ khách tới.
+            holder.txt_booking_status.setText("Chờ xác nhận");
             holder.txt_booking_status.setTextColor(Color.parseColor("#FFAB40")); 
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             holder.btn_checkin_booking.setVisibility(View.VISIBLE);

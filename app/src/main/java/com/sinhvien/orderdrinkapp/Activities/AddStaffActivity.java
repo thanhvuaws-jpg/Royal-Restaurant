@@ -89,6 +89,9 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
         rd_add_StaffStandard = (RadioButton)findViewById(R.id.rd_add_StaffStandard);
         rd_add_StaffCashier = (RadioButton)findViewById(R.id.rd_add_StaffCashier);
         dt_add_StaffDOB = (DatePicker)findViewById(R.id.dt_add_StaffDOB);
+        // Ngày sinh không thể ở tương lai: chặn ngay trên ô chọn, khỏi để người dùng
+        // cuộn tới năm sau rồi mới bị báo "không đủ tuổi".
+        dt_add_StaffDOB.setMaxDate(System.currentTimeMillis());
         btn_add_StaffCreate = (Button)findViewById(R.id.btn_add_StaffCreate);
 
         // Nhận ID nhân viên truyền sang để thực hiện chức năng chỉnh sửa thông tin (nếu có)

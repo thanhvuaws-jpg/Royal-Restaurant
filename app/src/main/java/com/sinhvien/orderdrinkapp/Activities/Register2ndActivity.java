@@ -53,6 +53,9 @@ public class Register2ndActivity extends AppCompatActivity {
         // Ánh xạ các thành phần View từ tệp XML
         RG_signup2nd_Gender = findViewById(R.id.rg_signup2nd_Gender);
         DT_signup2nd_DOB = findViewById(R.id.dt_signup2nd_DOB);
+        // Ngày sinh không thể ở tương lai: chặn ngay trên ô chọn, khỏi để người dùng
+        // cuộn tới năm sau rồi mới bị báo "không đủ tuổi".
+        DT_signup2nd_DOB.setMaxDate(System.currentTimeMillis());
         BTN_signup2nd_Complete = findViewById(R.id.btn_signup2nd_Complete);
         IMG_signup2nd_BackBtn = findViewById(R.id.img_signup2nd_BackBtn);
 
