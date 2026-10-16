@@ -127,6 +127,10 @@ public class DiemDanhFragment extends Fragment {
         rv_danh_sach.setNestedScrollingEnabled(false);
 
         btn_diem_danh.setOnClickListener(v -> goiDiemDanh());
+        // Sân chơi Royal (QĐ-111). Quay về đây thì onResume() nạp lại số điểm.
+        view.findViewById(R.id.the_san_choi).setOnClickListener(v ->
+                startActivity(new android.content.Intent(requireContext(),
+                        com.sinhvien.orderdrinkapp.SanChoi.SanChoiActivity.class)));
         btn_doi_phieu.setOnClickListener(v -> {
             dangXemKhoPhieu = !dangXemKhoPhieu;
             veDanhSach();

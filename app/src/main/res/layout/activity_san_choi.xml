@@ -1,0 +1,494 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sân chơi Royal (QĐ-111): một màn dọc như bản demo web — đầu (ví điểm) · tab ·
+     sân khấu · nút chơi. Kích thước bánh xe, kim, rương đặt trong SanChoiActivity
+     theo bề rộng màn hình. Cố ý chỉ một thế giới sơn mài tối. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/man_san_choi"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_mg_nen"
+    android:clipChildren="false"
+    tools:context=".SanChoi.SanChoiActivity">
+
+    <LinearLayout
+        android:id="@+id/khung_chinh"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="20dp">
+
+        <!-- ══════════ ĐẦU: tên · âm thanh · ví điểm ══════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <ImageButton
+                android:id="@+id/btn_mg_quay_lai"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Quay lại"
+                android:src="@drawable/ic_baseline_arrow_back_24"
+                android:tint="#E3B34F" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txt_mg_ten"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:includeFontPadding="false"
+                    android:letterSpacing="0.02"
+                    android:text="Royal"
+                    android:textColor="#FFE6A3"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="0.08"
+                    android:text="SÂN CHƠI ĐIỂM"
+                    android:textColor="#B8A386"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <ImageButton
+                android:id="@+id/btn_mg_am"
+                android:layout_width="38dp"
+                android:layout_height="38dp"
+                android:background="@drawable/bg_mg_nut_am"
+                android:contentDescription="Tắt âm thanh"
+                android:padding="9dp"
+                android:scaleType="fitCenter"
+                android:src="@drawable/ic_mg_am_bat" />
+
+            <LinearLayout
+                android:id="@+id/vi_mg_xu"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:background="@drawable/bg_mg_vi"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="5dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="12dp"
+                android:paddingBottom="4dp">
+
+                <ImageView
+                    android:id="@+id/img_mg_xu_vi"
+                    android:layout_width="30dp"
+                    android:layout_height="30dp"
+                    android:importantForAccessibility="no"
+                    android:src="@drawable/mg_dong_xu" />
+
+                <TextView
+                    android:id="@+id/txt_mg_diem"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:fontFeatureSettings="tnum"
+                    android:includeFontPadding="false"
+                    android:minWidth="28dp"
+                    android:text="0"
+                    android:textColor="#FFE6A3"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- ══════════ TAB ══════════ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_mg_tab"
+            android:orientation="horizontal"
+            android:padding="4dp">
+
+            <TextView
+                android:id="@+id/tab_mg_vong_quay"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="2dp"
+                android:layout_weight="1"
+                android:background="@drawable/bg_mg_tab_chon"
+                android:gravity="center"
+                android:paddingTop="11dp"
+                android:paddingBottom="9dp"
+                android:text="Vòng quay"
+                android:textColor="#2A1406"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/tab_mg_ruong"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="2dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:paddingTop="11dp"
+                android:paddingBottom="9dp"
+                android:text="Mở rương"
+                android:textColor="#B8A386"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+
+        <!-- ══════════ SÂN KHẤU ══════════ -->
+        <FrameLayout
+            android:id="@+id/san_khau"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:clipChildren="false"
+            android:clipToPadding="false">
+
+            <!-- ── Vòng quay ── -->
+            <LinearLayout
+                android:id="@+id/san_mg_vong_quay"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <FrameLayout
+                    android:id="@+id/khung_mg_vong_quay"
+                    android:layout_width="300dp"
+                    android:layout_height="300dp"
+                    android:layout_marginTop="34dp"
+                    android:clipChildren="false">
+
+                    <com.sinhvien.orderdrinkapp.SanChoi.VongQuayView
+                        android:id="@+id/vong_quay"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:contentDescription="Vòng quay may mắn 12 ô" />
+
+                    <ImageView
+                        android:id="@+id/img_mg_kim"
+                        android:layout_width="45dp"
+                        android:layout_height="63dp"
+                        android:layout_gravity="top|center_horizontal"
+                        android:elevation="6dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/ic_mg_kim" />
+
+                    <!-- Thẻ kết quả: hiện đè giữa bánh xe khi dừng -->
+                    <FrameLayout
+                        android:id="@+id/the_mg_ket_qua"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:background="@drawable/bg_mg_vien_toi"
+                        android:elevation="10dp"
+                        android:padding="4dp"
+                        android:visibility="invisible">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:background="@drawable/bg_mg_ket_qua"
+                            android:gravity="center_horizontal"
+                            android:minWidth="210dp"
+                            android:orientation="vertical"
+                            android:paddingStart="22dp"
+                            android:paddingTop="18dp"
+                            android:paddingEnd="22dp"
+                            android:paddingBottom="16dp">
+
+                            <TextView
+                                android:id="@+id/txt_mg_kq_dau"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:letterSpacing="0.1"
+                                android:text="BẠN NHẬN ĐƯỢC"
+                                android:textColor="#B8A386"
+                                android:textSize="12sp" />
+
+                            <TextView
+                                android:id="@+id/txt_mg_kq"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center"
+                                android:maxWidth="230dp"
+                                android:text="+50 điểm"
+                                android:textColor="#FFE6A3"
+                                android:textSize="32sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/txt_mg_kq_phu"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:gravity="center"
+                                android:maxWidth="230dp"
+                                android:textColor="#F7ECD6"
+                                android:textSize="12.5sp"
+                                android:visibility="gone" />
+
+                            <TextView
+                                android:id="@+id/btn_mg_nhan"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="12dp"
+                                android:background="@drawable/bg_mg_tab_chon"
+                                android:paddingStart="26dp"
+                                android:paddingTop="10dp"
+                                android:paddingEnd="26dp"
+                                android:paddingBottom="10dp"
+                                android:text="Nhận"
+                                android:textColor="#3A1A05"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+                        </LinearLayout>
+                    </FrameLayout>
+                </FrameLayout>
+
+                <com.sinhvien.orderdrinkapp.SanChoi.NutVang
+                    android:id="@+id/nut_mg_quay"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingTop="13dp"
+                        android:paddingBottom="19dp">
+
+                        <TextView
+                            android:id="@+id/txt_mg_nut_quay"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:includeFontPadding="false"
+                            android:letterSpacing="0.06"
+                            android:text="QUAY"
+                            android:textColor="#3A1A05"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txt_mg_luot"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:text="Đang tải…"
+                            android:textColor="#6B3D0C"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </com.sinhvien.orderdrinkapp.SanChoi.NutVang>
+
+                <TextView
+                    android:id="@+id/txt_mg_ghi_chu_vq"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:gravity="center"
+                    android:text="Mỗi ngày 1 lượt · điểm danh được thêm 1 lượt"
+                    android:textColor="#B8A386"
+                    android:textSize="12.5sp" />
+            </LinearLayout>
+
+            <!-- ── Mở rương ── -->
+            <LinearLayout
+                android:id="@+id/san_mg_ruong"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipChildren="false"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/txt_mg_ghi_chu_ruong"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center"
+                    android:maxWidth="280dp"
+                    android:text="Rương thưởng khi điểm danh đủ 7 ngày liên tiếp."
+                    android:textColor="#B8A386"
+                    android:textSize="12.5sp" />
+
+                <FrameLayout
+                    android:id="@+id/khung_mg_ruong"
+                    android:layout_width="300dp"
+                    android:layout_height="300dp"
+                    android:layout_marginTop="8dp"
+                    android:clipChildren="false">
+
+                    <com.sinhvien.orderdrinkapp.SanChoi.TiaSangView
+                        android:id="@+id/tia_mg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:alpha="0" />
+
+                    <View
+                        android:id="@+id/hao_quang_mg"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+
+                    <View
+                        android:id="@+id/bong_mg"
+                        android:layout_width="180dp"
+                        android:layout_height="26dp"
+                        android:layout_gravity="bottom|center_horizontal" />
+
+                    <FrameLayout
+                        android:id="@+id/ruong_mg"
+                        android:layout_width="250dp"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="center"
+                        android:contentDescription="Mở rương">
+
+                        <ImageView
+                            android:id="@+id/img_mg_ruong"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:adjustViewBounds="true"
+                            android:importantForAccessibility="no"
+                            android:src="@drawable/mg_ruong_dong" />
+
+                        <View
+                            android:id="@+id/loe_mg"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:alpha="0" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:id="@+id/thuong_mg"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_gravity="top|center_horizontal"
+                        android:alpha="0"
+                        android:elevation="10dp"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/txt_mg_thuong"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:includeFontPadding="false"
+                            android:shadowColor="#8F5A14"
+                            android:shadowDy="6"
+                            android:shadowRadius="2"
+                            android:text="+80"
+                            android:textColor="#FFE6A3"
+                            android:textSize="54sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txt_mg_thuong_phu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:background="@drawable/bg_mg_vien_thuong"
+                            android:paddingStart="10dp"
+                            android:paddingTop="4dp"
+                            android:paddingEnd="10dp"
+                            android:paddingBottom="4dp"
+                            android:text="điểm thưởng trọn 7 ngày"
+                            android:textColor="#F7ECD6"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+                </FrameLayout>
+
+                <com.sinhvien.orderdrinkapp.SanChoi.NutVang
+                    android:id="@+id/nut_mg_mo"
+                    android:layout_width="280dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_horizontal"
+                        android:orientation="vertical"
+                        android:paddingTop="13dp"
+                        android:paddingBottom="19dp">
+
+                        <TextView
+                            android:id="@+id/txt_mg_nut_mo"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:includeFontPadding="false"
+                            android:letterSpacing="0.06"
+                            android:text="MỞ RƯƠNG"
+                            android:textColor="#3A1A05"
+                            android:textSize="22sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txt_mg_ruong_phu"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:text="Đang tải…"
+                            android:textColor="#6B3D0C"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                </com.sinhvien.orderdrinkapp.SanChoi.NutVang>
+
+                <!-- 7 chấm tiến độ chuỗi điểm danh -->
+                <LinearLayout
+                    android:id="@+id/cham_mg_chuoi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:orientation="horizontal" />
+            </LinearLayout>
+
+            <!-- Chưa sẵn sàng / lỗi tải -->
+            <TextView
+                android:id="@+id/txt_mg_thong_bao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@drawable/bg_mg_ket_qua"
+                android:elevation="12dp"
+                android:gravity="center"
+                android:maxWidth="300dp"
+                android:padding="20dp"
+                android:textColor="#F7ECD6"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <ProgressBar
+                android:id="@+id/tai_mg"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="center"
+                android:indeterminateTint="#E3B34F" />
+        </FrameLayout>
+    </LinearLayout>
+
+    <!-- Lớp hiệu ứng phủ toàn màn: pháo giấy, tia lửa, đồng xu bay -->
+    <com.sinhvien.orderdrinkapp.SanChoi.HieuUngView
+        android:id="@+id/hieu_ung_mg"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:elevation="20dp" />
+</FrameLayout>

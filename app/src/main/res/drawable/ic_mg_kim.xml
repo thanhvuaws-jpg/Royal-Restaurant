@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Kim vòng quay: chép đúng hình SVG của bản demo (viewBox 60 × 84). -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="60dp" android:height="84dp"
+    android:viewportWidth="60" android:viewportHeight="84">
+    <path
+        android:pathData="M30,82 L9,30 A22,22 0 1,1 51,30 Z"
+        android:strokeColor="#5C3409" android:strokeWidth="2">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="linear" android:startX="0" android:startY="0" android:endX="60" android:endY="0">
+                <item android:offset="0" android:color="#8F5A14" />
+                <item android:offset="0.45" android:color="#FFE9A8" />
+                <item android:offset="1" android:color="#B37A22" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:pathData="M18,24 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0"
+        android:strokeColor="#5C3409" android:strokeWidth="1.5">
+        <aapt:attr name="android:fillColor">
+            <gradient android:type="radial" android:centerX="26.8" android:centerY="20.4" android:gradientRadius="16.8">
+                <item android:offset="0" android:color="#FF8A8A" />
+                <item android:offset="0.45" android:color="#C41E1E" />
+                <item android:offset="1" android:color="#5C0808" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:pathData="M22.6,20 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0" android:fillColor="#B0FFFFFF" />
+</vector>

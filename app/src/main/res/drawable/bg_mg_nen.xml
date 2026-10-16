@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nền sơn then của Sân chơi: hai quầng đỏ sơn son mờ trên nền gần đen. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape><solid android:color="#170D0A" /></shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:type="radial" android:centerX="0.5" android:centerY="0.38"
+                android:gradientRadius="70%p" android:startColor="#3A1712" android:endColor="#003A1712" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient android:type="radial" android:centerX="0.5" android:centerY="1.1"
+                android:gradientRadius="60%p" android:startColor="#2B0F0B" android:endColor="#002B0F0B" />
+        </shape>
+    </item>
+</layer-list>

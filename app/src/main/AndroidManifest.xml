@@ -59,6 +59,8 @@
             android:windowSoftInputMode="adjustResize" />
         <activity android:name=".Activities.LoginActivity" android:exported="false" />
         <activity android:name=".Activities.BaoTriActivity" android:exported="false" />
+        <activity android:name=".SanChoi.SanChoiActivity" android:exported="false"
+            android:screenOrientation="portrait" />
         <activity android:name=".KhuonMat.DangNhapKhuonMatActivity" android:exported="false"
             android:screenOrientation="portrait" />
         <activity android:name=".KhuonMat.DangKyKhuonMatActivity" android:exported="false"

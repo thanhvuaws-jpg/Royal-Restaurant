@@ -443,6 +443,17 @@ public interface ApiService {
             @Field("mavoucher") int maVoucher
     );
 
+    /* ══════════════════ Sân chơi Royal (QĐ-111) ══════════════════ */
+
+    /** Trạng thái sân chơi: điểm, 12 ô vòng quay, lượt còn lại, rương 7 ngày. */
+    @GET("api/minigame.php")
+    Call<MiniGameResponse> layTrangThaiSanChoi();
+
+    /** action = "quay" hoặc "mo_ruong". Máy chủ chọn kết quả, app chỉ diễn lại. */
+    @FormUrlEncoded
+    @POST("api/minigame.php")
+    Call<MiniGameKetQua> choiSanChoi(@Field("action") String action);
+
     /* ══════════════════ Chăm sóc khách hàng ══════════════════ */
 
     /**

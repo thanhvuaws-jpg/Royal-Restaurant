@@ -165,6 +165,8 @@
     <string name="dd_nut_diem_danh">ĐIỂM DANH NGAY</string>
     <string name="dd_nut_da_diem_danh">ĐÃ ĐIỂM DANH</string>
     <string name="dd_nut_doi_phieu">ĐỔI PHIẾU GIẢM GIÁ</string>
+    <string name="sc_ten">Sân chơi Royal</string>
+    <string name="sc_mo_ta">Vòng quay mỗi ngày · Rương trọn 7 ngày điểm danh</string>
     <string name="dd_nut_xem_ma">XEM MÃ CỦA TÔI</string>
     <string name="dd_ma_cua_toi">Mã giảm giá của tôi</string>
     <string name="dd_kho_phieu">Kho phiếu giảm giá</string>

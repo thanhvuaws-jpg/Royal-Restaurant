@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Baloo 2 ExtraBold cho Sân chơi Royal (giống bản demo web). Tải qua Google
+     Play Services lúc chạy; máy không có thì SanChoiActivity giữ phông đậm mặc định. -->
+<font-family xmlns:app="http://schemas.android.com/apk/res-auto"
+        app:fontProviderAuthority="com.google.android.gms.fonts"
+        app:fontProviderPackage="com.google.android.gms"
+        app:fontProviderQuery="name=Baloo 2&amp;weight=800"
+        app:fontProviderCerts="@array/com_google_android_gms_fonts_certs">
+</font-family>

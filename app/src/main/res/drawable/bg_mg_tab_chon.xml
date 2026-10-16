@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Tab đang chọn và nút "Nhận": vàng quỳ, mép dưới đậm như dát vàng. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape><corners android:radius="10dp" /><solid android:color="#9C6A1D" /></shape>
+    </item>
+    <item android:bottom="2dp">
+        <shape>
+            <corners android:radius="10dp" />
+            <gradient android:angle="270" android:startColor="#FFE6A3" android:endColor="#D9A441" />
+        </shape>
+    </item>
+</layer-list>
