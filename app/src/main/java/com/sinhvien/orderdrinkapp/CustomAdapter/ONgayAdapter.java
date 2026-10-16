@@ -70,14 +70,21 @@ public class ONgayAdapter extends RecyclerView.Adapter<ONgayAdapter.ViewHolder> 
         boolean laMoc  = o.isLaMoc();
         String trangThai = o.getTrangThai();
 
-        // Mặc định: ẩn hộp quà, hiện đồng xu.
+        // Mặc định: ẩn hộp quà và dấu tích, hiện đồng xu (ảnh đồng xu của Sân chơi Royal).
         h.img_qua.setVisibility(View.GONE);
-        h.txt_bieu_tuong.setVisibility(View.VISIBLE);
+        h.txt_bieu_tuong.setVisibility(View.GONE);
+        h.img_xu.setVisibility(View.VISIBLE);
+        h.img_xu.animate().cancel();
+        h.img_xu.setScaleX(1f); h.img_xu.setScaleY(1f);
+        h.img_xu.setColorFilter(null);
+        h.img_xu.setAlpha(1f);
 
         if ("xong".equals(trangThai)) {
             h.khung_o_ngay.setBackgroundResource(R.drawable.bg_o_xong);
             h.txt_ten_ngay.setTextColor(Color.parseColor("#E8DAD3"));
             h.txt_diem_o.setTextColor(Color.parseColor("#C7B4AB"));
+            h.img_xu.setVisibility(View.GONE);
+            h.txt_bieu_tuong.setVisibility(View.VISIBLE);
             h.txt_bieu_tuong.setText("✓");
             h.txt_bieu_tuong.setTextColor(Color.parseColor("#3E2B23"));
             doiMauXu(h, "#FFFFFF");
@@ -87,12 +94,10 @@ public class ONgayAdapter extends RecyclerView.Adapter<ONgayAdapter.ViewHolder> 
             h.txt_ten_ngay.setTextColor(Color.parseColor("#5D4037"));
             h.txt_diem_o.setTextColor(Color.parseColor("#8A6510"));
             if (laMoc) {
-                h.txt_bieu_tuong.setVisibility(View.GONE);
+                h.img_xu.setVisibility(View.GONE);
                 h.img_qua.setVisibility(View.VISIBLE);
             } else {
-                h.txt_bieu_tuong.setText("Đ");
-                h.txt_bieu_tuong.setTextColor(Color.parseColor("#8A6510"));
-                doiMauXu(h, "#F5CE55");
+                nhipXu(h.img_xu);   // ô đang chờ bấm: đồng xu nhún nhẹ
             }
 
         } else {  // 'chua'
@@ -100,14 +105,26 @@ public class ONgayAdapter extends RecyclerView.Adapter<ONgayAdapter.ViewHolder> 
             h.txt_ten_ngay.setTextColor(Color.parseColor("#8D8074"));
             h.txt_diem_o.setTextColor(Color.parseColor("#A99C8F"));
             if (laMoc) {
-                h.txt_bieu_tuong.setVisibility(View.GONE);
+                h.img_xu.setVisibility(View.GONE);
                 h.img_qua.setVisibility(View.VISIBLE);
             } else {
-                h.txt_bieu_tuong.setText("Đ");
-                h.txt_bieu_tuong.setTextColor(Color.parseColor("#B5A99D"));
-                doiMauXu(h, "#DCD5CF");
+                // Ngày chưa tới: đồng xu nhạt màu, mờ đi
+                android.graphics.ColorMatrix cm = new android.graphics.ColorMatrix();
+                cm.setSaturation(.25f);
+                h.img_xu.setColorFilter(new android.graphics.ColorMatrixColorFilter(cm));
+                h.img_xu.setAlpha(.55f);
             }
         }
+    }
+
+    /** Đồng xu ô hôm nay nhún lên xuống liên tục (dừng khi view được tái dùng). */
+    private void nhipXu(ImageView xu) {
+        xu.animate().scaleX(1.12f).scaleY(1.12f).setDuration(650)
+                .setInterpolator(new android.view.animation.AccelerateDecelerateInterpolator())
+                .withEndAction(() -> xu.animate().scaleX(1f).scaleY(1f).setDuration(650)
+                        .withEndAction(() -> { if (xu.isAttachedToWindow() && xu.getVisibility() == View.VISIBLE
+                                && xu.getAlpha() == 1f) nhipXu(xu); }).start())
+                .start();
     }
 
     /**
@@ -135,10 +152,11 @@ public class ONgayAdapter extends RecyclerView.Adapter<ONgayAdapter.ViewHolder> 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         LinearLayout khung_o_ngay;
         TextView txt_ten_ngay, txt_bieu_tuong, txt_diem_o;
-        ImageView img_qua;
+        ImageView img_qua, img_xu;
 
         public ViewHolder(@NonNull View v) {
             super(v);
+            img_xu         = v.findViewById(R.id.img_xu);
             khung_o_ngay   = v.findViewById(R.id.khung_o_ngay);
             txt_ten_ngay   = v.findViewById(R.id.txt_ten_ngay);
             txt_bieu_tuong = v.findViewById(R.id.txt_bieu_tuong);

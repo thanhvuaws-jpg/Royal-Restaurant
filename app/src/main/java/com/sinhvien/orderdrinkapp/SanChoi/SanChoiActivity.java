@@ -56,8 +56,9 @@ import retrofit2.Response;
  */
 public class SanChoiActivity extends AppCompatActivity {
 
-    private static final String PREF = "san_choi";
-    private static final String KHOA_AM = "am_thanh";
+    /** Lựa chọn bật/tắt tiếng — dùng chung với màn Điểm danh. */
+    public static final String PREF = "san_choi";
+    public static final String KHOA_AM = "am_thanh";
 
     private ApiService api;
     private AmThanhGame am;

@@ -80,6 +80,10 @@ public class DiemDanhFragment extends Fragment {
     private LoyaltyResponse duLieu;
     private boolean dangTai = false;
 
+    /** Tiếng và đồng xu bay khi điểm danh — cùng bộ với Sân chơi Royal (QĐ-111). */
+    private com.sinhvien.orderdrinkapp.SanChoi.AmThanhGame am;
+    private com.sinhvien.orderdrinkapp.SanChoi.HieuUngView hieuUng;
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
@@ -136,7 +140,60 @@ public class DiemDanhFragment extends Fragment {
             veDanhSach();
         });
 
+        // Lớp hiệu ứng phủ cả cửa sổ (đồng xu bay từ ô ngày vào thẻ điểm).
+        hieuUng = new com.sinhvien.orderdrinkapp.SanChoi.HieuUngView(requireContext());
+        hieuUng.setElevation(40f);
+        ((ViewGroup) requireActivity().getWindow().getDecorView()).addView(hieuUng,
+                new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        amThanh();   // nạp tiếng sẵn: SoundPool nạp không đồng bộ, đợi tới lúc bấm thì lần đầu sẽ câm
+
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        if (hieuUng != null && hieuUng.getParent() instanceof ViewGroup) {
+            ((ViewGroup) hieuUng.getParent()).removeView(hieuUng);
+        }
+        hieuUng = null;
+        if (am != null) { am.giaiPhong(); am = null; }
+        super.onDestroyView();
+    }
+
+    /** Tạo bộ âm thanh lúc cần (lần đầu điểm danh), theo lựa chọn tắt tiếng ở Sân chơi. */
+    private com.sinhvien.orderdrinkapp.SanChoi.AmThanhGame amThanh() {
+        boolean bat = requireContext().getSharedPreferences(
+                com.sinhvien.orderdrinkapp.SanChoi.SanChoiActivity.PREF, android.content.Context.MODE_PRIVATE)
+                .getBoolean(com.sinhvien.orderdrinkapp.SanChoi.SanChoiActivity.KHOA_AM, true);
+        if (am == null) am = new com.sinhvien.orderdrinkapp.SanChoi.AmThanhGame(requireContext(), bat);
+        am.setBat(bat);
+        return am;
+    }
+
+    /**
+     * Mừng điểm danh: đồng xu bay từ ô ngày vừa bấm vào thẻ "Số điểm của bạn",
+     * mỗi đồng tới kêu "ting"; trọn 7 ngày thì thêm nhạc thắng và pháo giấy.
+     */
+    private void mungDiemDanh(DiemDanhResponse r) {
+        if (hieuUng == null || getView() == null) return;
+        com.sinhvien.orderdrinkapp.SanChoi.AmThanhGame a = amThanh();
+        View dich = getView().findViewById(R.id.img_xu_diem);
+        RecyclerView.ViewHolder vh = rv_o_ngay.findViewHolderForAdapterPosition(Math.max(0, r.getViTri() - 1));
+        View tu = vh != null ? vh.itemView : btn_diem_danh;
+        int[] o = new int[2], d = new int[2], g = new int[2];
+        tu.getLocationInWindow(o);
+        dich.getLocationInWindow(d);
+        hieuUng.getLocationInWindow(g);
+        float tuX = o[0] - g[0] + tu.getWidth() / 2f, tuY = o[1] - g[1] + tu.getHeight() / 2f;
+        float denX = d[0] - g[0] + dich.getWidth() / 2f, denY = d[1] - g[1] + dich.getHeight() / 2f;
+        int so = r.isLaMoc() ? 14 : 6;
+        hieuUng.xuBay(tuX, tuY, denX, denY, so, r.isLaMoc() ? 1.1f : .8f, a::ting);
+        if (r.isLaMoc()) {
+            a.thang();
+            hieuUng.phaoGiay(tuX, tuY, 120, 1.1f);
+        } else {
+            a.ting();
+        }
     }
 
     @Override
@@ -314,6 +371,7 @@ public class DiemDanhFragment extends Fragment {
 
                 if (ok) {
                     DiemDanhResponse r = response.body();
+                    mungDiemDanh(r);
                     if (r.isLaMoc()) {
                         // Mốc trọn tuần đáng được nhấn mạnh hơn một Toast.
                         new AlertDialog.Builder(requireContext())

@@ -28,11 +28,19 @@
         android:textColor="#8D8074"/>
 
     <FrameLayout
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_marginTop="5dp">
+        android:layout_width="34dp"
+        android:layout_height="34dp"
+        android:layout_marginTop="4dp">
 
-        <!-- Đồng xu / dấu tích -->
+        <!-- Đồng xu của Sân chơi Royal (ngày chưa tới mờ đi, hôm nay sáng rõ) -->
+        <ImageView
+            android:id="@+id/img_xu"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/mg_dong_xu"
+            android:importantForAccessibility="no"/>
+
+        <!-- Dấu tích (đã điểm danh) -->
         <TextView
             android:id="@+id/txt_bieu_tuong"
             android:layout_width="match_parent"

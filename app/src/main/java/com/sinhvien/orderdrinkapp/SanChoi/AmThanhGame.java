@@ -20,7 +20,7 @@ import java.util.Random;
  * vào SoundPool — SoundPool phát chồng nhiều tiếng "tích" liên tiếp được và độ
  * trễ thấp hơn MediaPlayer.
  */
-final class AmThanhGame {
+public final class AmThanhGame {
 
     private static final int TAN_SO_MAU = 22050;
 
@@ -29,7 +29,7 @@ final class AmThanhGame {
     private final Random rnd = new Random();
     private boolean bat;
 
-    AmThanhGame(Context ctx, boolean bat) {
+    public AmThanhGame(Context ctx, boolean bat) {
         this.bat = bat;
         pool = new SoundPool.Builder()
                 .setMaxStreams(6)
@@ -49,21 +49,21 @@ final class AmThanhGame {
         lach  = nap(thuMuc, "lach",  new Not[]{new Not(280, 0, .06, Song.VUONG, .04)});
     }
 
-    void setBat(boolean bat) { this.bat = bat; }
-    boolean isBat() { return bat; }
+    public void setBat(boolean bat) { this.bat = bat; }
+    public boolean isBat() { return bat; }
 
     /** Vách vàng quét qua kim. Đổi cao độ nhẹ cho đỡ đều. */
-    void tich()  { phat(tich, .9f + rnd.nextFloat() * .2f, .8f); }
-    void ting()  { phat(ting, 1f, .9f); }
-    void thang() { phat(thang, 1f, 1f); }
-    void thich() { phat(thich, 1f, 1f); }
-    void lach()  { phat(lach, .85f + rnd.nextFloat() * .3f, .7f); }
+    public void tich()  { phat(tich, .9f + rnd.nextFloat() * .2f, .8f); }
+    public void ting()  { phat(ting, 1f, .9f); }
+    public void thang() { phat(thang, 1f, 1f); }
+    public void thich() { phat(thich, 1f, 1f); }
+    public void lach()  { phat(lach, .85f + rnd.nextFloat() * .3f, .7f); }
 
     private void phat(int id, float caoDo, float to) {
         if (bat && id != 0) pool.play(id, to, to, 1, 0, caoDo);
     }
 
-    void giaiPhong() { pool.release(); }
+    public void giaiPhong() { pool.release(); }
 
     /* ═══════════════════════════ Tổng hợp ═══════════════════════════ */
 

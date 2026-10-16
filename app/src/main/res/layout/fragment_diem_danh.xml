@@ -120,10 +120,12 @@
                             android:gravity="center_vertical"
                             android:layout_marginTop="4dp">
 
+                            <!-- Đồng xu của Sân chơi Royal, cho đồng bộ (QĐ-111) -->
                             <ImageView
-                                android:layout_width="22dp"
-                                android:layout_height="22dp"
-                                android:src="@drawable/ic_xu"
+                                android:id="@+id/img_xu_diem"
+                                android:layout_width="28dp"
+                                android:layout_height="28dp"
+                                android:src="@drawable/mg_dong_xu"
                                 android:contentDescription="@string/dd_diem"/>
 
                             <TextView
