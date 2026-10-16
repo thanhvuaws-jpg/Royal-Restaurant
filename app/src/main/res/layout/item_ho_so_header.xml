@@ -157,7 +157,7 @@
                     android:scaleType="fitXY"
                     android:importantForAccessibility="no"
                     android:src="@drawable/the_dong"
-                    app:layout_constraintDimensionRatio="900:570"
+                    app:layout_constraintDimensionRatio="900:568"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent" />
@@ -241,7 +241,7 @@
                     android:maxLines="1"
                     android:ellipsize="end"
                     app:layout_constraintStart_toStartOf="@id/gl_the_trai"
-                    app:layout_constraintEnd_toStartOf="@id/txt_profile_badge"
+                    app:layout_constraintEnd_toEndOf="@id/gl_the_giua"
                     app:layout_constraintBottom_toBottomOf="@id/gl_the_day" />
 
                 <TextView
@@ -257,8 +257,9 @@
                     android:paddingTop="3dp"
                     android:paddingBottom="3dp"
                     android:background="@drawable/bg_huy_hieu_hang"
-                    app:layout_constraintEnd_toEndOf="@id/gl_the_phai"
-                    app:layout_constraintBaseline_toBaselineOf="@id/txt_ten_chu_the" />
+                    android:layout_marginTop="14dp"
+                    app:layout_constraintStart_toStartOf="@id/gl_the_trai"
+                    app:layout_constraintTop_toTopOf="parent" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
 

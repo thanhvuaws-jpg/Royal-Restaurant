@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mục menu bên: đang mở có vệt vàng nhạt dần sang phải và vạch vàng bên trái. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <layer-list>
+            <item>
+                <shape><gradient android:angle="0" android:startColor="#45D9A441" android:endColor="#00D9A441" /></shape>
+            </item>
+            <item android:width="3dp" android:gravity="start|fill_vertical" android:top="6dp" android:bottom="6dp">
+                <shape><solid android:color="#D9A441" /><corners android:topRightRadius="3dp" android:bottomRightRadius="3dp" /></shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <shape><solid android:color="#26D9A441" /></shape>
+    </item>
+    <item>
+        <shape><solid android:color="#00000000" /></shape>
+    </item>
+</selector>

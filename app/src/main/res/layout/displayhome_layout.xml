@@ -45,7 +45,8 @@
                 android:layout_marginTop="20dp"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="0dp"
-                app:strokeWidth="0dp">
+                app:strokeColor="#D9A441"
+                app:strokeWidth="1dp">
 
                 <FrameLayout
                     android:layout_width="match_parent"
@@ -54,7 +55,7 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:src="@drawable/ic_dashboard_banner_bg"
+                        android:src="@drawable/bg_hoanh_son_mai"
                         android:scaleType="centerCrop" />
 
                     <View
@@ -67,21 +68,24 @@
                         android:layout_height="match_parent"
                         android:gravity="center_vertical"
                         android:orientation="vertical"
-                        android:padding="20dp">
+                        android:paddingStart="20dp"
+                        android:paddingTop="16dp"
+                        android:paddingBottom="16dp"
+                        android:paddingEnd="140dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Hôm nay thế nào?"
-                            android:textColor="@color/white"
-                            android:fontFamily="@font/muli_black"
-                            android:textSize="18sp" />
+                            android:textColor="#FFE3A0"
+                            android:fontFamily="@font/baloo2_extrabold"
+                            android:textSize="20sp" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Hãy phục vụ khách hàng tốt nhất nhé!"
-                            android:textColor="#E0E0E0"
+                            android:textColor="#EADBC0"
                             android:fontFamily="@font/muli"
                             android:textSize="12sp"
                             android:layout_marginTop="4dp" />
@@ -121,7 +125,7 @@
                     <ImageView
                         android:layout_width="56dp"
                         android:layout_height="56dp"
-                        android:src="@drawable/ic_dash_statistic" />
+                        android:src="@drawable/ic_hh_thong_ke" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -154,7 +158,7 @@
                     <ImageView
                         android:layout_width="56dp"
                         android:layout_height="56dp"
-                        android:src="@drawable/ic_dash_table" />
+                        android:src="@drawable/ic_hh_ban_an" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -187,7 +191,7 @@
                     <ImageView
                         android:layout_width="56dp"
                         android:layout_height="56dp"
-                        android:src="@drawable/ic_dash_menu" />
+                        android:src="@drawable/ic_hh_thuc_don" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -220,7 +224,7 @@
                     <ImageView
                         android:layout_width="56dp"
                         android:layout_height="56dp"
-                        android:src="@drawable/ic_dash_staff" />
+                        android:src="@drawable/ic_hh_nhan_vien" />
 
                     <TextView
                         android:layout_width="wrap_content"

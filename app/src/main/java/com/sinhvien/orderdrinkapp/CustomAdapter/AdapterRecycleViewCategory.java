@@ -55,15 +55,15 @@ public class AdapterRecycleViewCategory extends RecyclerView.Adapter<AdapterRecy
             Glide.with(context)
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .placeholder(R.drawable.ic_dash_menu)
-                    .error(R.drawable.ic_dash_menu)
+                    .placeholder(R.drawable.ic_hh_thuc_don)
+                    .error(R.drawable.ic_hh_thuc_don)
                     .into(holder.img_customcategory_CategoryImage);
         } else if (loaiMonDTO.getHinhAnh() != null) {
             byte[] categoryimage = loaiMonDTO.getHinhAnh();
             Bitmap bitmap = BitmapFactory.decodeByteArray(categoryimage, 0, categoryimage.length);
             holder.img_customcategory_CategoryImage.setImageBitmap(bitmap);
         } else {
-            holder.img_customcategory_CategoryImage.setImageResource(R.drawable.ic_dash_menu);
+            holder.img_customcategory_CategoryImage.setImageResource(R.drawable.ic_hh_thuc_don);
         }
     }
 

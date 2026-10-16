@@ -5,17 +5,17 @@
         <item
             android:id="@+id/nav_home"
             android:title="Trang chủ"
-            android:icon="@drawable/ic_baseline_home_24"/>
+            android:icon="@drawable/ic_hh_trang_chu"/>
 
         <item
             android:id="@+id/nav_statistic"
             android:title="Thống kê"
-            android:icon="@drawable/ic_baseline_bar_chart_24"/>
+            android:icon="@drawable/ic_hh_thong_ke"/>
 
         <item
             android:id="@+id/nav_cashier"
             android:title="Thu ngân"
-            android:icon="@drawable/ic_baseline_person_24"/>
+            android:icon="@drawable/ic_hh_thu_ngan"/>
 
         <item android:title="Quản lý">
             <menu>
@@ -23,24 +23,24 @@
                     <item
                         android:id="@+id/nav_table"
                         android:title="Bàn ăn"
-                        android:icon="@drawable/ic_baseline_airline_seat_legroom_normal_24"/>
+                        android:icon="@drawable/ic_hh_ban_an"/>
                     <item
                         android:id="@+id/nav_manage_bookings"
                         android:title="Đặt lịch trước"
-                        android:icon="@drawable/ic_baseline_calendar_today_24"/>
+                        android:icon="@drawable/ic_hh_dat_lich"/>
                     <item
                         android:id="@+id/nav_category"
                         android:title="Thực đơn"
-                        android:icon="@drawable/ic_baseline_restaurant_menu_24"/>
+                        android:icon="@drawable/ic_hh_thuc_don"/>
 
                     <item
                         android:id="@+id/nav_staff"
                         android:title="Nhân viên"
-                        android:icon="@drawable/ic_baseline_person_24"/>
+                        android:icon="@drawable/ic_hh_nhan_vien"/>
                     <item
                         android:id="@+id/nav_kho"
                         android:title="Kho nguyên liệu"
-                        android:icon="@drawable/ic_baseline_storage_24"/>
+                        android:icon="@drawable/ic_hh_kho"/>
                 </group>
             </menu>
         </item>
@@ -48,12 +48,12 @@
         <item
             android:id="@+id/nav_khuon_mat"
             android:title="Đăng nhập bằng khuôn mặt"
-            android:icon="@drawable/ic_khuon_mat_24"/>
+            android:icon="@drawable/ic_hh_khuon_mat"/>
 
         <item
             android:id="@+id/nav_logout"
             android:title="Đăng xuất"
-            android:icon="@drawable/ic_baseline_exit_to_app_24"/>
+            android:icon="@drawable/ic_hh_dang_xuat"/>
 
     </group>
 </menu>

@@ -101,6 +101,8 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         drawerToggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
+        // Biểu tượng menu là hình vẽ có màu sẵn (bộ Sơn Son) — không cho NavigationView tô đè.
+        navigationView.setItemIconTintList(null);
 
         // Hiển thị tên Khách hàng lên Header của Navigation Drawer
         View headerView = navigationView.getHeaderView(0);
@@ -109,6 +111,13 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         String hoten = SessionManager.getFullName(this);
         if (hoten.isEmpty()) hoten = "Khách hàng";
         txt_menu_tennv.setText(hoten);
+
+        // Nhãn vai trò ở đầu menu bên (bộ giao diện Sơn Son, QĐ-112)
+        TextView txt_menu_vai = headerView.findViewById(R.id.txt_menu_vai);
+        if (txt_menu_vai != null) {
+            txt_menu_vai.setText("KHÁCH HÀNG");
+            txt_menu_vai.setVisibility(View.VISIBLE);
+        }
 
         // Khởi tạo kết nối Socket.io real-time
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().connect();

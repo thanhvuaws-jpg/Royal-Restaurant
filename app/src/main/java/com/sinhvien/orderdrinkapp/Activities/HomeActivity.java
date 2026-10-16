@@ -127,6 +127,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         drawerToggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
+        // Biểu tượng menu là hình vẽ có màu sẵn (bộ Sơn Son) — không cho NavigationView tô đè.
+        navigationView.setItemIconTintList(null);
 
         // Lấy tên hiển thị từ SharedPreferences Session để điền lên thanh tiêu đề menu bên hông
         View headerView = navigationView.getHeaderView(0);
@@ -135,6 +137,14 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         String hoten = SessionManager.getFullName(this);
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
+
+        // Nhãn vai trò ở đầu menu bên (bộ giao diện Sơn Son, QĐ-112)
+        TextView txt_menu_vai = headerView.findViewById(R.id.txt_menu_vai);
+        if (txt_menu_vai != null) {
+            int quyen = SessionManager.getMaQuyen(this);
+            txt_menu_vai.setText(quyen == 1 ? "QUẢN LÝ" : quyen == 3 ? "THU NGÂN" : "PHỤC VỤ");
+            txt_menu_vai.setVisibility(View.VISIBLE);
+        }
 
         // Khởi tạo kết nối Socket.io real-time
         com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().connect();

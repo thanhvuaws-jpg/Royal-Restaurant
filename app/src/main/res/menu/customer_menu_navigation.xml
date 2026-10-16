@@ -4,26 +4,26 @@
         <item
             android:id="@+id/nav_customer_booking"
             android:title="Đặt bàn &amp; món"
-            android:icon="@drawable/ic_baseline_restaurant_menu_24"/>
+            android:icon="@drawable/ic_hh_dat_lich"/>
         <item
             android:id="@+id/nav_customer_history"
             android:title="Lịch sử &amp; chi tiêu"
-            android:icon="@drawable/ic_baseline_bar_chart_24"/>
+            android:icon="@drawable/ic_hh_thong_ke"/>
         <item
             android:id="@+id/nav_diem_danh"
-            android:icon="@drawable/ic_hop_qua"
+            android:icon="@drawable/ic_hh_qua_tang"
             android:title="Điểm danh &amp; Quà tặng" />
         <item
             android:id="@+id/nav_customer_contact"
             android:title="Hỗ trợ khách hàng"
-            android:icon="@drawable/ic_chat_ho_tro"/>
+            android:icon="@drawable/ic_hh_chat"/>
         <item
             android:id="@+id/nav_khuon_mat"
             android:title="Đăng nhập bằng khuôn mặt"
-            android:icon="@drawable/ic_khuon_mat_24"/>
+            android:icon="@drawable/ic_hh_khuon_mat"/>
         <item
             android:id="@+id/nav_logout"
             android:title="Đăng xuất"
-            android:icon="@drawable/ic_baseline_exit_to_app_24"/>
+            android:icon="@drawable/ic_hh_dang_xuat"/>
     </group>
 </menu>

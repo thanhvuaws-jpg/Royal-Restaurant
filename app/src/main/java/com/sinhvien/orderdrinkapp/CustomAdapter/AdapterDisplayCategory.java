@@ -84,8 +84,8 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
             Glide.with(context)
                     .load(url)
                     .diskCacheStrategy(DiskCacheStrategy.ALL) // Lưu cache toàn bộ kích thước ảnh để tối ưu tốc độ load lại
-                    .placeholder(R.drawable.ic_dash_menu)     // Ảnh hiển thị tạm thời khi đang tải
-                    .error(R.drawable.ic_dash_menu)           // Ảnh hiển thị khi gặp lỗi tải
+                    .placeholder(R.drawable.ic_hh_thuc_don)     // Ảnh hiển thị tạm thời khi đang tải
+                    .error(R.drawable.ic_hh_thuc_don)           // Ảnh hiển thị khi gặp lỗi tải
                     .into(holder.img_CategoryImage);
         } else if (loaiMonDTO.getHinhAnh() != null) {
             // Trường hợp không có URL -> giải mã mảng bytes ảnh lưu ở SQLite

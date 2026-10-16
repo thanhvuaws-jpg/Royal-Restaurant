@@ -192,28 +192,28 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
 
         if (chiTieu >= NGUONG_KIMCUONG) {
             tenHang = context.getString(R.string.customer_rank_diamond);
-            mauHang = "#00BCD4";
+            mauHang = "#D6ECFF";   // xà cừ, bạch kim
             cardRes = R.drawable.the_kimcuong;
             badgeRes = R.drawable.rank_kimcuong;
             nguongKeTiep = 0;
             tenHangKeTiep = null;
         } else if (chiTieu >= NGUONG_VANG) {
             tenHang = context.getString(R.string.customer_rank_gold);
-            mauHang = "#FFD700";
+            mauHang = "#FFE3A0";   // vàng lá
             cardRes = R.drawable.the_vang;
             badgeRes = R.drawable.rank_vang;
             nguongKeTiep = NGUONG_KIMCUONG;
             tenHangKeTiep = context.getString(R.string.customer_rank_diamond);
         } else if (chiTieu >= NGUONG_BAC) {
             tenHang = context.getString(R.string.customer_rank_silver);
-            mauHang = "#C0C0C0";
+            mauHang = "#E8E8EE";   // bạc
             cardRes = R.drawable.the_bac;
             badgeRes = R.drawable.rank_bac;
             nguongKeTiep = NGUONG_VANG;
             tenHangKeTiep = context.getString(R.string.customer_rank_gold);
         } else {
             tenHang = context.getString(R.string.customer_rank_bronze);
-            mauHang = "#CD7F32";
+            mauHang = "#F2B48A";   // đồng
             cardRes = R.drawable.the_dong;
             badgeRes = R.drawable.rank_dong;
             nguongKeTiep = NGUONG_BAC;
@@ -231,12 +231,17 @@ public class HoSoHeaderAdapter extends RecyclerView.Adapter<HoSoHeaderAdapter.Vi
 
         // mutate() bắt buộc: không có nó thì Drawable được chia sẻ giữa mọi
         // view dùng cùng tệp XML, và đổi màu ở đây sẽ đổi luôn chỗ khác.
+        // Thẻ sơn mài (QĐ-112): nhãn hạng nền tối trong mờ, viền và chữ màu kim
+        // loại của hạng — nổi trên cả bốn nền thẻ mà không che hình hoa sen.
         GradientDrawable nen = (GradientDrawable) h.txt_profile_badge.getBackground();
         if (nen != null) {
             nen = (GradientDrawable) nen.mutate();
-            nen.setColor(Color.parseColor(mauHang));
+            nen.setColor(Color.parseColor("#73000000"));
+            nen.setStroke((int) (1.2f * context.getResources().getDisplayMetrics().density),
+                    Color.parseColor(mauHang));
             h.txt_profile_badge.setBackground(nen);
         }
+        h.txt_profile_badge.setTextColor(Color.parseColor(mauHang));
 
         if (nguongKeTiep == 0) {
             h.progress_hang.setProgress(100);

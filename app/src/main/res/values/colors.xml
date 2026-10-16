@@ -39,4 +39,6 @@
     <color name="kho_ngung">#757575</color>
     <color name="kho_bg_card">#FFFFFF</color>
     <color name="kho_border">#E0E0E0</color>
+    <!-- Bộ giao diện Sơn Son (QĐ-112) -->
+    <color name="chu_phu_menu_ben">#B29C7C</color>
 </resources>

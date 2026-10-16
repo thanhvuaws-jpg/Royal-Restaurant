@@ -2,6 +2,7 @@
 <resources>
     <array name="preloaded_fonts" translatable="false">
         <item>@font/baloo</item>
+        <item>@font/baloo2_extrabold</item>
         <item>@font/bangers</item>
         <item>@font/muli</item>
         <item>@font/muli_black</item>

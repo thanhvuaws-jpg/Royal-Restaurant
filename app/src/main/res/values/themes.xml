@@ -20,9 +20,12 @@
 
 
     <!-- Menu style -->
+    <!-- Menu bên sơn then (QĐ-112): tiêu đề nhóm ("Quản lý") màu chữ phụ, gợn bấm vàng nhạt. -->
     <style name="navigationTheme">
         <item name="colorPrimary">@color/colorPrimary</item>
-        <item name="colorControlHighlight">@color/colorAccent</item>
+        <item name="colorControlHighlight">#33D9A441</item>
+        <item name="android:textColorSecondary">@color/chu_phu_menu_ben</item>
+        <item name="android:listDivider">@drawable/vach_menu_ben</item>
     </style>
 
     <!-- Popup style -->
