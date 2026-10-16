@@ -88,6 +88,9 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, toolbar,
                 R.string.open, R.string.close);
         drawerLayout.addDrawerListener(drawerToggle);
+        // Lớp phủ khi mở menu: mặc định Android là đen 60% làm cả màn tối sầm;
+        // giảm còn 30% tông nâu sơn then cho gần bản Figma (không phủ).
+        drawerLayout.setScrimColor(0x4D140B08);
         drawerLayout.addDrawerListener(new androidx.drawerlayout.widget.DrawerLayout.SimpleDrawerListener() {
             @Override
             public void onDrawerClosed(@NonNull View drawerView) {
@@ -111,6 +114,11 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         String hoten = SessionManager.getFullName(this);
         if (hoten.isEmpty()) hoten = "Khách hàng";
         txt_menu_tennv.setText(hoten);
+        // Huy hiệu chữ viết tắt thay hình người xám mặc định (khớp Figma, QĐ-112).
+        TextView txtVietTat = headerView.findViewById(R.id.txt_header_viet_tat);
+        if (txtVietTat != null) {
+            txtVietTat.setText(com.sinhvien.orderdrinkapp.Utils.ViewUtils.vietTat(hoten));
+        }
 
         // Nhãn vai trò ở đầu menu bên (bộ giao diện Sơn Son, QĐ-112)
         TextView txt_menu_vai = headerView.findViewById(R.id.txt_menu_vai);

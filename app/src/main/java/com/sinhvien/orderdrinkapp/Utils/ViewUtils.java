@@ -104,4 +104,21 @@ public class ViewUtils {
             });
         }
     }
+
+    /**
+     * Chữ viết tắt cho huy hiệu ảnh đại diện đầu menu bên: chữ đầu của HAI từ đầu,
+     * như mẫu Figma ("Quản lý sân thử" → "QL", "Khách Thử" → "KT"). Tên một từ thì
+     * lấy một chữ; tên rỗng thì "R" (Royal).
+     */
+    public static String vietTat(String hoTen) {
+        if (hoTen == null) return "R";
+        String[] tu = hoTen.trim().split("\\s+");
+        StringBuilder kq = new StringBuilder();
+        for (String t : tu) {
+            if (t.isEmpty()) continue;
+            kq.appendCodePoint(t.codePointAt(0));
+            if (kq.codePointCount(0, kq.length()) == 2) break;
+        }
+        return kq.length() == 0 ? "R" : kq.toString().toUpperCase(new java.util.Locale("vi"));
+    }
 }

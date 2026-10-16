@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Phủ tối tấm hoành ở đầu menu bên: trên nhạt cho thấy hoa sen, dưới đậm cho chữ dễ đọc. -->
+<!-- Phủ tối tấm hoành ở đầu menu bên, đúng thông số Figma (.menu-mau .dau):
+     trên 35% cho thấy hoa sen, dưới 85% cho chữ dễ đọc. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient android:angle="270" android:startColor="#33140B08" android:centerColor="#80140B08" android:endColor="#E6140B08" />
+    <gradient android:angle="270" android:startColor="#59140B08" android:endColor="#D9140B08" />
 </shape>

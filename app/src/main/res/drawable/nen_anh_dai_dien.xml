@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ảnh đại diện đầu menu bên (khớp .anh-dd trên Figma): huy hiệu đỏ sáng ở góc trên trái,
+     viền vàng 2dp; chữ viết tắt tên đặt lên trên. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <gradient
+                android:type="radial"
+                android:centerX="0.35"
+                android:centerY="0.3"
+                android:gradientRadius="80%"
+                android:startColor="#C0392B"
+                android:endColor="#5E0E0C" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="2dp" android:color="#D9A441" />
+        </shape>
+    </item>
+</layer-list>

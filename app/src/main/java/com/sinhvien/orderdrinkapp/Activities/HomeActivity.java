@@ -124,6 +124,9 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         };
 
         drawerLayout.addDrawerListener(drawerToggle);
+        // Lớp phủ khi mở menu: mặc định Android là đen 60% làm cả màn tối sầm;
+        // giảm còn 30% tông nâu sơn then cho gần bản Figma (không phủ).
+        drawerLayout.setScrimColor(0x4D140B08);
         drawerToggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
@@ -137,6 +140,11 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         String hoten = SessionManager.getFullName(this);
         if (hoten.isEmpty()) hoten = "Nhân viên";
         txt_menu_tennv.setText(hoten);
+        // Huy hiệu chữ viết tắt thay hình người xám mặc định (khớp Figma, QĐ-112).
+        TextView txtVietTat = headerView.findViewById(R.id.txt_header_viet_tat);
+        if (txtVietTat != null) {
+            txtVietTat.setText(com.sinhvien.orderdrinkapp.Utils.ViewUtils.vietTat(hoten));
+        }
 
         // Nhãn vai trò ở đầu menu bên (bộ giao diện Sơn Son, QĐ-112)
         TextView txt_menu_vai = headerView.findViewById(R.id.txt_menu_vai);

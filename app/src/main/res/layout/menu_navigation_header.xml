@@ -29,25 +29,22 @@
         android:paddingEnd="20dp"
         android:paddingBottom="16dp">
 
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_header_avatar"
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            app:cardBackgroundColor="#5E0E0C"
-            app:cardCornerRadius="32dp"
-            app:cardElevation="4dp"
-            app:strokeColor="#E3B34F"
-            app:strokeWidth="2dp"
-            tools:targetApi="lollipop">
-
-            <ImageView
-                android:id="@+id/img_header_avatar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:contentDescription="@string/nav_staff"
-                android:scaleType="centerCrop"
-                android:src="@drawable/ic_baseline_person_pin_32" />
-        </com.google.android.material.card.MaterialCardView>
+        <!-- Chữ viết tắt tên (vd "QL", "KT") trên huy hiệu đỏ viền vàng, như Figma.
+             HomeActivity / CustomerHomeActivity điền chữ. -->
+        <TextView
+            android:id="@+id/txt_header_viet_tat"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:background="@drawable/nen_anh_dai_dien"
+            android:elevation="4dp"
+            android:fontFamily="@font/baloo2_extrabold"
+            android:gravity="center"
+            android:importantForAccessibility="no"
+            android:includeFontPadding="false"
+            android:textColor="#FFE3A0"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="QL" />
 
         <TextView
             android:id="@+id/txt_menu_tennv"
