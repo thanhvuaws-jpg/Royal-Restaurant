@@ -86,11 +86,12 @@
             android:background="@drawable/corner_border_white"
             android:text="@string/register"
             android:textColor="@color/colorPrimary"
-            app:backgroundTint="@color/white"
+            app:backgroundTint="@null"
+            android:stateListAnimator="@null"
             android:transitionName="transition_signup"
             android:textAllCaps="false"
             android:textSize="18sp"
-            android:elevation="2dp"
+            android:elevation="0dp"
             tools:targetApi="lollipop" />
 
     </LinearLayout>
