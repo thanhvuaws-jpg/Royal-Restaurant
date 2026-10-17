@@ -39,6 +39,7 @@ import java.util.Random;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * SanChoiActivity — Sân chơi Royal (QĐ-111): vòng quay may mắn và rương thưởng
@@ -418,7 +419,7 @@ public class SanChoiActivity extends AppCompatActivity {
                     vongQuay.quayToi(b.getO());
                 } else {
                     dangGoi = false;
-                    Toast.makeText(SanChoiActivity.this, docLoi(r, "Chưa quay được, thử lại nhé."), Toast.LENGTH_LONG).show();
+                    ThongBao.hien(SanChoiActivity.this, docLoi(r, "Chưa quay được, thử lại nhé."), Toast.LENGTH_LONG);
                     taiTrangThai();
                 }
             }
@@ -428,8 +429,8 @@ public class SanChoiActivity extends AppCompatActivity {
                 if (isFinishing()) return;
                 dangGoi = false;
                 veLuot();
-                Toast.makeText(SanChoiActivity.this, "Mất kết nối, lượt quay chưa bị trừ. Thử lại nhé.",
-                        Toast.LENGTH_LONG).show();
+                ThongBao.hien(SanChoiActivity.this, "Mất kết nối, lượt quay chưa bị trừ. Thử lại nhé.",
+                        Toast.LENGTH_LONG);
             }
         });
     }
@@ -524,8 +525,8 @@ public class SanChoiActivity extends AppCompatActivity {
                     rungRuong(b);
                 } else {
                     dangGoi = false;
-                    Toast.makeText(SanChoiActivity.this, docLoi(r, "Chưa mở được rương, thử lại nhé."),
-                            Toast.LENGTH_LONG).show();
+                    ThongBao.hien(SanChoiActivity.this, docLoi(r, "Chưa mở được rương, thử lại nhé."),
+                            Toast.LENGTH_LONG);
                     taiTrangThai();
                 }
             }
@@ -535,8 +536,8 @@ public class SanChoiActivity extends AppCompatActivity {
                 if (isFinishing()) return;
                 dangGoi = false;
                 veRuong();
-                Toast.makeText(SanChoiActivity.this, "Mất kết nối, rương vẫn còn đó. Thử lại nhé.",
-                        Toast.LENGTH_LONG).show();
+                ThongBao.hien(SanChoiActivity.this, "Mất kết nối, rương vẫn còn đó. Thử lại nhé.",
+                        Toast.LENGTH_LONG);
             }
         });
     }

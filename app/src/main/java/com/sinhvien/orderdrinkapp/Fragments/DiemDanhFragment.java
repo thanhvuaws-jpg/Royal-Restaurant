@@ -34,6 +34,8 @@ import com.sinhvien.orderdrinkapp.Utils.SessionManager;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DiemDanhFragment — màn hình "Điểm danh & Quà tặng".
@@ -249,8 +251,8 @@ public class DiemDanhFragment extends Fragment {
 
                 if (!response.isSuccessful() || response.body() == null
                         || !"success".equals(response.body().getStatus())) {
-                    Toast.makeText(getContext(), "Không tải được dữ liệu điểm danh",
-                            Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(getContext(), "Không tải được dữ liệu điểm danh",
+                            Toast.LENGTH_SHORT);
                     return;
                 }
 
@@ -267,8 +269,8 @@ public class DiemDanhFragment extends Fragment {
             public void onFailure(Call<LoyaltyResponse> call, Throwable t) {
                 dangTai = false;
                 if (!isAdded()) return;
-                Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(),
+                        Toast.LENGTH_SHORT);
             }
         });
     }
@@ -320,7 +322,7 @@ public class DiemDanhFragment extends Fragment {
         } else {
             btn_diem_danh.setEnabled(true);
             btn_diem_danh.setText(R.string.dd_nut_diem_danh);
-            btn_diem_danh.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#795548")));
+            btn_diem_danh.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#8E1B17")));
         }
 
         veDanhSach();
@@ -374,16 +376,16 @@ public class DiemDanhFragment extends Fragment {
                     mungDiemDanh(r);
                     if (r.isLaMoc()) {
                         // Mốc trọn tuần đáng được nhấn mạnh hơn một Toast.
-                        new AlertDialog.Builder(requireContext())
+                        new HopThoai.Builder(requireContext())
                                 .setTitle("Trọn 7 ngày!")
                                 .setMessage(r.getMessage())
                                 .setPositiveButton("Tuyệt!", null)
                                 .show();
                     } else {
-                        Toast.makeText(getContext(), r.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(getContext(), r.getMessage(), Toast.LENGTH_SHORT);
                     }
                 } else {
-                    Toast.makeText(getContext(), docLoi(response), Toast.LENGTH_LONG).show();
+                    ThongBao.hien(getContext(), docLoi(response), Toast.LENGTH_LONG);
                 }
 
                 taiDuLieu();   // nạp lại để bảng ô và số điểm khớp máy chủ
@@ -393,14 +395,14 @@ public class DiemDanhFragment extends Fragment {
             public void onFailure(Call<DiemDanhResponse> call, Throwable t) {
                 if (!isAdded()) return;
                 btn_diem_danh.setEnabled(true);
-                Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(),
+                        Toast.LENGTH_SHORT);
             }
         });
     }
 
     private void xacNhanDoi(LoyaltyResponse.Voucher v) {
-        new AlertDialog.Builder(requireContext())
+        new HopThoai.Builder(requireContext())
                 .setTitle(R.string.dd_nut_doi_phieu)
                 .setMessage(getString(R.string.dd_xac_nhan_doi, v.getDiemDoi(), v.getTen()))
                 .setPositiveButton(R.string.dd_xac_nhan_doi_ok, (d, w) -> goiDoiVoucher(v))
@@ -421,7 +423,7 @@ public class DiemDanhFragment extends Fragment {
                         && "success".equals(response.body().getStatus())) {
 
                     DoiVoucherResponse r = response.body();
-                    new AlertDialog.Builder(requireContext())
+                    new HopThoai.Builder(requireContext())
                             .setTitle("Đổi thành công")
                             .setMessage(r.getTen() + "\n\nMã của bạn:\n" + r.getMaCode()
                                     + "\n\nĐọc mã này cho nhân viên khi thanh toán.")
@@ -437,7 +439,7 @@ public class DiemDanhFragment extends Fragment {
                     taiDuLieu();
 
                 } else {
-                    Toast.makeText(getContext(), docLoi(response), Toast.LENGTH_LONG).show();
+                    ThongBao.hien(getContext(), docLoi(response), Toast.LENGTH_LONG);
                     taiDuLieu();
                 }
             }
@@ -445,14 +447,14 @@ public class DiemDanhFragment extends Fragment {
             @Override
             public void onFailure(Call<DoiVoucherResponse> call, Throwable t) {
                 if (!isAdded()) return;
-                Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(),
+                        Toast.LENGTH_SHORT);
             }
         });
     }
 
     private void hienQuaTuan(LoyaltyResponse.QuaTuan qua) {
-        new AlertDialog.Builder(requireContext())
+        new HopThoai.Builder(requireContext())
                 .setTitle(R.string.dd_qua_tuan_moi)
                 .setMessage(qua.getTen() + "\n" + (qua.getMoTa() != null ? qua.getMoTa() : "")
                         + "\n\nMã của bạn:\n" + qua.getMaCode())

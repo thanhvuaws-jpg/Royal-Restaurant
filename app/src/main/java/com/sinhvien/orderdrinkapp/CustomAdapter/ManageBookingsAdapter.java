@@ -1,6 +1,6 @@
 package com.sinhvien.orderdrinkapp.CustomAdapter;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -28,6 +28,8 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 import android.util.Log;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * ManageBookingsAdapter - Adapter xử lý và hiển thị danh sách yêu cầu đặt bàn của khách hàng từ góc nhìn Quản lý/Nhân viên.
@@ -106,29 +108,29 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             // Phiếu mới, nhân viên chưa gọi khách xác nhận (tab "Chờ duyệt").
             // Trước đây ghi "Chờ nhận bàn" — trùng nghĩa với phiếu đã xác nhận đang chờ khách tới.
             holder.txt_booking_status.setText("Chờ xác nhận");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#FFAB40")); 
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO);
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             holder.btn_checkin_booking.setVisibility(View.VISIBLE);
             holder.btn_cancel_booking.setVisibility(View.VISIBLE);
             holder.btn_customer_arrived.setVisibility(View.GONE);
         } else if ("confirmed".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã xác nhận");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); 
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG);
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             holder.btn_checkin_booking.setVisibility(View.GONE);
             holder.btn_cancel_booking.setVisibility(View.VISIBLE);
             holder.btn_customer_arrived.setVisibility(View.VISIBLE);
         } else if ("checked_in".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã nhận bàn");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#43A047")); 
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG);
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else if ("completed".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã hoàn thành");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#1E88E5")); 
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG);
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else if ("overdue".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Quá giờ hẹn");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#E53935"));
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE);
             holder.layout_booking_actions.setVisibility(View.VISIBLE);
             // Phiếu quá giờ chỉ còn hủy được: confirm_booking.php chỉ nhận phiếu
             // 'pending', checkin_booking.php chỉ nhận 'pending'/'confirmed' —
@@ -138,11 +140,11 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             holder.btn_customer_arrived.setVisibility(View.GONE);
         } else if ("cancelled".equalsIgnoreCase(status)) {
             holder.txt_booking_status.setText("Đã hủy");
-            holder.txt_booking_status.setTextColor(Color.parseColor("#9E9E9E")); 
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE);
             holder.layout_booking_actions.setVisibility(View.GONE);
         } else {
             holder.txt_booking_status.setText(status);
-            holder.txt_booking_status.setTextColor(Color.parseColor("#9E9E9E"));
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE);
             holder.layout_booking_actions.setVisibility(View.GONE);
         }
 
@@ -177,7 +179,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Xác nhận đặt bàn thành công: madatban=" + madatban);
-                    Toast.makeText(context, "Đã xác nhận đặt bàn!", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(context, "Đã xác nhận đặt bàn!", Toast.LENGTH_SHORT);
                     
                     // Gửi Socket cập nhật real-time
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
@@ -196,7 +198,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                             ? response.body().getMessage()
                             : ViewUtils.docLoiMayChu(response, "Lỗi xác nhận đặt bàn");
                     Log.w(TAG, "Xác nhận đặt bàn thất bại: " + msg);
-                    new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
+                    new HopThoai.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
                 }
             }
 
@@ -204,7 +206,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 progressDialog.dismiss();
                 Log.e(TAG, "Lỗi kết nối API xác nhận đặt bàn: " + t.getMessage());
-                Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }
@@ -227,7 +229,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                 progressDialog.dismiss();
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Nhận bàn thành công: madatban=" + madatban);
-                    Toast.makeText(context, "Nhận bàn thành công! Hóa đơn đã được tạo.", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(context, "Nhận bàn thành công! Hóa đơn đã được tạo.", Toast.LENGTH_SHORT);
                     
                     // Phát sự kiện Socket real-time
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
@@ -254,7 +256,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                             ? response.body().getMessage()
                             : ViewUtils.docLoiMayChu(response, "Lỗi nhận bàn");
                     Log.w(TAG, "Nhận bàn thất bại: " + msg);
-                    new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
+                    new HopThoai.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
                 }
             }
 
@@ -262,7 +264,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 progressDialog.dismiss();
                 Log.e(TAG, "Lỗi kết nối API nhận bàn: " + t.getMessage());
-                Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }
@@ -271,7 +273,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
      * Hiển thị AlertDialog yêu cầu xác nhận hủy lượt đặt bàn và gọi API hủy.
      */
     private void promptCancelBooking(int madatban) {
-        new AlertDialog.Builder(context)
+        new HopThoai.Builder(context)
                 .setTitle("Xác nhận hủy đặt")
                 .setMessage("Bạn có chắc chắn muốn hủy lịch hẹn đặt bàn này?")
                 .setPositiveButton("Hủy lịch", (dialog, which) -> {
@@ -298,7 +300,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
 
                             if (thanhCong) {
                                 Log.d(TAG, "Hủy lịch đặt bàn thành công: madatban=" + madatban);
-                                Toast.makeText(context, "Đã hủy lịch hẹn đặt bàn!", Toast.LENGTH_SHORT).show();
+                                ThongBao.hien(context, "Đã hủy lịch hẹn đặt bàn!", Toast.LENGTH_SHORT);
                                 
                                 // Phát Socket
                                 io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
@@ -317,7 +319,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                                 // với một câu chung chung.
                                 String msg = docThongBaoLoi(response, "Không thể hủy lịch đặt!");
                                 Log.w(TAG, "Không thể hủy lịch đặt bàn: madatban=" + madatban + " — " + msg);
-                                Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+                                ThongBao.hien(context, msg, Toast.LENGTH_LONG);
                             }
                         }
 
@@ -325,7 +327,7 @@ public class ManageBookingsAdapter extends RecyclerView.Adapter<ManageBookingsAd
                         public void onFailure(Call<BookingResponse> call, Throwable t) {
                             progressDialog.dismiss();
                             Log.e(TAG, "Lỗi kết nối API hủy lịch đặt bàn: " + t.getMessage());
-                            Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            ThongBao.hien(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                         }
                     });
                 })

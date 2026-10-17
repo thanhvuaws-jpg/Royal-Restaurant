@@ -40,6 +40,7 @@ import io.socket.emitter.Emitter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * ChatActivity — phòng chat giữa khách hàng và bộ phận chăm sóc.
@@ -181,7 +182,7 @@ public class ChatActivity extends AppCompatActivity {
             return true;
         }
         if (id == R.id.menu_ket_thuc) {
-            new androidx.appcompat.app.AlertDialog.Builder(this)
+            new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                     .setTitle("Kết thúc trò chuyện?")
                     .setMessage("Bạn vẫn có thể nhắn lại bất cứ lúc nào — hệ thống sẽ mở một cuộc trò chuyện mới.")
                     .setPositiveButton("Kết thúc",
@@ -209,7 +210,7 @@ public class ChatActivity extends AppCompatActivity {
                             ? r.body().getMessage() : "Không thực hiện được. Bạn thử lại nhé.");
                     return;
                 }
-                if (thongBao != null) Toast.makeText(ChatActivity.this, thongBao, Toast.LENGTH_SHORT).show();
+                if (thongBao != null) ThongBao.hien(ChatActivity.this, thongBao, Toast.LENGTH_SHORT);
 
                 if ("ketthuc".equals(action)) {
                     // Hội thoại đã đóng: nạp lại sẽ ra rỗng, nên đóng luôn màn
@@ -338,8 +339,8 @@ public class ChatActivity extends AppCompatActivity {
         if (dangGui) return;
 
         if (tin.length() > 2000) {
-            Toast.makeText(this, "Tin nhắn quá dài. Bạn chia thành nhiều tin giúp mình nhé.",
-                    Toast.LENGTH_LONG).show();
+            ThongBao.hien(this, "Tin nhắn quá dài. Bạn chia thành nhiều tin giúp mình nhé.",
+                    Toast.LENGTH_LONG);
             return;
         }
 
@@ -489,6 +490,6 @@ public class ChatActivity extends AppCompatActivity {
     }
 
     private void baoLoi(String s) {
-        Toast.makeText(this, s, Toast.LENGTH_LONG).show();
+        ThongBao.hien(this, s, Toast.LENGTH_LONG);
     }
 }

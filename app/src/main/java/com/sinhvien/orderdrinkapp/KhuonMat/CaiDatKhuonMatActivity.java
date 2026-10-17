@@ -25,6 +25,8 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * Bật / đăng ký lại / tắt đăng nhập bằng khuôn mặt cho tài khoản đang đăng nhập (QĐ-103).
@@ -77,7 +79,7 @@ public class CaiDatKhuonMatActivity extends AppCompatActivity {
     }
 
     private void xacNhanTat() {
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Tắt đăng nhập bằng khuôn mặt?")
                 .setMessage("Dữ liệu khuôn mặt trên máy này sẽ bị xóa. Lần sau phải đăng nhập bằng mật khẩu.")
                 .setPositiveButton("Tắt", (d, w) -> tat())
@@ -96,15 +98,15 @@ public class CaiDatKhuonMatActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<KhuonMatResponse> call, Response<KhuonMatResponse> r) {
                 if (isFinishing() || isDestroyed()) return;
-                Toast.makeText(CaiDatKhuonMatActivity.this, "Đã tắt đăng nhập bằng khuôn mặt", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(CaiDatKhuonMatActivity.this, "Đã tắt đăng nhập bằng khuôn mặt", Toast.LENGTH_SHORT);
             }
 
             @Override
             public void onFailure(Call<KhuonMatResponse> call, Throwable t) {
                 if (isFinishing() || isDestroyed()) return;
-                Toast.makeText(CaiDatKhuonMatActivity.this,
+                ThongBao.hien(CaiDatKhuonMatActivity.this,
                         "Đã xóa trên máy. Chưa báo được máy chủ (mất kết nối) — khóa cũ không còn dùng được vì máy đã xóa.",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_LONG);
             }
         });
     }

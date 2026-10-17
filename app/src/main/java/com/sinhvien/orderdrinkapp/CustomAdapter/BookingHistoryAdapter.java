@@ -96,33 +96,36 @@ public class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAd
         String nhan;
         int mau;
         if ("pending".equalsIgnoreCase(status)) {
-            nhan = "Chờ xác nhận";  mau = Color.parseColor("#FFAB40");
+            nhan = "Chờ xác nhận";  mau = Color.parseColor("#A86A12");
         } else if ("confirmed".equalsIgnoreCase(status)) {
-            nhan = "Đã xác nhận";   mau = Color.parseColor("#1E88E5");
+            nhan = "Đã xác nhận";   mau = Color.parseColor("#2E6B57");
         } else if ("checked_in".equalsIgnoreCase(status)) {
-            nhan = "Đã nhận bàn";   mau = Color.parseColor("#43A047");
+            nhan = "Đã nhận bàn";   mau = Color.parseColor("#2E6B57");
         } else if ("completed".equalsIgnoreCase(status)) {
-            nhan = "Hoàn thành";    mau = Color.parseColor("#7E57C2");
+            nhan = "Hoàn thành";    mau = Color.parseColor("#2E6B57");
         } else if ("overdue".equalsIgnoreCase(status)) {
-            nhan = "Quá giờ hẹn";   mau = Color.parseColor("#E53935");
+            nhan = "Quá giờ hẹn";   mau = Color.parseColor("#B3261F");
         } else if ("cancelled".equalsIgnoreCase(status)) {
-            nhan = "Đã hủy";        mau = Color.parseColor("#9E9E9E");
+            nhan = "Đã hủy";        mau = Color.parseColor("#8A7563");
         } else {
             nhan = status != null ? status : "—";
-            mau  = Color.parseColor("#9E9E9E");
+            mau  = Color.parseColor("#8A7563");
         }
 
         holder.txt_booking_status.setText(nhan);
         holder.dai_mau_trang_thai.setBackgroundColor(mau);
 
-        // Huy hiệu bo tròn: tạo mới rồi mutate() mỗi lần bind. Nếu dùng lại
-        // một Drawable dùng chung thì mọi thẻ sẽ đổi theo màu của thẻ cuối
-        // — RecyclerView tái dùng view nên lỗi này rất dễ mắc.
-        GradientDrawable vien = new GradientDrawable();
-        vien.setShape(GradientDrawable.RECTANGLE);
-        vien.setCornerRadius(context.getResources().getDisplayMetrics().density * 20);
-        vien.setColor(mau);
-        holder.txt_booking_status.setBackground(vien);
+        // Nhãn trạng thái bộ Sơn Son (Figma .huy-hieu): chờ = hổ phách,
+        // đã xác nhận / nhận bàn / hoàn thành = ngọc, quá giờ / hủy = sơn son.
+        int kieu;
+        if ("pending".equalsIgnoreCase(status)) {
+            kieu = com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO;
+        } else if ("overdue".equalsIgnoreCase(status) || "cancelled".equalsIgnoreCase(status)) {
+            kieu = com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE;
+        } else {
+            kieu = com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG;
+        }
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_booking_status, kieu);
 
         /* ─────────────────────── Giờ hẹn + đếm ngược ────────────────────── */
 

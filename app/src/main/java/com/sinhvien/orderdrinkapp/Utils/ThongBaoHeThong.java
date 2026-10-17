@@ -49,7 +49,7 @@ public final class ThongBaoHeThong {
 
     private static void hien(Activity a, JSONObject o) {
         boolean canhBao = "canh_bao".equals(o.optString("muc_do"));
-        new AlertDialog.Builder(a)
+        new HopThoai.Builder(a)
                 .setTitle(canhBao ? "⚠️ Cảnh báo từ quản trị hệ thống" : "📢 Thông báo hệ thống")
                 .setMessage(o.optString("noi_dung"))
                 .setPositiveButton("Đã hiểu", null)

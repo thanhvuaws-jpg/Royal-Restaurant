@@ -1,6 +1,6 @@
 package com.sinhvien.orderdrinkapp.CustomAdapter;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -34,6 +34,8 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AdapterDisplayMenuRecycler - Adapter quản lý hiển thị danh sách Món ăn (Dishes/Menu Items) dạng Grid.
@@ -98,7 +100,10 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
             badgeBg.setColor(context.getResources().getColor(R.color.status_unavailable));
             holder.view_Overlay.setVisibility(View.VISIBLE); // Hiện lớp phủ mờ báo hết hàng
         }
-        holder.txt_DishStatus.setBackground(badgeBg);
+        // Nhãn bộ Sơn Son trên ảnh món: còn món = ngọc, hết món = sơn son (nền ngà đặc).
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_DishStatus,
+                coMon ? com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG : com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE);
+        holder.txt_DishStatus.setBackgroundResource(coMon ? R.drawable.nen_hh_xong_dac : R.drawable.nen_hh_tre_dac);
 
         // Nạp ảnh món ăn bằng Glide (hoặc giải mã mảng bytes dự phòng)
         if (monDTO.getHinhAnhUrl() != null && !monDTO.getHinhAnhUrl().isEmpty()) {
@@ -138,14 +143,14 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                             socket.emit("menu_changed");
                         }
                     } else {
-                        Toast.makeText(context, "Lỗi cập nhật Cloud", Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(context, "Lỗi cập nhật Cloud", Toast.LENGTH_SHORT);
                         holder.sw_ToggleStatus.setChecked(!isChecked);
                     }
                 }
 
                 @Override
                 public void onFailure(Call<OrderResponse> call, Throwable t) {
-                    Toast.makeText(context, "Lỗi kết nối Server", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(context, "Lỗi kết nối Server", Toast.LENGTH_SHORT);
                     holder.sw_ToggleStatus.setChecked(!isChecked);
                 }
             });
@@ -163,7 +168,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                 context.startActivity(iEdit);
             });
             holder.img_Delete.setOnClickListener(v -> {
-                new AlertDialog.Builder(context)
+                new HopThoai.Builder(context)
                         .setTitle("Xác nhận xóa")
                         .setMessage("Chỉ xóa được món chưa từng bán (tạo nhầm). Món đã bán hãy chuyển sang \"Hết món\". Xóa món này?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
@@ -177,7 +182,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                                     // trong khi món vẫn còn (H7). Máy chủ mới trả 409 + lý do.
                                     if (!response.isSuccessful() || response.body() == null
                                             || !"success".equals(response.body().getStatus())) {
-                                        new AlertDialog.Builder(context)
+                                        new HopThoai.Builder(context)
                                                 .setTitle("Không xóa được")
                                                 .setMessage(response.body() != null && response.body().getMessage() != null
                                                         ? response.body().getMessage()
@@ -199,13 +204,13 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                                             socket.emit("menu_changed");
                                         }
 
-                                        Toast.makeText(context, "Đã xóa món", Toast.LENGTH_SHORT).show();
+                                        ThongBao.hien(context, "Đã xóa món", Toast.LENGTH_SHORT);
                                     }
                                 }
 
                                 @Override
                                 public void onFailure(Call<OrderResponse> call, Throwable t) {
-                                    Toast.makeText(context, "Lỗi xóa: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                                    ThongBao.hien(context, "Lỗi xóa: " + t.getMessage(), Toast.LENGTH_SHORT);
                                 }
                             });
                         })
@@ -227,7 +232,7 @@ public class AdapterDisplayMenuRecycler extends RecyclerView.Adapter<AdapterDisp
                     iAmount.putExtra("mamon", monDTO.getMaMon());
                     context.startActivity(iAmount);
                 } else {
-                    Toast.makeText(context, R.string.dish_out_of_stock_msg, Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(context, R.string.dish_out_of_stock_msg, Toast.LENGTH_SHORT);
                 }
             }
         });

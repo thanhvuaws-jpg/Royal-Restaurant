@@ -37,6 +37,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AddTableActivity - Màn hình Thêm / Sửa bàn ăn (chỉ quản lý).
@@ -166,7 +167,7 @@ public class AddTableActivity extends AppCompatActivity {
                 cameraLauncher.launch(uriAnhChup);
             } catch (Exception e) {
                 Log.e(TAG, "Không mở được camera", e);
-                Toast.makeText(this, "Không mở được camera trên máy này", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(this, "Không mở được camera trên máy này", Toast.LENGTH_SHORT);
             }
         });
         findViewById(R.id.btn_addtable_thu_vien).setOnClickListener(v -> galleryLauncher.launch("image/*"));
@@ -186,7 +187,7 @@ public class AddTableActivity extends AppCompatActivity {
     private void nhanAnhTuMay(Uri uri, String nguon) {
         Bitmap bitmap = AnhHelper.docBitmapTuUri(this, uri);
         if (bitmap == null) {
-            Toast.makeText(this, "Không đọc được ảnh này", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Không đọc được ảnh này", Toast.LENGTH_SHORT);
             return;
         }
         anhBase64 = AnhHelper.nenVaChuyenBase64(bitmap);
@@ -318,7 +319,7 @@ public class AddTableActivity extends AppCompatActivity {
                     // Máy khác đang mở sơ đồ bàn nghe sự kiện này và tải lại.
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) socket.emit("refresh_orders");
-                    Toast.makeText(AddTableActivity.this, maban != 0 ? "Đã cập nhật bàn" : "Đã thêm bàn", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(AddTableActivity.this, maban != 0 ? "Đã cập nhật bàn" : "Đã thêm bàn", Toast.LENGTH_SHORT);
                     setResult(RESULT_OK); // Trả kết quả thành công về cho Fragment hiển thị
                     finish();
                     return;
@@ -327,7 +328,7 @@ public class AddTableActivity extends AppCompatActivity {
                         ? response.body().getMessage()
                         : ViewUtils.docLoiMayChu(response, "Không lưu được bàn (mã " + response.code() + ")");
                 Log.w(TAG, "Lưu bàn bị từ chối: " + msg);
-                new androidx.appcompat.app.AlertDialog.Builder(AddTableActivity.this)
+                new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(AddTableActivity.this)
                         .setTitle("Chưa lưu được bàn")
                         .setMessage(msg)
                         .setPositiveButton("Đã hiểu", null)
@@ -339,7 +340,7 @@ public class AddTableActivity extends AppCompatActivity {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 Log.e(TAG, "Lỗi kết nối API quản lý bàn: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(AddTableActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(AddTableActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });

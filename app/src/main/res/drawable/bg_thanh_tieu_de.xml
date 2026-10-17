@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thanh tiêu đề bộ Sơn Son: tấm hoành sơn mài (canh phải, thấy hoa sen) phủ sơn son
+     đậm dần sang trái để chữ vàng dễ đọc, gạch vàng ở đáy. Khớp .ab trong Figma. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="#7A1612" />
+        </shape>
+    </item>
+    <item android:bottom="1.5dp">
+        <bitmap
+            android:gravity="right|center_vertical"
+            android:src="@drawable/bg_hoanh_son_mai" />
+    </item>
+    <item android:bottom="1.5dp">
+        <shape>
+            <gradient
+                android:angle="0"
+                android:startColor="#F26E1411"
+                android:centerColor="#C26E1411"
+                android:endColor="#386E1411" />
+        </shape>
+    </item>
+    <item android:gravity="bottom">
+        <shape>
+            <size android:height="1.5dp" />
+            <solid android:color="#D9A441" />
+        </shape>
+    </item>
+</layer-list>

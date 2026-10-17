@@ -42,6 +42,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * CustomerProfileFragment — màn hình "Lịch sử & chi tiêu".
@@ -274,7 +275,7 @@ public class CustomerProfileFragment extends Fragment
             try {
                 chonAnhLauncher.launch("image/*");
             } catch (Exception e) {
-                Toast.makeText(getContext(), R.string.loi_chon_anh, Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), R.string.loi_chon_anh, Toast.LENGTH_SHORT);
             }
         };
         layoutAvatarClick.setOnClickListener(clickPickImage);
@@ -365,7 +366,7 @@ public class CustomerProfileFragment extends Fragment
                         if (response.isSuccessful() && response.body() != null
                                 && "success".equals(response.body().getStatus())) {
                             UpdateProfileResponse res = response.body();
-                            Toast.makeText(getContext(), R.string.cap_nhat_ho_so_thanh_cong, Toast.LENGTH_SHORT).show();
+                            ThongBao.hien(getContext(), R.string.cap_nhat_ho_so_thanh_cong, Toast.LENGTH_SHORT);
 
                             hoTenHienTai = res.getHoTen();
                             sdtHienTai = res.getSdt();
@@ -388,7 +389,7 @@ public class CustomerProfileFragment extends Fragment
                                     ? response.body().getMessage()
                                     : com.sinhvien.orderdrinkapp.Utils.ViewUtils.docLoiMayChu(
                                             response, getString(R.string.cap_nhat_ho_so_that_bai));
-                            Toast.makeText(getContext(), msg, Toast.LENGTH_LONG).show();
+                            ThongBao.hien(getContext(), msg, Toast.LENGTH_LONG);
                         }
                     }
 
@@ -398,7 +399,7 @@ public class CustomerProfileFragment extends Fragment
                         progressDialog.setVisibility(View.GONE);
                         btnSave.setEnabled(true);
                         btnCancel.setEnabled(true);
-                        Toast.makeText(getContext(), R.string.cap_nhat_ho_so_that_bai, Toast.LENGTH_LONG).show();
+                        ThongBao.hien(getContext(), R.string.cap_nhat_ho_so_that_bai, Toast.LENGTH_LONG);
                     }
                 });
     }
@@ -539,8 +540,8 @@ public class CustomerProfileFragment extends Fragment
                 if (!isAdded()) return;
                 ketThucTai();
                 if (!tuDau && trangHienTai > 1) trangHienTai--;
-                Toast.makeText(getContext(), "Không tải được lịch sử. Kéo xuống để thử lại.",
-                        Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Không tải được lịch sử. Kéo xuống để thử lại.",
+                        Toast.LENGTH_SHORT);
             }
         });
     }

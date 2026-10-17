@@ -19,7 +19,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/kem"
     android:fillViewport="true"
     android:scrollbars="none">
 
@@ -37,7 +37,7 @@
             android:layout_width="84dp"
             android:layout_height="84dp"
             android:layout_marginTop="8dp"
-            android:src="@drawable/app_logo"
+            android:src="@drawable/logo_royal_trong"
             android:contentDescription="Logo" />
 
         <TextView
@@ -46,7 +46,7 @@
             android:text="HỖ TRỢ KHÁCH HÀNG"
             android:textSize="22sp"
             android:textStyle="bold"
-            android:textColor="#333333"
+            android:textColor="@color/son_dam"
             android:layout_marginTop="12dp" />
 
         <TextView
@@ -54,7 +54,7 @@
             android:layout_height="wrap_content"
             android:text="Chọn cách liên hệ thuận tiện nhất với bạn."
             android:textSize="15sp"
-            android:textColor="#666666"
+            android:textColor="@color/chu_mo"
             android:gravity="center"
             android:layout_marginTop="6dp"
             android:layout_marginBottom="20dp" />
@@ -78,13 +78,12 @@
                 android:orientation="horizontal"
                 android:padding="24dp"
                 android:gravity="center_vertical"
-                android:background="@color/colorPrimary">
+                android:background="@drawable/nen_the_son">
 
                 <ImageView
                     android:layout_width="48dp"
                     android:layout_height="48dp"
-                    android:src="@drawable/ic_chat_ho_tro"
-                    app:tint="#FFFFFF"
+                    android:src="@drawable/ic_hh_chat"
                     android:contentDescription="Trò chuyện" />
 
                 <LinearLayout
@@ -98,7 +97,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="NHẮN TIN NGAY"
-                        android:textColor="#E0D7D1"
+                        android:textColor="#D8C6A6"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -106,7 +105,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Chat với nhân viên"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/vang_sang"
                         android:textSize="22sp"
                         android:textStyle="bold"
                         android:layout_marginTop="4dp" />
@@ -115,7 +114,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Trợ lý trả lời ngay, nhân viên phản hồi sau"
-                        android:textColor="#D6C8BE"
+                        android:textColor="#D8C6A6"
                         android:textSize="12sp"
                         android:layout_marginTop="2dp" />
                 </LinearLayout>
@@ -132,7 +131,7 @@
                     android:layout_marginStart="10dp"
                     android:background="@drawable/bg_huy_hieu_do"
                     android:gravity="center"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/vang_sang"
                     android:textSize="12sp"
                     android:textStyle="bold"
                     android:visibility="gone" />
@@ -158,13 +157,13 @@
                 android:orientation="horizontal"
                 android:padding="20dp"
                 android:gravity="center_vertical"
-                android:background="#1E88E5">
+                android:background="@drawable/nen_the_then">
 
                 <ImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:src="@drawable/ic_baseline_local_phone_24"
-                    app:tint="#FFFFFF"
+                    app:tint="@color/vang_sang"
                     android:contentDescription="Điện thoại" />
 
                 <LinearLayout
@@ -178,7 +177,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="HOTLINE &amp; ZALO"
-                        android:textColor="#E0E0E0"
+                        android:textColor="#D8C6A6"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -186,7 +185,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0856 761 038"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/vang_sang"
                         android:textSize="24sp"
                         android:textStyle="bold"
                         android:layout_marginTop="4dp" />
@@ -213,13 +212,13 @@
                 android:orientation="horizontal"
                 android:padding="20dp"
                 android:gravity="center_vertical"
-                android:background="#43A047">
+                android:background="@drawable/nen_the_then">
 
                 <ImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:src="@drawable/ic_baseline_location_on_24"
-                    app:tint="#FFFFFF"
+                    app:tint="@color/vang_sang"
                     android:contentDescription="Bản đồ" />
 
                 <LinearLayout
@@ -233,7 +232,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="TÌM ĐƯỜNG ĐI"
-                        android:textColor="#E8F5E9"
+                        android:textColor="#D8C6A6"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -241,7 +240,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Cơ sở TP.Hồ Chí Minh"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/vang_sang"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_marginTop="4dp" />
@@ -267,13 +266,13 @@
                 android:orientation="horizontal"
                 android:padding="20dp"
                 android:gravity="center_vertical"
-                android:background="#FB8C00">
+                android:background="@drawable/nen_the_then">
 
                 <ImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
                     android:src="@drawable/ic_baseline_email_24"
-                    app:tint="#FFFFFF"
+                    app:tint="@color/vang_sang"
                     android:contentDescription="Email" />
 
                 <LinearLayout
@@ -287,7 +286,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="GÓP Ý &amp; PHẢN HỒI"
-                        android:textColor="#FFF3E0"
+                        android:textColor="#D8C6A6"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -295,7 +294,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Gửi Email kèm ảnh cho quản lý"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/vang_sang"
                         android:textSize="17sp"
                         android:textStyle="bold"
                         android:layout_marginTop="4dp" />
@@ -324,13 +323,12 @@
                 android:orientation="horizontal"
                 android:padding="20dp"
                 android:gravity="center_vertical"
-                android:background="#5D4037">
+                android:background="@drawable/nen_the_then">
 
                 <ImageView
                     android:layout_width="36dp"
                     android:layout_height="36dp"
-                    android:src="@drawable/ic_khuon_mat_24"
-                    app:tint="#FFFFFF"
+                    android:src="@drawable/ic_hh_khuon_mat"
                     android:contentDescription="Khuôn mặt" />
 
                 <LinearLayout
@@ -344,7 +342,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="BẢO MẬT"
-                        android:textColor="#D7CCC8"
+                        android:textColor="#D8C6A6"
                         android:textSize="14sp"
                         android:textStyle="bold" />
 
@@ -352,7 +350,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Đăng nhập bằng khuôn mặt"
-                        android:textColor="#FFFFFF"
+                        android:textColor="@color/vang_sang"
                         android:textSize="17sp"
                         android:textStyle="bold"
                         android:layout_marginTop="4dp" />

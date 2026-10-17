@@ -226,13 +226,11 @@
                 android:text="@string/receipt_share"
                 android:singleLine="true"
                 android:textColor="@color/colorPrimary"
-                android:fontFamily="@font/muli_black"
                 android:textAllCaps="false"
                 android:textSize="13sp"
-                app:backgroundTint="@color/cream"
                 app:strokeColor="@color/colorPrimary"
                 app:strokeWidth="1dp"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
+                style="@style/SonSon.Button.Vien" />
 
             <Button
                 android:id="@+id/btn_receipt_Close"
@@ -240,11 +238,8 @@
                 android:layout_height="48dp"
                 android:layout_weight="1"
                 android:text="@string/receipt_close"
-                android:textColor="@color/white"
-                android:fontFamily="@font/muli_black"
                 android:textAllCaps="false"
-                android:textSize="13sp"
-                app:backgroundTint="@color/colorPrimary" />
+                android:textSize="13sp" />
 
         </LinearLayout>
 

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Activities.Register2ndActivity"
-    android:background="@color/white">
+    android:background="@color/kem">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -111,7 +111,7 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:background="#EEEEEE"
+                android:background="#EFE6D6"
                 android:layout_marginTop="32dp"
                 android:layout_marginBottom="32dp" />
 
@@ -140,10 +140,6 @@
             android:layout_height="60dp"
             android:layout_marginTop="40dp"
             android:text="@string/btn_complete"
-            android:textColor="@color/white"
-            android:background="@drawable/corner_border_primary"
-            app:backgroundTint="@color/colorPrimary"
-            android:elevation="4dp"
             android:textAllCaps="false"
             android:textSize="18sp"
             tools:targetApi="lollipop" />

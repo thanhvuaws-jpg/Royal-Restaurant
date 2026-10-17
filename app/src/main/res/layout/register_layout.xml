@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Activities.RegisterActivity"
-    android:background="@color/white"
+    android:background="@color/kem"
     android:transitionName="transition_signup"
     tools:targetApi="lollipop"
     android:id="@+id/layout_signup_Main">
@@ -82,7 +82,7 @@
                 android:layout_height="wrap_content"
                 android:hint="@string/enter_fullname"
                 app:startIconDrawable="@drawable/ic_baseline_create_pencil"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/SonSon.ONhap"
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -99,7 +99,7 @@
                 android:layout_marginTop="12dp"
                 android:hint="@string/enter_username"
                 app:startIconDrawable="@drawable/ic_baseline_person_24"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/SonSon.ONhap"
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -116,7 +116,7 @@
                 android:layout_marginTop="12dp"
                 android:hint="@string/enter_email"
                 app:startIconDrawable="@drawable/ic_baseline_email_24"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/SonSon.ONhap"
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -133,7 +133,7 @@
                 android:layout_marginTop="12dp"
                 android:hint="@string/enter_phone"
                 app:startIconDrawable="@drawable/ic_baseline_local_phone_24"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/SonSon.ONhap"
                 app:endIconMode="clear_text">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -150,7 +150,7 @@
                 android:layout_marginTop="12dp"
                 android:hint="@string/enter_password"
                 app:startIconDrawable="@drawable/ic_baseline_lock_24"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/SonSon.ONhap"
                 app:endIconMode="password_toggle">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -168,10 +168,6 @@
             android:layout_height="60dp"
             android:layout_marginTop="32dp"
             android:text="@string/btn_next"
-            android:textColor="@color/white"
-            android:background="@drawable/corner_border_primary"
-            app:backgroundTint="@color/colorPrimary"
-            android:elevation="4dp"
             android:textAllCaps="false"
             android:textSize="18sp"
             tools:targetApi="lollipop" />

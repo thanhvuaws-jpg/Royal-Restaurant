@@ -45,6 +45,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * LapPhieuKhoActivity - Lập phiếu xuất kho hoặc phiếu hủy hàng trên Android.
@@ -84,7 +85,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
         // Yêu cầu 11: chỉ Quản lý lập phiếu xuất/hủy. Nút mở màn này đã ẩn
         // với người khác; chặn cả ở đây phòng khi màn được mở từ nơi khác.
         if (!SessionManager.isAdmin(this)) {
-            Toast.makeText(this, "Chỉ Quản lý mới lập được phiếu kho.", Toast.LENGTH_LONG).show();
+            ThongBao.hien(this, "Chỉ Quản lý mới lập được phiếu kho.", Toast.LENGTH_LONG);
             finish();
             return;
         }
@@ -224,7 +225,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
 
             @Override
             public void onFailure(Call<KhoResponse> call, Throwable t) {
-                Toast.makeText(LapPhieuKhoActivity.this, "Không thể tải danh sách nguyên liệu: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(LapPhieuKhoActivity.this, "Không thể tải danh sách nguyên liệu: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }
@@ -278,13 +279,13 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
 
     private void submitPhieu() {
         if (danhSachViewDong.isEmpty()) {
-            Toast.makeText(this, "Vui lòng thêm ít nhất một dòng nguyên liệu", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Vui lòng thêm ít nhất một dòng nguyên liệu", Toast.LENGTH_SHORT);
             return;
         }
 
         // Bắt buộc ảnh nếu là phiếu hủy
         if (loai.equals("huy") && (hinhAnhBase64 == null || hinhAnhBase64.trim().isEmpty())) {
-            Toast.makeText(this, "Phiếu hủy hàng bắt buộc phải có ảnh bằng chứng!", Toast.LENGTH_LONG).show();
+            ThongBao.hien(this, "Phiếu hủy hàng bắt buộc phải có ảnh bằng chứng!", Toast.LENGTH_LONG);
             return;
         }
 
@@ -304,7 +305,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
             } catch (Exception ignored) {}
 
             if (sl <= 0) {
-                Toast.makeText(this, "Số lượng của " + nl.getTenNL() + " phải lớn hơn 0", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(this, "Số lượng của " + nl.getTenNL() + " phải lớn hơn 0", Toast.LENGTH_SHORT);
                 return;
             }
 
@@ -315,7 +316,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
         }
 
         if (listDong.isEmpty()) {
-            Toast.makeText(this, "Chưa có dòng hàng hợp lệ nào", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Chưa có dòng hàng hợp lệ nào", Toast.LENGTH_SHORT);
             return;
         }
 
@@ -341,7 +342,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
                                 soPhieu = response.body().getPhieu().getSoPhieu();
                             }
                             String msg = "Đã lập phiếu thành công " + (soPhieu != null ? soPhieu : "");
-                            Toast.makeText(LapPhieuKhoActivity.this, msg, Toast.LENGTH_LONG).show();
+                            ThongBao.hien(LapPhieuKhoActivity.this, msg, Toast.LENGTH_LONG);
                             finish();
                         } else {
                             // Đọc thông báo lỗi nghiệp vụ từ errorBody()
@@ -357,7 +358,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
                             } catch (Exception e) {
                                 errorMsg += " (" + response.code() + ")";
                             }
-                            Toast.makeText(LapPhieuKhoActivity.this, errorMsg, Toast.LENGTH_LONG).show();
+                            ThongBao.hien(LapPhieuKhoActivity.this, errorMsg, Toast.LENGTH_LONG);
                         }
                     }
 
@@ -365,7 +366,7 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
                     public void onFailure(Call<PhieuKhoActionResponse> call, Throwable t) {
                         btnXacNhan.setEnabled(true);
                         btnXacNhan.setText("XÁC NHẬN LẬP PHIẾU");
-                        Toast.makeText(LapPhieuKhoActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(LapPhieuKhoActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                     }
                 });
     }

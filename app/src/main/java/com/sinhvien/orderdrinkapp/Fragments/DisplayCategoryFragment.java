@@ -48,6 +48,7 @@ import android.util.Log;
 
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.CategoryViewModel;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DisplayCategoryFragment - Màn hình danh mục Nhóm món ăn (Category).
@@ -107,13 +108,13 @@ public class DisplayCategoryFragment extends Fragment {
                         String chucnang = result.getData().getStringExtra("chucnang");
                         if (ktra) {
                             HienThiDSLoai();
-                            Toast.makeText(getActivity(),
+                            ThongBao.hien(getActivity(),
                                     "themloai".equals(chucnang) ? R.string.add_sucessful : R.string.edit_sucessful,
-                                    Toast.LENGTH_SHORT).show();
+                                    Toast.LENGTH_SHORT);
                         } else {
-                            Toast.makeText(getActivity(),
+                            ThongBao.hien(getActivity(),
                                     "themloai".equals(chucnang) ? getString(R.string.add_failed) : "Sửa thất bại",
-                                    Toast.LENGTH_SHORT).show();
+                                    Toast.LENGTH_SHORT);
                         }
                     }
                 }
@@ -257,7 +258,7 @@ public class DisplayCategoryFragment extends Fragment {
                 }
                 if (isAdded() && getActivity() != null) {
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT);
                     });
                 }
             }

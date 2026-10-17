@@ -21,6 +21,7 @@ import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AmountMenuActivity - Màn hình chọn Số lượng và Ghi chú khi gọi món cho một bàn cụ thể.
@@ -61,6 +62,43 @@ public class AmountMenuActivity extends AppCompatActivity {
                 finish();
             }
         });
+
+        // Bộ tăng giảm − / + và ghi chú nhanh (bộ Sơn Son, Figma "Gọi món").
+        // Ô số lượng vẫn gõ tay được; nút chỉ cộng / trừ 1 trên số đang có (tối thiểu 1).
+        android.widget.EditText oSoLuong = txtl_amount_Quantity.getEditText();
+        if (oSoLuong != null && oSoLuong.getText().toString().trim().isEmpty()) {
+            oSoLuong.setText("1");
+        }
+        View.OnClickListener buoc = v -> {
+            if (oSoLuong == null) return;
+            int hienTai;
+            try {
+                hienTai = Integer.parseInt(oSoLuong.getText().toString().trim());
+            } catch (NumberFormatException e) {
+                hienTai = 0;
+            }
+            int moi = v.getId() == R.id.btn_amount_Tang ? hienTai + 1 : Math.max(1, hienTai - 1);
+            oSoLuong.setText(String.valueOf(moi));
+            oSoLuong.setSelection(oSoLuong.getText().length());
+        };
+        findViewById(R.id.btn_amount_Tang).setOnClickListener(buoc);
+        findViewById(R.id.btn_amount_Giam).setOnClickListener(buoc);
+        com.google.android.material.chip.ChipGroup nhomGhiChu = findViewById(R.id.nhom_ghi_chu_nhanh);
+        for (int i = 0; i < nhomGhiChu.getChildCount(); i++) {
+            View chip = nhomGhiChu.getChildAt(i);
+            chip.setOnClickListener(v -> {
+                android.widget.EditText oGhiChu = txtl_amount_Note.getEditText();
+                if (oGhiChu == null) return;
+                String them = ((android.widget.TextView) v).getText().toString();
+                String cu = oGhiChu.getText().toString().trim();
+                if (cu.toLowerCase().contains(them.toLowerCase())) return;
+                String moi = cu.isEmpty() ? them : cu + ", " + them.toLowerCase();
+                if (moi.length() <= 120) {
+                    oGhiChu.setText(moi);
+                    oGhiChu.setSelection(moi.length());
+                }
+            });
+        }
 
         // Nhận dữ liệu bàn và món ăn được chọn từ Intent
         Intent intent = getIntent();
@@ -104,14 +142,14 @@ public class AmountMenuActivity extends AppCompatActivity {
                                 themMonVaoDon(progressDialog, sluong);
                             } else {
                                 if (progressDialog.isShowing()) progressDialog.dismiss();
-                                Toast.makeText(AmountMenuActivity.this, "Lỗi tạo đơn hàng mới", Toast.LENGTH_SHORT).show();
+                                ThongBao.hien(AmountMenuActivity.this, "Lỗi tạo đơn hàng mới", Toast.LENGTH_SHORT);
                             }
                         }
 
                         @Override
                         public void onFailure(Call<OrderResponse> call, Throwable t) {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
-                            Toast.makeText(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            ThongBao.hien(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                         }
                     });
                 } else {
@@ -136,14 +174,14 @@ public class AmountMenuActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Thêm món thành công: mamon=" + mamon + ", soluong=" + sluong + ", madon=" + madondatCloud);
-                    Toast.makeText(AmountMenuActivity.this, "Đã gọi món", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(AmountMenuActivity.this, "Đã gọi món", Toast.LENGTH_SHORT);
                     finish();
                 } else {
                     // Nói đúng lý do máy chủ trả (món tạm hết, đơn đã thanh toán,
                     // ghi chú quá dài…) thay vì một câu chung chung.
-                    Toast.makeText(AmountMenuActivity.this,
+                    ThongBao.hien(AmountMenuActivity.this,
                             ViewUtils.docLoiMayChu(response, "Không gọi được món, thử lại"),
-                            Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG);
                 }
             }
 
@@ -152,7 +190,7 @@ public class AmountMenuActivity extends AppCompatActivity {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 Log.e(TAG, "Lỗi thêm món vào đơn: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(AmountMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -179,7 +217,7 @@ public class AmountMenuActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(AmountMenuActivity.this, "Lỗi kiểm tra mã đơn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(AmountMenuActivity.this, "Lỗi kiểm tra mã đơn: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });

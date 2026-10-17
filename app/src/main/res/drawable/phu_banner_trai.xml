@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Lớp phủ trên tấm hoành của thẻ banner (Figma .cta-dat / .chao): tối bên trái cho chữ, trong dần sang phải. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient android:angle="0" android:startColor="#CC140B08" android:centerColor="#73140B08" android:endColor="#1A140B08" />
+</shape>

@@ -29,6 +29,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * CashierConfirmActivity - Màn hình Xác nhận Thanh toán dành cho Thu ngân (Cashier).
@@ -177,7 +178,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<OrderDetailResponse>> call, Throwable t) {
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(CashierConfirmActivity.this, "Lỗi tải chi tiết: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(CashierConfirmActivity.this, "Lỗi tải chi tiết: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -198,7 +199,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Xác nhận thanh toán thành công: madon=" + madon + ", method=" + method);
-                    Toast.makeText(CashierConfirmActivity.this, "Xác nhận thành công!", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(CashierConfirmActivity.this, "Xác nhận thành công!", Toast.LENGTH_SHORT);
                     
                     // Phát tín hiệu Socket real-time đồng bộ cập nhật giao diện trạng thái bàn ở các máy phục vụ
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
@@ -214,7 +215,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                     String lyDo = response.body() != null && response.body().getMessage() != null
                             ? response.body().getMessage()
                             : ViewUtils.docLoiMayChu(response, "Không xác nhận được thanh toán.");
-                    new androidx.appcompat.app.AlertDialog.Builder(CashierConfirmActivity.this)
+                    new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(CashierConfirmActivity.this)
                             .setTitle("Chưa xác nhận được")
                             .setMessage(lyDo)
                             .setPositiveButton("Đã hiểu", null)
@@ -227,7 +228,7 @@ public class CashierConfirmActivity extends AppCompatActivity {
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 Log.e(TAG, "Lỗi xác nhận thanh toán: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(CashierConfirmActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(CashierConfirmActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });

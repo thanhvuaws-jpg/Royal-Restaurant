@@ -14,7 +14,7 @@
         android:orientation="horizontal"
         android:padding="12dp"
         android:gravity="center_vertical"
-        android:background="@color/white"
+        android:background="@color/nga"
         android:elevation="2dp">
 
         <!-- Ẩn: thanh tiêu đề đã có mũi tên quay lại; hai nút cùng việc ở
@@ -101,7 +101,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@color/white"
+        android:background="@color/nga"
         android:padding="12dp"
         android:elevation="4dp">
 
@@ -111,9 +111,7 @@
             android:layout_height="48dp"
             android:text="LƯU KẾT QUẢ KIỂM KÊ"
             android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/colorPrimaryDark"/>
+            android:textStyle="bold"/>
     </LinearLayout>
 
 </LinearLayout>

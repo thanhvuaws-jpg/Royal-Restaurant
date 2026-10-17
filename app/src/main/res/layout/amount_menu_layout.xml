@@ -14,7 +14,7 @@
         android:layout_margin="8dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="4dp"
-        app:cardBackgroundColor="@color/white"
+        app:cardBackgroundColor="@color/nga"
         app:cardPreventCornerOverlap="false">
 
         <LinearLayout
@@ -26,7 +26,7 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="64dp"
-                android:background="@color/colorPrimary"
+                android:background="@drawable/bg_thanh_tieu_de"
                 android:elevation="4dp"
                 android:padding="8dp">
 
@@ -39,15 +39,15 @@
                     android:background="?attr/selectableItemBackgroundBorderless"
                     android:padding="12dp"
                     android:src="@drawable/ic_baseline_arrow_back_24"
-                    app:tint="@color/white" />
+                    app:tint="@color/vang_sang" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_centerInParent="true"
-                    android:fontFamily="@font/muli_black"
+                    android:fontFamily="@font/baloo2_extrabold"
                     android:text="@string/enter_quantity"
-                    android:textColor="@color/white"
+                    android:textColor="@color/vang_sang"
                     android:textSize="18sp" />
 
             </RelativeLayout>
@@ -58,27 +58,63 @@
                 android:orientation="vertical"
                 android:padding="24dp">
 
-                <!-- Ô nhập số lượng -->
-                <com.google.android.material.textfield.TextInputLayout
-                    android:id="@+id/txtl_amount_Quantity"
+                <!-- Số lượng: bộ tăng giảm − [số] + (Figma "Nhân viên · Gọi món", .buoc).
+                     Ô giữa vẫn là txtl_amount_Quantity để gõ tay và báo lỗi như cũ. -->
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                    android:hint="@string/enter_quantity"
-                    app:hintTextColor="@color/colorPrimary"
-                    app:boxStrokeColor="@color/colorPrimary"
-                    app:boxStrokeWidthFocused="2dp"
-                    app:endIconTint="@color/colorPrimary"
-                    app:endIconMode="clear_text">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <com.google.android.material.textfield.TextInputEditText
-                        android:id="@+id/et_amount_Quantity"
-                        android:layout_width="match_parent"
+                    <TextView
+                        android:id="@+id/btn_amount_Giam"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/nen_nut_buoc"
+                        android:fontFamily="@font/baloo2_extrabold"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:text="−"
+                        android:textColor="@color/son_dam"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <com.google.android.material.textfield.TextInputLayout
+                        android:id="@+id/txtl_amount_Quantity"
+                        style="@style/SonSon.ONhap"
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/black"
-                        android:fontFamily="@font/muli"
-                        android:inputType="number" />
-                </com.google.android.material.textfield.TextInputLayout>
+                        android:layout_marginStart="10dp"
+                        android:layout_marginEnd="10dp"
+                        android:layout_weight="1"
+                        android:hint="@string/enter_quantity">
+
+                        <com.google.android.material.textfield.TextInputEditText
+                            android:id="@+id/et_amount_Quantity"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2_extrabold"
+                            android:gravity="center"
+                            android:inputType="number"
+                            android:textColor="@color/muc"
+                            android:textSize="18sp" />
+                    </com.google.android.material.textfield.TextInputLayout>
+
+                    <TextView
+                        android:id="@+id/btn_amount_Tang"
+                        android:layout_width="52dp"
+                        android:layout_height="52dp"
+                        android:layout_marginTop="4dp"
+                        android:background="@drawable/nen_nut_buoc"
+                        android:fontFamily="@font/baloo2_extrabold"
+                        android:gravity="center"
+                        android:includeFontPadding="false"
+                        android:text="+"
+                        android:textColor="@color/son_dam"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
 
                 <!-- Divider -->
                 <View
@@ -86,7 +122,7 @@
                     android:layout_height="1dp"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="12dp"
-                    android:background="@color/grey"
+                    android:background="@color/vien_vang_nhat"
                     android:alpha="0.3" />
 
                 <!-- Label ghi chú -->
@@ -95,7 +131,8 @@
                     android:layout_height="wrap_content"
                     android:text="@string/order_note_label"
                     android:textSize="13sp"
-                    android:textColor="@color/grey"
+                    android:textColor="@color/son_dam"
+                    android:textStyle="bold"
                     android:fontFamily="@font/muli"
                     android:layout_marginBottom="8dp" />
 
@@ -104,13 +141,9 @@
                     android:id="@+id/txtl_amount_Note"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    style="@style/SonSon.ONhap"
                     android:hint="@string/order_note_hint"
-                    app:hintTextColor="@color/grey"
-                    app:boxStrokeColor="@color/colorPrimary"
-                    app:boxStrokeWidthFocused="2dp"
                     app:endIconMode="clear_text"
-                    app:endIconTint="@color/colorPrimary"
                     app:counterEnabled="true"
                     app:counterMaxLength="120">
 
@@ -119,13 +152,42 @@
                         android:maxLength="120"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@color/black"
+                        android:textColor="@color/muc"
                         android:fontFamily="@font/muli"
                         android:inputType="textMultiLine"
                         android:minLines="2"
                         android:maxLines="4"
                         android:gravity="top|start" />
                 </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- Ghi chú nhanh (Figma .cuon-chip): chạm để thêm vào ô ghi chú -->
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/nhom_ghi_chu_nhanh"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    app:chipSpacingHorizontal="6dp">
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ít đường" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Không đá" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Ít cay" />
+
+                    <com.google.android.material.chip.Chip
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mang đi" />
+                </com.google.android.material.chip.ChipGroup>
 
                 <!-- Nút xác nhận -->
                 <Button
@@ -134,11 +196,8 @@
                     android:layout_height="52dp"
                     android:layout_marginTop="20dp"
                     android:text="@string/agree"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/muli_black"
                     android:textAllCaps="false"
                     android:textSize="16sp"
-                    app:backgroundTint="@color/colorPrimary"
                     tools:targetApi="lollipop" />
 
             </LinearLayout>

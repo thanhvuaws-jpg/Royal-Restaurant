@@ -70,8 +70,9 @@
                         android:gravity="center"
                         android:textSize="22sp"
                         android:textStyle="bold"
-                        android:textColor="@color/colorPrimaryDark"
-                        android:background="@drawable/bg_tron_sang"/>
+                        android:textColor="@color/vang_sang"
+                        android:fontFamily="@font/baloo2_extrabold"
+                        android:background="@drawable/nen_anh_dai_dien"/>
 
                     <ImageView
                         android:id="@+id/img_profile_avatar"
@@ -107,7 +108,8 @@
                         android:text="@string/customer_default_name"
                         android:textSize="18sp"
                         android:textStyle="bold"
-                        android:textColor="#3E2723"
+                        android:textColor="@color/son_dam"
+                        android:fontFamily="@font/baloo2_extrabold"
                         android:maxLines="1"
                         android:ellipsize="end"/>
 
@@ -118,14 +120,14 @@
                         android:layout_marginTop="2dp"
                         android:text="@string/customer_default_phone"
                         android:textSize="13sp"
-                        android:textColor="#6D4C41"/>
+                        android:textColor="@color/chu_mo"/>
 
                     <TextView
                         android:id="@+id/txt_profile_email"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="12sp"
-                        android:textColor="#8D6E63"
+                        android:textColor="#7A6553"
                         android:maxLines="1"
                         android:ellipsize="middle"
                         android:visibility="gone"/>
@@ -206,7 +208,7 @@
                     android:textSize="9sp"
                     android:textStyle="bold"
                     android:letterSpacing="0.1"
-                    android:textColor="#D7CCC8"
+                    android:textColor="#E3D2B5"
                     android:maxLines="1"
                     app:layout_constraintStart_toStartOf="@id/gl_the_trai"
                     app:layout_constraintEnd_toEndOf="@id/gl_the_giua"
@@ -271,8 +273,7 @@
                 android:layout_height="6dp"
                 android:layout_marginTop="14dp"
                 android:max="100"
-                android:progressTint="#FFB300"
-                android:progressBackgroundTint="#D7CCC8"/>
+                android:progressDrawable="@drawable/thanh_vang"/>
 
             <TextView
                 android:id="@+id/txt_tien_do_hang"
@@ -280,7 +281,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:textSize="12sp"
-                android:textColor="#6D4C41"/>
+                android:textColor="@color/chu_mo"/>
 
         </LinearLayout>
 
@@ -300,14 +301,15 @@
             android:layout_weight="1"
             android:layout_marginEnd="5dp"
             app:cardCornerRadius="14dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/white">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@android:color/transparent">
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center"
+                android:background="@drawable/nen_the_son"
                 android:paddingTop="14dp"
                 android:paddingBottom="14dp">
 
@@ -315,16 +317,18 @@
                     android:id="@+id/txt_so_lan_dat"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textSize="20sp"
+                    android:textSize="21sp"
                     android:textStyle="bold"
-                    android:textColor="@color/colorPrimaryDark"/>
+                    android:fontFamily="@font/baloo2_extrabold"
+                    android:includeFontPadding="false"
+                    android:textColor="@color/vang_sang"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/customer_stat_bookings"
                     android:textSize="11sp"
-                    android:textColor="#8D6E63"/>
+                    android:textColor="#F0D9B0"/>
 
             </LinearLayout>
 
@@ -337,8 +341,8 @@
             android:layout_marginStart="5dp"
             android:layout_marginEnd="5dp"
             app:cardCornerRadius="14dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/white">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/nga">
 
             <LinearLayout
                 android:orientation="vertical"
@@ -354,14 +358,14 @@
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="#43A047"/>
+                    android:textColor="@color/ngoc"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/customer_stat_done"
                     android:textSize="11sp"
-                    android:textColor="#8D6E63"/>
+                    android:textColor="@color/chu_mo"/>
 
             </LinearLayout>
 
@@ -373,8 +377,8 @@
             android:layout_weight="1"
             android:layout_marginStart="5dp"
             app:cardCornerRadius="14dp"
-            app:cardElevation="2dp"
-            app:cardBackgroundColor="@color/white">
+            app:cardElevation="0dp"
+            app:cardBackgroundColor="@color/nga">
 
             <LinearLayout
                 android:orientation="vertical"
@@ -390,14 +394,14 @@
                     android:layout_height="wrap_content"
                     android:textSize="20sp"
                     android:textStyle="bold"
-                    android:textColor="#9E9E9E"/>
+                    android:textColor="@color/chu_mo"/>
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/customer_stat_cancelled"
                     android:textSize="11sp"
-                    android:textColor="#8D6E63"/>
+                    android:textColor="@color/chu_mo"/>
 
             </LinearLayout>
 
@@ -419,16 +423,14 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:text="@string/customer_all_bookings_label"
-            android:textSize="17sp"
-            android:textStyle="bold"
-            android:textColor="@color/black"/>
+            style="@style/SonSon.TieuDeMuc"/>
 
         <TextView
             android:id="@+id/txt_tong_so_phieu"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:textSize="12sp"
-            android:textColor="#8D6E63"/>
+            android:textColor="@color/chu_mo"/>
 
     </LinearLayout>
 

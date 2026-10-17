@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Huy hiệu trạng thái đầu hộp thoại — lỗi: sơn son (Figma .dau-hop.loi): tâm sáng lệch trên trái, viền vàng 2.5dp. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <gradient android:type="radial" android:centerX="0.38" android:centerY="0.3"
+                android:gradientRadius="75%" android:startColor="#D0372C" android:centerColor="#8E1B17" android:endColor="#5E0E0C" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="2.5dp" android:color="#E3B34F" />
+        </shape>
+    </item>
+</layer-list>

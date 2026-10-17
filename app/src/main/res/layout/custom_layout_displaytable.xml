@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Thẻ bàn trong lưới 2 cột.
+    Thẻ bàn trong lưới 2 cột — bộ Sơn Son (Figma "Nhân viên · Sơ đồ bàn", .the-ban):
+    ảnh bàn ở trên, huy hiệu "bàn ăn" đè mép dưới trái ảnh, nhãn trạng thái nền ngà ở góc
+    trên phải, tên bàn chữ Baloo sơn son, dòng gợi ý chữ mờ.
 
-    Phần trên là ảnh bàn (bản rộng 480px, cắt vừa khung). Bàn chưa có ảnh
-    thì hiện icon ghế như trước — img_customtable_TableImage vẫn giữ nguyên
-    id và vai trò đó. Nhãn trạng thái và nút xóa nằm ĐÈ lên ảnh để thẻ không
-    cao hơn bản cũ nhiều, nên cả hai có nền riêng cho đủ tương phản.
+    Bàn chưa có ảnh thì hiện icon ghế như trước — img_customtable_TableImage vẫn giữ nguyên
+    id và vai trò đó. Nút xóa (quản lý) đè lên ảnh, góc trên trái.
 -->
 <com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
@@ -14,110 +14,111 @@
     android:id="@+id/card_customtable_Root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    app:strokeWidth="0dp"
+    android:layout_margin="6dp"
     android:foreground="?attr/selectableItemBackground"
+    app:cardElevation="1dp"
     tools:targetApi="lollipop">
 
-    <LinearLayout
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@color/white">
+        android:layout_height="wrap_content">
 
-        <FrameLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="104dp"
-            android:background="@color/cream">
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
 
-            <!-- Ảnh bàn (ẩn khi bàn chưa có ảnh) -->
-            <ImageView
-                android:id="@+id/img_customtable_Photo"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/nav_table"
-                android:visibility="gone" />
+                android:layout_height="100dp"
+                android:background="@color/vang_nhat">
 
-            <!-- Icon ghế: dự phòng khi không có ảnh -->
-            <ImageView
-                android:id="@+id/img_customtable_TableImage"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="center"
-                android:contentDescription="@string/nav_table"
-                android:src="@drawable/ic_baseline_event_seat_40"
-                app:tint="@color/colorPrimary" />
+                <!-- Ảnh bàn (ẩn khi bàn chưa có ảnh) -->
+                <ImageView
+                    android:id="@+id/img_customtable_Photo"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:contentDescription="@string/nav_table"
+                    android:scaleType="centerCrop"
+                    android:visibility="gone" />
 
-            <!-- Nút Xóa bàn (chỉ Admin thấy) -->
-            <ImageView
-                android:id="@+id/img_customtable_Delete"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_gravity="top|start"
-                android:layout_margin="6dp"
-                android:padding="5dp"
-                android:src="@drawable/ic_baseline_delete_24"
-                android:background="@drawable/circle_background_white"
-                android:contentDescription="Xóa bàn"
-                app:tint="@color/red_soft"
-                android:visibility="gone" />
+                <!-- Icon ghế: dự phòng khi không có ảnh -->
+                <ImageView
+                    android:id="@+id/img_customtable_TableImage"
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:layout_gravity="center"
+                    android:contentDescription="@string/nav_table"
+                    android:src="@drawable/ic_baseline_event_seat_40"
+                    app:tint="@color/son" />
 
-            <!-- Badge trạng thái (góc trên phải) -->
+                <!-- Nút Xóa bàn (chỉ Admin thấy) -->
+                <ImageView
+                    android:id="@+id/img_customtable_Delete"
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:layout_gravity="top|start"
+                    android:layout_margin="6dp"
+                    android:background="@drawable/nen_nut_tron_vang"
+                    android:contentDescription="Xóa bàn"
+                    android:padding="6dp"
+                    android:src="@drawable/ic_baseline_delete_24"
+                    android:visibility="gone"
+                    app:tint="@color/son" />
+
+                <!-- Nhãn trạng thái (góc trên phải) — mã đặt màu theo trạng thái -->
+                <TextView
+                    android:id="@+id/txt_customtable_Status"
+                    style="@style/SonSon.HuyHieu.Xong"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|end"
+                    android:layout_margin="7dp"
+                    android:elevation="2dp"
+                    tools:text="Trống" />
+            </FrameLayout>
+
+            <!-- Tên bàn -->
             <TextView
-                android:id="@+id/txt_customtable_Status"
-                android:layout_width="wrap_content"
+                android:id="@+id/txt_customtable_TableName"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="top|end"
-                android:layout_margin="8dp"
-                android:background="@drawable/round_corner_textview"
-                android:elevation="2dp"
-                android:paddingLeft="8dp"
-                android:paddingRight="8dp"
-                android:paddingTop="3dp"
-                android:paddingBottom="3dp"
-                android:textColor="@color/white"
-                android:textSize="11sp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="10dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/baloo2_extrabold"
+                android:includeFontPadding="false"
+                android:maxLines="1"
+                android:textColor="@color/son_dam"
+                android:textSize="16sp"
                 android:textStyle="bold"
-                tools:text="Trống" />
+                tools:text="Bàn 01" />
 
-        </FrameLayout>
+            <!-- Gợi ý hành động -->
+            <TextView
+                android:id="@+id/txt_customtable_ActionHint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="3dp"
+                android:layout_marginEnd="10dp"
+                android:layout_marginBottom="11dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/chu_mo"
+                android:textSize="11.5sp"
+                tools:text="Nhấn để gọi món" />
+        </LinearLayout>
 
-        <!-- Tên bàn -->
-        <TextView
-            android:id="@+id/txt_customtable_TableName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="10dp"
+        <!-- Huy hiệu bàn ăn đè mép dưới trái ảnh (Figma .anh-ban img) -->
+        <ImageView
+            android:layout_width="36dp"
+            android:layout_height="36dp"
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:fontFamily="@font/muli_black"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="@color/black"
-            android:textSize="16sp"
-            tools:text="Bàn 01" />
-
-        <!-- Gợi ý hành động -->
-        <TextView
-            android:id="@+id/txt_customtable_ActionHint"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="2dp"
-            android:layout_marginBottom="12dp"
-            android:layout_marginStart="8dp"
-            android:layout_marginEnd="8dp"
-            android:fontFamily="@font/muli"
-            android:maxLines="1"
-            android:ellipsize="end"
-            android:textColor="@color/grey"
-            android:textSize="11sp"
-            tools:text="Nhấn để đặt món" />
-
-    </LinearLayout>
-
+            android:layout_marginTop="82dp"
+            android:elevation="3dp"
+            android:importantForAccessibility="no"
+            android:src="@drawable/ic_hh_ban_an" />
+    </FrameLayout>
 </com.google.android.material.card.MaterialCardView>

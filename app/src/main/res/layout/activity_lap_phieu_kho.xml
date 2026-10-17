@@ -11,9 +11,9 @@
         android:id="@+id/toolbar_lap_phieu"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
+        android:background="@drawable/bg_thanh_tieu_de"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:titleTextColor="@color/white"
+        app:titleTextColor="@color/vang_sang"
         app:title="Lập phiếu kho"/>
 
     <ScrollView
@@ -142,20 +142,17 @@
                                 android:layout_height="38dp"
                                 android:text="Chụp ảnh"
                                 android:textSize="12sp"
-                                android:textColor="@color/white"
-                                android:backgroundTint="@color/colorPrimary"
                                 android:paddingStart="12dp"
                                 android:paddingEnd="12dp"/>
 
                             <Button
+            style="@style/SonSon.Button.Vien"
                                 android:id="@+id/btn_chon_anh"
                                 android:layout_width="wrap_content"
                                 android:layout_height="38dp"
                                 android:layout_marginStart="8dp"
                                 android:text="Chọn từ thư viện"
                                 android:textSize="12sp"
-                                android:textColor="@color/white"
-                                android:backgroundTint="@color/grey"
                                 android:paddingStart="12dp"
                                 android:paddingEnd="12dp"/>
                         </LinearLayout>
@@ -210,8 +207,6 @@
                             android:layout_height="36dp"
                             android:text="+ Thêm dòng"
                             android:textSize="12sp"
-                            android:textColor="@color/white"
-                            android:backgroundTint="@color/colorPrimary"
                             android:paddingStart="10dp"
                             android:paddingEnd="10dp"/>
                     </LinearLayout>
@@ -235,7 +230,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:background="@color/white"
+        android:background="@color/nga"
         android:padding="12dp"
         android:elevation="4dp">
 
@@ -245,9 +240,7 @@
             android:layout_height="48dp"
             android:text="XÁC NHẬN LẬP PHIẾU"
             android:textSize="15sp"
-            android:textStyle="bold"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/colorPrimary"/>
+            android:textStyle="bold"/>
     </LinearLayout>
 
 </LinearLayout>

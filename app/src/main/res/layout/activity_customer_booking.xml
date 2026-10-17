@@ -11,9 +11,9 @@
         android:id="@+id/booking_toolbar"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
+        android:background="@drawable/bg_thanh_tieu_de"
         app:title="@string/booking_toolbar_title"
-        app:titleTextColor="@color/white"/>
+        app:titleTextColor="@color/vang_sang"/>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -34,9 +34,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/booking_select_datetime_label"
-                android:textStyle="bold"
+                style="@style/SonSon.TieuDeMuc"
                 android:textSize="16sp"
-                android:textColor="@color/black"
                 android:layout_marginBottom="8dp"/>
 
             <LinearLayout
@@ -52,9 +51,7 @@
                     android:layout_height="50dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="4dp"
-                    android:text="@string/booking_btn_select_date"
-                    android:backgroundTint="@color/colorPrimaryDark"
-                    android:textColor="@color/white"/>
+                    android:text="@string/booking_btn_select_date"/>
 
                 <Button
                     android:id="@+id/btn_select_time"
@@ -62,9 +59,7 @@
                     android:layout_height="50dp"
                     android:layout_weight="1"
                     android:layout_marginStart="4dp"
-                    android:text="@string/booking_btn_select_time"
-                    android:backgroundTint="@color/colorPrimaryDark"
-                    android:textColor="@color/white"/>
+                    android:text="@string/booking_btn_select_time"/>
 
             </LinearLayout>
 
@@ -84,9 +79,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/booking_select_table_label"
-                android:textStyle="bold"
+                style="@style/SonSon.TieuDeMuc"
                 android:textSize="16sp"
-                android:textColor="@color/black"
                 android:layout_marginBottom="4dp"/>
 
             <!-- Chưa chọn giờ / đang tải / còn mấy bàn trống, mấy bàn đã kín -->
@@ -150,9 +144,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/booking_select_dishes_label"
-                android:textStyle="bold"
+                style="@style/SonSon.TieuDeMuc"
                 android:textSize="16sp"
-                android:textColor="@color/black"
                 android:layout_marginBottom="10dp"/>
 
             <!-- Ô tìm món.
@@ -190,7 +183,7 @@
                     android:paddingEnd="4dp"
                     android:textSize="14sp"
                     android:textColor="@color/black"
-                    android:textColorHint="#9E9E9E"/>
+                    android:textColorHint="#8A7563"/>
 
                 <ImageButton
                     android:id="@+id/btn_xoa_tim"
@@ -262,7 +255,7 @@
                     android:id="@+id/rv_booking_dishes"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@color/white"/>
+                    android:background="@color/nga"/>
 
                 <TextView
                     android:id="@+id/txt_khong_co_mon"
@@ -270,7 +263,7 @@
                     android:layout_height="match_parent"
                     android:gravity="center"
                     android:text="@string/booking_no_dish_found"
-                    android:textColor="#9E9E9E"
+                    android:textColor="#8A7563"
                     android:textSize="14sp"
                     android:visibility="gone"/>
 
@@ -298,7 +291,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:textSize="12sp"
-                    android:textColor="#8D6E63"/>
+                    android:textColor="#7A6553"/>
 
                 <ImageButton
                     android:id="@+id/btn_trang_truoc"
@@ -340,9 +333,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:text="@string/booking_voucher_label"
-                android:textStyle="bold"
-                android:textSize="16sp"
-                android:textColor="@color/black"/>
+                style="@style/SonSon.TieuDeMuc"
+                android:textSize="16sp"/>
 
             <LinearLayout
                 android:id="@+id/khung_chon_voucher"
@@ -373,7 +365,7 @@
                     android:layout_marginStart="10dp"
                     android:text="@string/booking_voucher_chua_chon"
                     android:textSize="14sp"
-                    android:textColor="#8D6E63"/>
+                    android:textColor="#7A6553"/>
 
                 <TextView
                     android:id="@+id/txt_voucher_thao_tac"
@@ -382,7 +374,8 @@
                     android:text="@string/booking_voucher_chon"
                     android:textSize="12sp"
                     android:textStyle="bold"
-                    android:textColor="@color/colorPrimary"/>
+                    android:textColor="@color/son_dam"
+            android:fontFamily="@font/baloo2_extrabold"/>
 
             </LinearLayout>
 
@@ -394,7 +387,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp"
-        android:background="@color/white"
+        android:background="@color/nga"
         android:gravity="center_vertical"
         android:elevation="8dp">
 
@@ -406,15 +399,14 @@
             android:text="@string/booking_total_default"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:textColor="@color/colorPrimary"/>
+            android:textColor="@color/son_dam"
+            android:fontFamily="@font/baloo2_extrabold"/>
 
         <Button
             android:id="@+id/btn_confirm_booking"
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:text="@string/booking_btn_confirm"
-            android:backgroundTint="@color/colorPrimary"
-            android:textColor="@color/white"
             android:textStyle="bold"/>
 
     </LinearLayout>

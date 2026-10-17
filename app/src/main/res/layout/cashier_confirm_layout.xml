@@ -5,12 +5,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/white">
+    android:background="@color/kem">
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/white"
+        android:background="@color/nga"
         android:elevation="4dp"
         tools:targetApi="lollipop">
         
@@ -170,23 +170,16 @@
                     android:layout_height="55dp"
                     android:layout_weight="1"
                     android:layout_marginEnd="8dp"
-                    android:background="@drawable/corner_border_primary"
-                    app:backgroundTint="@color/colorPrimary"
-                    android:text="Tiền mặt"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/muli_black" />
+                    android:text="Tiền mặt" />
                     
                 <Button
+            style="@style/SonSon.Button.Vien"
                     android:id="@+id/btn_cashier_Bank"
                     android:layout_width="0dp"
                     android:layout_height="55dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
-                    android:background="@drawable/corner_border_primary"
-                    app:backgroundTint="#2196F3"
-                    android:text="Chuyển khoản"
-                    android:textColor="@color/white"
-                    android:fontFamily="@font/muli_black" />
+                    android:text="Chuyển khoản" />
             </LinearLayout>
 
         </LinearLayout>

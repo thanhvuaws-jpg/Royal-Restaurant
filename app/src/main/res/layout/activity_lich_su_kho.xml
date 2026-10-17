@@ -11,9 +11,9 @@
         android:id="@+id/toolbar_lich_su"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
+        android:background="@drawable/bg_thanh_tieu_de"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
-        app:titleTextColor="@color/white"
+        app:titleTextColor="@color/vang_sang"
         app:title="Sổ kho nguyên liệu"/>
 
     <!-- Ingredient Header Card -->

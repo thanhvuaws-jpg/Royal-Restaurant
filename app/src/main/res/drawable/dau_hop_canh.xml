@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Huy hiệu trạng thái đầu hộp thoại — cảnh báo: hổ phách (Figma .dau-hop.canh): tâm sáng lệch trên trái, viền vàng 2.5dp. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <gradient android:type="radial" android:centerX="0.38" android:centerY="0.3"
+                android:gradientRadius="75%" android:startColor="#F2C45C" android:centerColor="#C98A26" android:endColor="#8F5A14" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="2.5dp" android:color="#E3B34F" />
+        </shape>
+    </item>
+</layer-list>

@@ -41,7 +41,7 @@
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="3dp"
-                app:cardBackgroundColor="#F5EDE6">
+                app:cardBackgroundColor="@color/nga">
 
                 <LinearLayout
                     android:orientation="vertical"
@@ -57,7 +57,7 @@
                         android:textSize="20sp"
                         android:textStyle="bold"
                         android:letterSpacing="0.03"
-                        android:textColor="@color/colorPrimaryDark"/>
+                        android:textColor="@color/son_dam"/>
 
                     <TextView
                         android:layout_width="match_parent"
@@ -66,7 +66,7 @@
                         android:text="@string/dd_phu_de"
                         android:gravity="center"
                         android:textSize="12sp"
-                        android:textColor="#8D6E63"/>
+                        android:textColor="@color/chu_mo"/>
 
                     <!-- 6 ô đầu, 3 cột -->
                     <androidx.recyclerview.widget.RecyclerView
@@ -94,14 +94,15 @@
                     android:layout_weight="1"
                     android:layout_marginEnd="6dp"
                     app:cardCornerRadius="16dp"
-                    app:cardElevation="2dp"
-                    app:cardBackgroundColor="@color/colorPrimary">
+                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@android:color/transparent">
 
                     <LinearLayout
                         android:orientation="vertical"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
+                        android:background="@drawable/nen_the_son"
                         android:padding="14dp">
 
                         <TextView
@@ -111,7 +112,7 @@
                             android:textSize="10sp"
                             android:textStyle="bold"
                             android:letterSpacing="0.06"
-                            android:textColor="#E8DAD3"/>
+                            android:textColor="#F0D9B0"/>
 
                         <LinearLayout
                             android:orientation="horizontal"
@@ -136,7 +137,9 @@
                                 android:text="0"
                                 android:textSize="26sp"
                                 android:textStyle="bold"
-                                android:textColor="@color/white"/>
+                                android:fontFamily="@font/baloo2_extrabold"
+                                android:includeFontPadding="false"
+                                android:textColor="@color/vang_sang"/>
 
                         </LinearLayout>
 
@@ -147,7 +150,7 @@
                             android:layout_marginTop="4dp"
                             android:gravity="center"
                             android:textSize="10sp"
-                            android:textColor="#E8DAD3"/>
+                            android:textColor="#F0D9B0"/>
 
                     </LinearLayout>
 
@@ -160,7 +163,7 @@
                     android:layout_marginStart="6dp"
                     app:cardCornerRadius="16dp"
                     app:cardElevation="2dp"
-                    app:cardBackgroundColor="@color/white">
+                    app:cardBackgroundColor="@color/nga">
 
                     <LinearLayout
                         android:orientation="vertical"
@@ -174,7 +177,7 @@
                             android:text="@string/dd_tien_trinh"
                             android:textSize="11sp"
                             android:textStyle="bold"
-                            android:textColor="@color/colorPrimaryDark"/>
+                            android:textColor="@color/son_dam"/>
 
                         <ProgressBar
                             android:id="@+id/progress_chuoi"
@@ -183,7 +186,7 @@
                             android:layout_height="8dp"
                             android:layout_marginTop="12dp"
                             android:max="7"
-                            android:progressTint="@color/gold_400"
+                            android:progressDrawable="@drawable/thanh_vang"
                             android:progressBackgroundTint="#E9E4E1"/>
 
                         <TextView
@@ -192,7 +195,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginTop="8dp"
                             android:textSize="11sp"
-                            android:textColor="#8D6E63"/>
+                            android:textColor="@color/chu_mo"/>
 
                         <LinearLayout
                             android:orientation="horizontal"
@@ -249,11 +252,10 @@
                     android:maxLines="1"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/white"
-                    android:backgroundTint="@color/colorPrimary"
                     app:cornerRadius="14dp"/>
 
                 <com.google.android.material.button.MaterialButton
+            style="@style/SonSon.Button.Vang"
                     android:id="@+id/btn_doi_phieu"
                     android:layout_width="0dp"
                     android:layout_height="52dp"
@@ -266,8 +268,6 @@
                     android:maxLines="1"
                     android:textSize="13sp"
                     android:textStyle="bold"
-                    android:textColor="@color/colorPrimaryDark"
-                    android:backgroundTint="@color/gold_400"
                     app:cornerRadius="14dp"/>
 
             </LinearLayout>
@@ -342,16 +342,14 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/dd_ma_cua_toi"
-                    android:textSize="16sp"
-                    android:textStyle="bold"
-                    android:textColor="@color/black"/>
+                    style="@style/SonSon.TieuDeMuc"/>
 
                 <TextView
                     android:id="@+id/txt_dem_ds"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:textSize="12sp"
-                    android:textColor="#8D6E63"/>
+                    android:textColor="@color/chu_mo"/>
 
             </LinearLayout>
 
@@ -369,7 +367,7 @@
                 android:paddingTop="28dp"
                 android:paddingBottom="28dp"
                 android:textSize="13sp"
-                android:textColor="#9E9E9E"
+                android:textColor="#8A7563"
                 android:visibility="gone"/>
 
         </LinearLayout>

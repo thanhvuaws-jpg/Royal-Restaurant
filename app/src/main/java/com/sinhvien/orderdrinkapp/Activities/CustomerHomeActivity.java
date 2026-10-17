@@ -29,7 +29,7 @@ import com.sinhvien.orderdrinkapp.Fragments.CustomerContactFragment;
 
 // Nhập thư viện cần thiết cho SharedPreferences, AlertDialog, API và Socket
 import android.content.SharedPreferences;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import java.util.List;
 import java.util.ArrayList;
 import retrofit2.Call;
@@ -38,6 +38,8 @@ import retrofit2.Response;
 import com.sinhvien.orderdrinkapp.Api.ApiClient;
 import com.sinhvien.orderdrinkapp.Api.ApiService;
 import com.sinhvien.orderdrinkapp.Api.BookingResponse;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * CustomerHomeActivity - Màn hình chính điều hướng (Dashboard) dành cho Khách hàng (Customer).
@@ -82,6 +84,8 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         }
 
         bottomNav = findViewById(R.id.customer_bottom_nav);
+        // Huy hiệu thanh dưới có sẵn hai bản (chọn / mờ) — không cho tô đè một màu.
+        bottomNav.setItemIconTintList(null);
         btnToggleNav = findViewById(R.id.btn_toggle_nav);
 
         // Cài đặt Drawer Toggle để nhấn mở ngăn kéo menu
@@ -134,7 +138,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
             // Lắng nghe sự kiện kết nối thành công tới server node.js
             connectListener = args -> {
                 runOnUiThread(() -> {
-                    Toast.makeText(CustomerHomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(CustomerHomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT);
                     int makh = SessionManager.getMaNV(CustomerHomeActivity.this);
                     socket.emit("join_customer", makh); // Gửi mã khách hàng để phân phòng nhận tin nhắn
                 });
@@ -147,7 +151,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                     org.json.JSONObject data = (org.json.JSONObject) args[0];
                     String body = data.getString("body");
                     runOnUiThread(() ->
-                        Toast.makeText(CustomerHomeActivity.this, body, Toast.LENGTH_LONG).show()
+                        ThongBao.hien(CustomerHomeActivity.this, body, Toast.LENGTH_LONG)
                     );
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -345,7 +349,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
         finish();
-        Toast.makeText(this, "Đã đăng xuất!", Toast.LENGTH_SHORT).show();
+        ThongBao.hien(this, "Đã đăng xuất!", Toast.LENGTH_SHORT);
     }
 
     @Override
@@ -464,7 +468,7 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
                             if (i < messages.size() - 1) sb.append("\n\n");
                         }
                         
-                        new AlertDialog.Builder(CustomerHomeActivity.this)
+                        new HopThoai.Builder(CustomerHomeActivity.this)
                             .setTitle("🔔 Thông báo đặt bàn")
                             .setMessage(sb.toString())
                             .setPositiveButton("OK", null)

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Chữ nút viền vàng / nút chữ: sơn son đậm. (bộ Sơn Son, QĐ-112) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false" android:color="#A99C8F" />
+    <item android:color="#5E0E0C" />
+</selector>

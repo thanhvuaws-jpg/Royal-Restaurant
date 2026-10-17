@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#D7CCC8</color>
-    <color name="purple_500">#795548</color>
-    <color name="purple_700">#5D4037</color>
+    <color name="purple_200">#F1E3C8</color>
+    <color name="purple_500">#8E1B17</color>
+    <color name="purple_700">#5E0E0C</color>
     <color name="teal_200">#80CBC4</color>
     <color name="teal_700">#00796B</color>
-    <color name="black">#212121</color>
+    <color name="black">#2A1A14</color>
     <color name="white">#FFFFFF</color>
-    <color name="colorPrimary">#795548</color>
-    <color name="colorPrimaryDark">#5D4037</color>
-    <color name="colorAccent">#FFAB40</color>
-    <color name="lightwhite">#FAFAFA</color>
-    <color name="cream">#FFF9E1</color>
+    <color name="colorPrimary">#8E1B17</color>
+    <color name="colorPrimaryDark">#5E0E0C</color>
+    <color name="colorAccent">#D9A441</color>
+    <color name="lightwhite">#F7EEDD</color>
+    <color name="cream">#FBF1DC</color>
     <color name="black50">#80000000</color>
-    <color name="grey">#9E9E9E</color>
-    <color name="status_occupied">#E57373</color>
-    <color name="status_free">#81C784</color>
-    <color name="status_available">#43A047</color>
-    <color name="status_unavailable">#E53935</color>
+    <color name="grey">#8A7563</color>
+    <color name="status_occupied">#B3261F</color>
+    <color name="status_free">#2E6B57</color>
+    <color name="status_available">#2E6B57</color>
+    <color name="status_unavailable">#8E1B17</color>
     <color name="overlay_unavailable">#99000000</color>
-    <color name="red_soft">#E57373</color>
+    <color name="red_soft">#B3261F</color>
 
     <!-- Royal Restaurant Luxury Palette -->
     <color name="gold_300">#F3E5AB</color>
@@ -32,13 +32,30 @@
     <color name="gold_glow">#25D4AF37</color>
 
     <!-- Kho Status Colors -->
-    <color name="kho_am">#B71C1C</color>
-    <color name="kho_het">#E53935</color>
-    <color name="kho_sap_het">#F57C00</color>
-    <color name="kho_du">#2E7D32</color>
-    <color name="kho_ngung">#757575</color>
-    <color name="kho_bg_card">#FFFFFF</color>
-    <color name="kho_border">#E0E0E0</color>
-    <!-- Bộ giao diện Sơn Son (QĐ-112) -->
+    <color name="kho_am">#8E1B17</color>
+    <color name="kho_het">#B3261F</color>
+    <color name="kho_sap_het">#A86A12</color>
+    <color name="kho_du">#2E6B57</color>
+    <color name="kho_ngung">#8A7563</color>
+    <color name="kho_bg_card">#FFFDF8</color>
+    <color name="kho_border">#61D9A441</color>
+    <!-- Bộ giao diện Sơn Son (QĐ-112). Các tên cũ ở trên (colorPrimary, black, grey,
+         lightwhite…) đã đổi giá trị sang bộ này để mọi màn đổi theo một lượt. -->
+    <color name="son">#8E1B17</color>
+    <color name="son_sang">#B3261F</color>
+    <color name="son_dam">#5E0E0C</color>
+    <color name="vang">#D9A441</color>
+    <color name="vang_dam">#A8771F</color>
+    <color name="vang_sang">#FFE3A0</color>
+    <color name="vang_nhat">#F6E7C3</color>
+    <color name="kem">#F7EEDD</color>
+    <color name="nga">#FFFDF8</color>
+    <color name="muc">#2A1A14</color>
+    <color name="chu_mo">#7A6553</color>
+    <color name="then">#1F120D</color>
+    <color name="ngoc">#2E6B57</color>
+    <color name="ho_phach">#A86A12</color>
+    <color name="vien_vang">#8CD9A441</color>
+    <color name="vien_vang_nhat">#4DD9A441</color>
     <color name="chu_phu_menu_ben">#B29C7C</color>
 </resources>

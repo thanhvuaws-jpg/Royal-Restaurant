@@ -7,9 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    app:strokeWidth="0dp"
+    app:cardElevation="1dp"
     tools:targetApi="lollipop">
 
     <LinearLayout
@@ -69,9 +67,10 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="bottom"
                 android:padding="10dp"
-                android:fontFamily="@font/muli_black"
-                android:textColor="@color/white"
-                android:textSize="14sp"
+                android:fontFamily="@font/baloo2_extrabold"
+                android:textStyle="bold"
+                android:textColor="@color/vang_sang"
+                android:textSize="15sp"
                 android:shadowColor="@color/black"
                 android:shadowDx="1"
                 android:shadowDy="1"
@@ -89,7 +88,7 @@
             android:paddingRight="12dp"
             android:paddingTop="8dp"
             android:paddingBottom="8dp"
-            android:background="@color/white">
+            android:background="@color/nga">
 
             <!-- Giá tiền -->
             <TextView
@@ -97,9 +96,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
-                android:textColor="@color/colorPrimary"
-                android:fontFamily="@font/muli_black"
-                android:textSize="13sp"
+                android:textColor="@color/son"
+                android:fontFamily="@font/baloo2_extrabold"
+                android:textStyle="bold"
+                android:textSize="16sp"
                 tools:text="100,000 VNĐ" />
 
             <!-- Toggle bật/tắt (Dùng cho cả Admin và NV để nhanh chóng đổi trạng thái) -->
@@ -133,7 +133,7 @@
                     android:padding="6dp"
                     android:src="@drawable/ic_baseline_edit_24"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/colorPrimary" />
+                    app:tint="@color/son" />
 
                 <View
                     android:layout_width="16dp"
@@ -146,7 +146,7 @@
                     android:padding="6dp"
                     android:src="@drawable/ic_baseline_delete_24"
                     android:background="?attr/selectableItemBackgroundBorderless"
-                    app:tint="@color/red_soft" />
+                    app:tint="@color/son" />
 
             </LinearLayout>
 

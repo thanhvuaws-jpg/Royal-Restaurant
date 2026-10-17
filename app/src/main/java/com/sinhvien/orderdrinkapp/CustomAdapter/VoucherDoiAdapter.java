@@ -77,7 +77,7 @@ public class VoucherDoiAdapter extends RecyclerView.Adapter<VoucherDoiAdapter.Vi
             h.btn_doi.setOnClickListener(x -> boLangNghe.doi(v));
         } else {
             h.btn_doi.setBackgroundTintList(ColorStateList.valueOf(Color.parseColor("#E0DAD5")));
-            h.btn_doi.setTextColor(Color.parseColor("#9E9E9E"));
+            h.btn_doi.setTextColor(Color.parseColor("#8A7563"));
 
             // Nói thiếu HẠNG trước, vì đó là thứ không khắc phục được bằng
             // cách điểm danh thêm vài ngày.
@@ -99,7 +99,7 @@ public class VoucherDoiAdapter extends RecyclerView.Adapter<VoucherDoiAdapter.Vi
         String hang = v.getHangToiThieu() != null ? v.getHangToiThieu().toLowerCase() : "";
         String ten = v.getTen() != null ? v.getTen().toLowerCase() : "";
         if (hang.contains("kimcuong") || hang.contains("diamond") || ten.contains("kim cương") || ten.contains("vip") || ten.contains("20%")) {
-            resVe = R.drawable.ve_vang;
+            resVe = R.drawable.ve_kimcuong;
         } else if (hang.contains("vang") || hang.contains("gold") || ten.contains("vàng") || ten.contains("15%")) {
             resVe = R.drawable.ve_vang;
         } else if (hang.contains("bac") || hang.contains("silver") || ten.contains("bạc") || ten.contains("10%")) {

@@ -101,7 +101,14 @@ public class AdapterKhoNguyenLieu extends RecyclerView.Adapter<AdapterKhoNguyenL
             holder.txtTinhTrangTon.setText("Đầy đủ");
             statusBg.setColor(ContextCompat.getColor(context, R.color.kho_du));
         }
-        holder.txtTinhTrangTon.setBackground(statusBg);
+        // Nhãn bộ Sơn Son (Figma "Quản lý · Kho", .dong-kho .huy-hieu):
+        // âm / hết = sơn son, sắp hết = hổ phách, đủ = ngọc.
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txtTinhTrangTon,
+                "am".equalsIgnoreCase(status) || "het".equalsIgnoreCase(status)
+                        ? com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE
+                        : "sap_het".equalsIgnoreCase(status)
+                        ? com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO
+                        : com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG);
 
         // Tải ảnh 200px qua Glide
         String rawPath = item.getUrlAnhNho();

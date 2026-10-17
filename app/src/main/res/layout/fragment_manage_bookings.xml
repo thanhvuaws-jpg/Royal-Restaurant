@@ -11,14 +11,10 @@
         android:id="@+id/tabLayout_bookings"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/white"
         android:elevation="2dp"
         app:tabMode="scrollable"
         app:tabGravity="start"
-        app:tabTextAppearance="@style/ChuTabDatLich"
-        app:tabIndicatorColor="@color/colorPrimary"
-        app:tabSelectedTextColor="@color/colorPrimary"
-        app:tabTextColor="@color/grey"/>
+        app:tabTextAppearance="@style/ChuTabDatLich"/>
     <!-- tabMode=scrollable + cỡ chữ cố định: ở chế độ "fixed" mặc định, 5 tab
          chia đều chiều rộng và TabLayout tự THU NHỎ chữ tab nào dài, nên các
          tab lệch cỡ chữ nhau (H23). -->

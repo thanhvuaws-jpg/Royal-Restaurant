@@ -55,8 +55,12 @@ public class AdapterRecycleViewStatistic extends RecyclerView.Adapter<AdapterRec
         // Dịch trạng thái thanh toán đơn hàng sang văn bản tiếng Việt
         if ("true".equals(donDatDTO.getTinhTrang())) {
             holder.txt_customstatistic_Status.setText("Đã thanh toán");
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_customstatistic_Status,
+                    com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG);
         } else {
             holder.txt_customstatistic_Status.setText("Chưa thanh toán");
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_customstatistic_Status,
+                    com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO);
         }
         holder.txt_customstatistic_StaffName.setText(donDatDTO.getTenNV());
         holder.txt_customstatistic_TableName.setText(donDatDTO.getTenBan());

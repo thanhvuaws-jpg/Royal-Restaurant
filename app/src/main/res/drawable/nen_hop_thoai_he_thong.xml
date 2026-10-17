@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nền hộp thoại hệ thống còn sót (chọn ngày/giờ…): giấy ngà chuyển kem, viền vàng,
+     bo 22dp — cùng mặt hộp .hop trên Figma, chỉ không có huy hiệu. -->
+<inset xmlns:android="http://schemas.android.com/apk/res/android"
+    android:insetLeft="24dp"
+    android:insetRight="24dp"
+    android:insetTop="24dp"
+    android:insetBottom="24dp">
+    <shape>
+        <corners android:radius="22dp" />
+        <gradient android:angle="270" android:startColor="#FFFDF8" android:endColor="#F7EEDD" />
+        <stroke android:width="1.5dp" android:color="#D9A441" />
+    </shape>
+</inset>

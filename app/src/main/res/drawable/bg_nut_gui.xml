@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nút gửi: hình tròn màu chủ đạo. -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="oval">
-    <solid android:color="@color/colorPrimary" />
-</shape>
+<!-- Nút gửi (Figma .fab.fab-nho): tròn sơn son sáng ở tâm trên trái, viền vàng. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="oval">
+            <gradient android:type="radial" android:centerX="0.38" android:centerY="0.3" android:gradientRadius="75%"
+                android:startColor="#D0372C" android:centerColor="#8E1B17" android:endColor="#5E0E0C" />
+        </shape>
+    </item>
+    <item>
+        <shape android:shape="oval">
+            <stroke android:width="2dp" android:color="#E3B34F" />
+        </shape>
+    </item>
+</layer-list>

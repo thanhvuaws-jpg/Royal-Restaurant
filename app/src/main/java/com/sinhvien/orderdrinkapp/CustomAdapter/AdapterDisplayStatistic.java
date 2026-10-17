@@ -78,16 +78,19 @@ public class AdapterDisplayStatistic extends RecyclerView.Adapter<AdapterDisplay
         }
         holder.txt_TableName.setText(banText);
 
-        // Thiết lập trạng thái hóa đơn kèm background viền tương ứng
+        // Trạng thái hóa đơn: nhãn bộ Sơn Son (xong = ngọc, còn chờ = hổ phách)
         if ("true".equals(don.getTinhTrang())) {
             holder.txt_Status.setText("Đã thanh toán");
-            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_primary); // Viền xanh lá
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_Status,
+                    com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG);
         } else if ("pending".equals(don.getTinhTrang())) {
             holder.txt_Status.setText("Chờ duyệt");
-            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);   // Viền đen
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_Status,
+                    com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO);
         } else {
             holder.txt_Status.setText("Chưa thanh toán");
-            holder.txt_Status.setBackgroundResource(R.drawable.corner_border_black);   // Viền đen
+            com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_Status,
+                    com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO);
         }
 
         // Bắt sự kiện click

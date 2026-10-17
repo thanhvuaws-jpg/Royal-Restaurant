@@ -1,5 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Nền menu bên: sơn then (QĐ-112). -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <gradient android:angle="270" android:startColor="#1F120D" android:endColor="#140B08" />
-</shape>
+<!-- Nền menu bên: sơn then (QĐ-112). Nửa dưới thường trống (danh sách ngắn) nên đặt
+     cụm sen chìm ở góc phải và dải sóng vàng ở đáy — cùng tấm hoành ở đầu menu. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <gradient android:angle="270" android:startColor="#1F120D" android:endColor="#140B08" />
+        </shape>
+    </item>
+    <item android:bottom="34dp">
+        <bitmap
+            android:gravity="bottom|right"
+            android:src="@drawable/sen_chim_menu" />
+    </item>
+    <!-- Dải sóng dựng sẵn đủ dài (đã lặp trong ảnh, 3990px): không dùng tileMode vì
+         ảnh lặp của Android neo theo đỉnh màn, vẽ ra sọc ở đáy. -->
+    <item android:bottom="6dp">
+        <bitmap
+            android:gravity="bottom|left"
+            android:src="@drawable/song_vang_menu" />
+    </item>
+</layer-list>

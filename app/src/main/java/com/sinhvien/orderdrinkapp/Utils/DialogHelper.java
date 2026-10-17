@@ -28,7 +28,7 @@ public class DialogHelper {
      * @return Đối tượng AlertDialog đã được cấu hình sẵn. Cần gọi thêm .show() để hiện lên.
      */
     public static AlertDialog getLoadingDialog(Context context, String message) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        AlertDialog.Builder builder = new HopThoai.Builder(context);
         // Thổi phồng (inflate) layout custom từ file dialog_loading.xml
         LayoutInflater inflater = LayoutInflater.from(context);
         View dialogView = inflater.inflate(R.layout.dialog_loading, null);
@@ -50,7 +50,8 @@ public class DialogHelper {
      * là bị đưa ra ngoài, phải gõ lại mật khẩu. Dùng chung cho mọi vai.
      */
     public static void xacNhanDangXuat(Context context, Runnable dangXuat) {
-        new AlertDialog.Builder(context)
+        new HopThoai.Builder(context)
+                .setHuyHieu(R.drawable.ic_hh_dang_xuat)
                 .setTitle("Đăng xuất?")
                 .setMessage("Bạn sẽ cần đăng nhập lại để tiếp tục sử dụng.")
                 .setPositiveButton("Đăng xuất", (d, w) -> dangXuat.run())

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:background="@drawable/nen_hop_thoai"
     tools:theme="@style/Theme.OrderDrinkApp">
 
     <LinearLayout
@@ -82,7 +82,7 @@
         <!-- Nhập Họ và tên -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/txtl_edit_hoten"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/SonSon.ONhap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/enter_fullname"
@@ -100,7 +100,7 @@
         <!-- Nhập SĐT -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/txtl_edit_sdt"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/SonSon.ONhap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -119,7 +119,7 @@
         <!-- Nhập Email -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/txtl_edit_email"
-            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            style="@style/SonSon.ONhap"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
@@ -154,7 +154,7 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_dialog_cancel"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/SonSon.Button.Chu"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/huy"
@@ -165,9 +165,7 @@
                 android:id="@+id/btn_dialog_save"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/luu_thay_doi"
-                android:textColor="@color/white"
-                app:backgroundTint="@color/colorPrimary" />
+                android:text="@string/luu_thay_doi" />
         </LinearLayout>
 
     </LinearLayout>

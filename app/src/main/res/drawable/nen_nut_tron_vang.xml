@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nút tròn nhỏ đặt trên ảnh (sửa / xóa / xem): ngà, viền vàng. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#F2FFFDF8" />
+    <stroke android:width="1.2dp" android:color="#D9A441" />
+</shape>

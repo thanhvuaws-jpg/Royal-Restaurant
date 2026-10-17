@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Màu chữ của chip danh mục, đi kèm bg_chip_danh_muc.xml -->
+<!-- Màu chữ của chip lọc, đi kèm bg_chip_danh_muc.xml (bộ Sơn Son). -->
 <selector xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:state_selected="true" android:color="#FFFFFF"/>
-    <item android:color="@color/colorPrimaryDark"/>
+    <item android:state_selected="true" android:color="#FFE3A0" />
+    <item android:color="#2A1A14" />
 </selector>

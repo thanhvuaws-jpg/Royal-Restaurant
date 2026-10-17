@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nền thanh điều hướng dưới: giấy ngà, gạch vàng mảnh ở mép trên (bộ Sơn Son). -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <solid android:color="#D9A441" />
+        </shape>
+    </item>
+    <item android:top="1.5dp">
+        <shape>
+            <solid android:color="#FFFDF8" />
+        </shape>
+    </item>
+</layer-list>

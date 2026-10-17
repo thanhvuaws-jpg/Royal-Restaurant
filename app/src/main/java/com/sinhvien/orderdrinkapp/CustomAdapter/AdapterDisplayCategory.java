@@ -1,6 +1,6 @@
 package com.sinhvien.orderdrinkapp.CustomAdapter;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -31,6 +31,8 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AdapterDisplayCategory - Adapter quản lý hiển thị danh mục món ăn (Category) trong RecyclerView.
@@ -103,7 +105,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                 context.startActivity(iEdit);
             });
             holder.img_Delete.setOnClickListener(v -> {
-                new AlertDialog.Builder(context)
+                new HopThoai.Builder(context)
                         .setTitle("Xác nhận xóa")
                         .setMessage("Chỉ xóa được danh mục không còn món nào. Xóa danh mục này?")
                         .setPositiveButton("Xóa", (dialog, which) -> {
@@ -123,9 +125,9 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                                             notifyItemRemoved(currentPos);
                                             notifyItemRangeChanged(currentPos, loaiMonDTOList.size());
                                         }
-                                        Toast.makeText(context, "Đã xóa loại thực đơn", Toast.LENGTH_SHORT).show();
+                                        ThongBao.hien(context, "Đã xóa loại thực đơn", Toast.LENGTH_SHORT);
                                     } else {
-                                        new AlertDialog.Builder(context)
+                                        new HopThoai.Builder(context)
                                                 .setTitle("Không xóa được")
                                                 .setMessage(response.body() != null && response.body().getMessage() != null
                                                         ? response.body().getMessage()
@@ -136,7 +138,7 @@ public class AdapterDisplayCategory extends RecyclerView.Adapter<AdapterDisplayC
                                 }
                                 @Override
                                 public void onFailure(Call<OrderResponse> call, Throwable t) {
-                                    Toast.makeText(context, "Lỗi kết nối Server", Toast.LENGTH_SHORT).show();
+                                    ThongBao.hien(context, "Lỗi kết nối Server", Toast.LENGTH_SHORT);
                                 }
                             });
                         })

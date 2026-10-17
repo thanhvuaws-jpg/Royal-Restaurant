@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@+id/nav_customer_booking" android:title="Đặt bàn" android:icon="@drawable/ic_baseline_calendar_today_24"/>
-    <item android:id="@+id/nav_customer_history" android:title="Lịch sử" android:icon="@drawable/ic_baseline_storage_24"/>
-    <item android:id="@+id/nav_diem_danh" android:title="Điểm danh" android:icon="@drawable/ic_hop_qua"/>
-    <item android:id="@+id/nav_customer_contact" android:title="Hỗ trợ" android:icon="@drawable/ic_chat_ho_tro"/>
-    <item android:id="@+id/nav_logout" android:title="Đăng xuất" android:icon="@drawable/ic_baseline_exit_to_app_24"/>
+    <item android:id="@+id/nav_customer_booking" android:title="Đặt bàn" android:icon="@drawable/nav_dat_lich"/>
+    <item android:id="@+id/nav_customer_history" android:title="Lịch sử" android:icon="@drawable/nav_thong_ke"/>
+    <item android:id="@+id/nav_diem_danh" android:title="Điểm danh" android:icon="@drawable/nav_qua_tang"/>
+    <item android:id="@+id/nav_customer_contact" android:title="Hỗ trợ" android:icon="@drawable/nav_chat"/>
+    <item android:id="@+id/nav_logout" android:title="Đăng xuất" android:icon="@drawable/nav_dang_xuat"/>
 </menu>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Bảng trượt từ dưới ("Thêm"): giấy ngà, bo trên 22dp, gạch vàng mảnh ở mép trên. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape>
+            <corners android:topLeftRadius="22dp" android:topRightRadius="22dp" />
+            <solid android:color="#D9A441" />
+        </shape>
+    </item>
+    <item android:top="1.5dp">
+        <shape>
+            <corners android:topLeftRadius="22dp" android:topRightRadius="22dp" />
+            <gradient android:angle="270" android:startColor="#FFFDF8" android:endColor="#F7EEDD" />
+        </shape>
+    </item>
+</layer-list>

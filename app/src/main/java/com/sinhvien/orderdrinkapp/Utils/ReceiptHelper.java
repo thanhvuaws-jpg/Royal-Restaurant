@@ -94,15 +94,15 @@ public class ReceiptHelper {
             bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
             outputStream.close();
 
-            Toast.makeText(context,
+            ThongBao.hien(context,
                     context.getString(R.string.receipt_save) + " thành công!",
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT);
             return imageUri;
 
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(context, "Lưu thất bại: " + e.getMessage(),
-                    Toast.LENGTH_SHORT).show();
+            ThongBao.hien(context, "Lưu thất bại: " + e.getMessage(),
+                    Toast.LENGTH_SHORT);
             return null;
         }
     }

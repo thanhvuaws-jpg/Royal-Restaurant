@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".Activities.SplashActivity"
-    android:background="@color/white">
+    android:background="@drawable/bg_menu_ben">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,7 +18,7 @@
             android:id="@+id/img_splash_Logo"
             android:layout_width="220dp"
             android:layout_height="220dp"
-            android:src="@drawable/app_logo"
+            android:src="@drawable/logo_royal_trong"
             android:scaleType="centerInside"
             android:contentDescription="@string/app_name" />
 
@@ -29,7 +29,7 @@
             android:layout_marginTop="24dp"
             android:fontFamily="@font/muli_black"
             android:text="@string/app_name"
-            android:textColor="@color/black"
+            android:textColor="@color/vang_sang"
             android:textSize="32sp"
             android:textAllCaps="true"
             android:gravity="center_horizontal" />
@@ -44,7 +44,7 @@
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="40dp"
         android:fontFamily="@font/muli"
-        android:textColor="@color/grey"
+        android:textColor="@color/chu_phu_menu_ben"
         android:textSize="14sp"
         android:gravity="center_horizontal" />
 

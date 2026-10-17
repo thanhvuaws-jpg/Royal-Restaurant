@@ -14,7 +14,7 @@
         android:orientation="horizontal"
         android:padding="12dp"
         android:gravity="center_vertical"
-        android:background="@color/white"
+        android:background="@color/nga"
         android:elevation="2dp">
 
         <!-- Chỗ trống đẩy hai nút sang phải. Bản cũ in lại chữ "Kho nguyên
@@ -24,28 +24,32 @@
             android:layout_height="1dp"
             android:layout_weight="1"/>
 
-        <Button
+        <!-- Figma "Quản lý · Kho": "+ Phiếu kho" thếp vàng, "Kiểm kê" viền vàng. -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_lap_phieu"
+            style="@style/SonSon.Button.Vang"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_height="44dp"
+            android:minHeight="44dp"
+            android:minWidth="0dp"
             android:text="+ Phiếu kho"
-            android:textSize="12sp"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/colorPrimary"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"/>
+            android:textSize="13.5sp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"/>
 
-        <Button
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_kiem_ke"
+            style="@style/SonSon.Button.Vien"
             android:layout_width="wrap_content"
-            android:layout_height="36dp"
+            android:layout_height="41dp"
+            android:minHeight="41dp"
+            android:minWidth="0dp"
             android:layout_marginStart="8dp"
+            android:layout_marginBottom="3dp"
             android:text="Kiểm kê"
-            android:textSize="12sp"
-            android:textColor="@color/white"
-            android:backgroundTint="@color/colorPrimaryDark"
-            android:paddingStart="12dp"
-            android:paddingEnd="12dp"/>
+            android:textSize="13.5sp"
+            android:paddingStart="14dp"
+            android:paddingEnd="14dp"/>
     </LinearLayout>
 
     <!-- Thẻ tóm tắt: 5 thẻ CHIA ĐỀU một hàng. Trước đây là dải cuộn ngang
@@ -70,7 +74,7 @@
                 android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/nga">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -95,7 +99,7 @@
                         android:textSize="11sp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="@color/grey"/>
+                        android:textColor="@color/chu_mo"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -108,7 +112,7 @@
                 android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/nga">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -133,7 +137,7 @@
                         android:textSize="11sp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="@color/grey"/>
+                        android:textColor="@color/chu_mo"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -146,7 +150,7 @@
                 android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/nga">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -171,7 +175,7 @@
                         android:textSize="11sp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="@color/grey"/>
+                        android:textColor="@color/chu_mo"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -184,7 +188,7 @@
                 android:layout_marginEnd="2dp"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/nga">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -209,7 +213,7 @@
                         android:textSize="11sp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="@color/grey"/>
+                        android:textColor="@color/chu_mo"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -220,7 +224,7 @@
                 android:layout_height="match_parent"
                 app:cardCornerRadius="8dp"
                 app:cardElevation="1dp"
-                app:cardBackgroundColor="@color/white">
+                app:cardBackgroundColor="@color/nga">
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -245,7 +249,7 @@
                         android:textSize="11sp"
                         android:maxLines="1"
                         android:ellipsize="end"
-                        android:textColor="@color/grey"/>
+                        android:textColor="@color/chu_mo"/>
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
 
@@ -327,7 +331,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:text="Không có nguyên liệu nào"
-            android:textColor="@color/grey"
+            android:textColor="@color/chu_mo"
             android:textSize="15sp"
             android:visibility="gone"/>
 

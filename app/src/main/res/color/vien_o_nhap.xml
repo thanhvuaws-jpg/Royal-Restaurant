@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Viền ô nhập (TextInputLayout): đang gõ = sơn son, thường = vàng nhạt. (bộ Sơn Son, QĐ-112) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true" android:color="#8E1B17" />
+    <item android:state_hovered="true" android:color="#D9A441" />
+    <item android:color="#8CD9A441" />
+</selector>

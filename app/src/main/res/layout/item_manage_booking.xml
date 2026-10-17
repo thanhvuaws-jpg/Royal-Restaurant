@@ -1,13 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="4dp"
-    android:background="@color/white">
+    app:cardElevation="1dp">
 
     <LinearLayout
         android:orientation="vertical"
@@ -26,7 +24,8 @@
                 android:text="@string/table_list_title"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="@color/colorPrimary"/>
+                android:textColor="@color/son_dam"
+                android:fontFamily="@font/baloo2_extrabold"/>
 
             <TextView
                 android:id="@+id/txt_booking_status"
@@ -34,11 +33,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:text="@string/customer_btn_new_booking"
-                android:textSize="14sp"
-                android:textStyle="bold"
-                android:textColor="@color/colorAccent"
-                android:padding="6dp"
-                android:background="@drawable/border_status_pending"/>
+                style="@style/SonSon.HuyHieu.Cho"/>
 
         </RelativeLayout>
 
@@ -49,7 +44,7 @@
             android:layout_marginTop="8dp"
             android:text="@string/customer_default_name"
             android:textSize="16sp"
-            android:textColor="@color/black"
+            android:textColor="@color/muc"
             android:textStyle="bold"/>
 
         <TextView
@@ -59,7 +54,7 @@
             android:layout_marginTop="4dp"
             android:text="@string/booking_no_datetime"
             android:textSize="15sp"
-            android:textColor="@color/black"/>
+            android:textColor="@color/muc"/>
 
         <TextView
             android:id="@+id/txt_booking_dishes"
@@ -80,31 +75,32 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_cancel_booking"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/SonSon.Button.Huy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/manage_booking_btn_cancel"
-                android:textColor="@color/grey"
                 android:layout_marginEnd="8dp"/>
 
             <com.google.android.material.button.MaterialButton
+                style="@style/SonSon.Button"
                 android:id="@+id/btn_checkin_booking"
+                android:minHeight="44dp"
+                android:textSize="14sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/manage_booking_btn_confirm"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/status_occupied"/>
+                android:text="@string/manage_booking_btn_confirm"/>
 
             <com.google.android.material.button.MaterialButton
+                style="@style/SonSon.Button.Vang"
                 android:id="@+id/btn_customer_arrived"
+                android:minHeight="44dp"
+                android:textSize="14sp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Khách đã đến"
-                android:textColor="@color/white"
-                android:backgroundTint="@color/status_occupied"
                 android:layout_marginStart="8dp"/>
 
         </LinearLayout>
 
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

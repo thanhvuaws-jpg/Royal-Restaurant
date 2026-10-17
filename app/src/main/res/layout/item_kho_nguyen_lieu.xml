@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView
+<com.google.android.material.card.MaterialCardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
@@ -51,7 +51,7 @@
                 android:text="Tên nguyên liệu"
                 android:textSize="15sp"
                 android:textStyle="bold"
-                android:textColor="@color/black"
+                android:textColor="@color/muc"
                 android:maxLines="1"
                 android:ellipsize="end"/>
 
@@ -61,7 +61,7 @@
                 android:layout_height="wrap_content"
                 android:text="Nhóm"
                 android:textSize="12sp"
-                android:textColor="@color/grey"
+                android:textColor="@color/chu_mo"
                 android:layout_marginTop="2dp"/>
 
             <LinearLayout
@@ -78,7 +78,7 @@
                     android:text="Tồn: 0"
                     android:textSize="14sp"
                     android:textStyle="bold"
-                    android:textColor="@color/colorPrimaryDark"/>
+                    android:textColor="@color/son_dam"/>
 
                 <TextView
                     android:id="@+id/txt_ngung_hoat_dong"
@@ -128,4 +128,4 @@
         </LinearLayout>
 
     </LinearLayout>
-</androidx.cardview.widget.CardView>
+</com.google.android.material.card.MaterialCardView>

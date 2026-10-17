@@ -1,6 +1,6 @@
 package com.sinhvien.orderdrinkapp.Fragments;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -38,6 +38,8 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * KiemKeFragment - Màn hình kiểm kê kho thực tế trên Android.
@@ -106,7 +108,7 @@ public class KiemKeFragment extends Fragment {
                     adapter.setData(list);
                 } else {
                     if (getContext() != null) {
-                        Toast.makeText(getContext(), "Không thể tải danh sách nguyên liệu", Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(getContext(), "Không thể tải danh sách nguyên liệu", Toast.LENGTH_SHORT);
                     }
                 }
             }
@@ -115,7 +117,7 @@ public class KiemKeFragment extends Fragment {
             public void onFailure(Call<KhoResponse> call, Throwable t) {
                 progressBar.setVisibility(View.GONE);
                 if (getContext() != null) {
-                    Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -124,7 +126,7 @@ public class KiemKeFragment extends Fragment {
     private void submitKiemKe() {
         Map<Integer, Double> thucTeMap = adapter.getThucTeMap();
         if (thucTeMap == null || thucTeMap.isEmpty()) {
-            Toast.makeText(getContext(), "Chưa có nguyên liệu nào được đếm (hãy nhập số lượng vào ô tương ứng hoặc nhập 0 nếu đã hết hàng)", Toast.LENGTH_LONG).show();
+            ThongBao.hien(getContext(), "Chưa có nguyên liệu nào được đếm (hãy nhập số lượng vào ô tương ứng hoặc nhập 0 nếu đã hết hàng)", Toast.LENGTH_LONG);
             return;
         }
 
@@ -166,7 +168,7 @@ public class KiemKeFragment extends Fragment {
                         errorMsg += " (" + response.code() + ")";
                     }
                     if (getContext() != null) {
-                        Toast.makeText(getContext(), errorMsg, Toast.LENGTH_LONG).show();
+                        ThongBao.hien(getContext(), errorMsg, Toast.LENGTH_LONG);
                     }
                 }
             }
@@ -176,7 +178,7 @@ public class KiemKeFragment extends Fragment {
                 btnGuiKiemKe.setEnabled(true);
                 btnGuiKiemKe.setText("LƯU KẾT QUẢ KIỂM KÊ");
                 if (getContext() != null) {
-                    Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -201,7 +203,7 @@ public class KiemKeFragment extends Fragment {
         }
 
         if (getContext() != null) {
-            new AlertDialog.Builder(getContext())
+            new HopThoai.Builder(getContext())
                     .setTitle("Kết quả kiểm kê kho")
                     .setMessage(sb.toString().trim())
                     .setPositiveButton("Đóng", (dialog, which) -> {

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nút chính bộ Sơn Son (QĐ-112): sơn son nổi khối, viền vàng, gờ tối phía dưới.
+     Bấm thì tụt xuống (mất gờ), tắt thì bạc màu. Khớp .nut-son trong Figma. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <layer-list>
+            <item android:top="3dp">
+                <shape>
+                    <corners android:radius="14dp" />
+                    <solid android:color="#B8A99A" />
+                </shape>
+            </item>
+            <item android:bottom="3dp">
+                <shape>
+                    <corners android:radius="14dp" />
+                    <solid android:color="#D8CCBE" />
+                    <stroke android:width="1.5dp" android:color="#C9B9A6" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item android:state_pressed="true">
+        <layer-list>
+            <item android:top="3dp">
+                <shape>
+                    <corners android:radius="14dp" />
+                    <gradient android:angle="270" android:startColor="#A82219" android:centerColor="#7E1813" android:endColor="#641210" />
+                    <stroke android:width="1.5dp" android:color="#E3B34F" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+    <item>
+        <layer-list>
+            <!-- gờ tối -->
+            <item android:top="3dp">
+                <shape>
+                    <corners android:radius="14dp" />
+                    <solid android:color="#4A0B09" />
+                </shape>
+            </item>
+            <!-- mặt nút -->
+            <item android:bottom="3dp">
+                <shape>
+                    <corners android:radius="14dp" />
+                    <gradient android:angle="270" android:startColor="#BD2C23" android:centerColor="#8E1B17" android:endColor="#6E1411" />
+                    <stroke android:width="1.5dp" android:color="#E3B34F" />
+                </shape>
+            </item>
+            <!-- ánh sáng mép trên -->
+            <item android:bottom="3dp" android:left="10dp" android:right="10dp" android:top="2dp" android:gravity="top">
+                <shape>
+                    <size android:height="1.5dp" />
+                    <corners android:radius="1dp" />
+                    <solid android:color="#59FFE6A0" />
+                </shape>
+            </item>
+        </layer-list>
+    </item>
+</selector>

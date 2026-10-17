@@ -60,7 +60,8 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
     // Hai danh sách RecyclerView trượt ngang
     RecyclerView rcv_display_HomeCategoryList, rcv_display_HomeOrderToday;
     // Thẻ chức năng điều hướng nhanh
-    MaterialCardView layout_display_HomeStatistic, layout_display_HomeViewTable, layout_display_HomeViewMenu, layout_display_HomeViewStaff;
+    MaterialCardView layout_display_HomeStatistic, layout_display_HomeViewTable, layout_display_HomeViewMenu, layout_display_HomeViewStaff,
+            layout_display_HomeKho, layout_display_HomeDatLich;
     // Nút "Xem tất cả"
     TextView txt_display_HomeViewAllCategory, txt_display_HomeViewAllStatistic;
     
@@ -95,6 +96,8 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         layout_display_HomeViewTable = view.findViewById(R.id.layout_display_HomeViewTable);
         layout_display_HomeViewMenu = view.findViewById(R.id.layout_display_HomeViewMenu);
         layout_display_HomeViewStaff = view.findViewById(R.id.layout_display_HomeViewStaff);
+        layout_display_HomeKho = view.findViewById(R.id.layout_display_HomeKho);
+        layout_display_HomeDatLich = view.findViewById(R.id.layout_display_HomeDatLich);
         txt_display_HomeViewAllCategory = view.findViewById(R.id.txt_display_HomeViewAllCategory);
         txt_display_HomeViewAllStatistic = view.findViewById(R.id.txt_display_HomeViewAllStatistic);
         
@@ -112,25 +115,12 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
 
         // Thực hiện phân quyền chức năng: Nhân viên vs Quản lý (Admin)
         if (!SessionManager.isAdmin(getActivity())) {
-            // Ẩn tính năng quản lý nhân viên và thống kê doanh thu đối với nhân viên thường
+            // Nhân viên phục vụ: ẩn Thống kê, Nhân viên, Kho (menu bên cũng ẩn các mục này).
+            // Còn đúng 3 ô Bàn ăn / Thực đơn / Đặt lịch — vừa một hàng của lưới 3 cột (Figma).
             layout_display_HomeViewStaff.setVisibility(View.GONE);
             layout_display_HomeStatistic.setVisibility(View.GONE);
+            layout_display_HomeKho.setVisibility(View.GONE);
             txt_display_HomeViewAllStatistic.setVisibility(View.GONE);
-            
-            // Định dạng lại Grid để trải đều giao diện: chuyển sang hiển thị 1 cột duy nhất
-            android.widget.GridLayout gridLayout = view.findViewById(R.id.grid_display_HomeActions);
-            gridLayout.setColumnCount(1);
-
-            // Nới rộng kích thước chiều cao các nút lớn gấp đôi để bố cục cân đối (130dp)
-            int heightPx = (int) (130 * getResources().getDisplayMetrics().density);
-
-            ViewGroup.LayoutParams paramsTable = layout_display_HomeViewTable.getLayoutParams();
-            paramsTable.height = heightPx; 
-            layout_display_HomeViewTable.setLayoutParams(paramsTable);
-
-            ViewGroup.LayoutParams paramsMenu = layout_display_HomeViewMenu.getLayoutParams();
-            paramsMenu.height = heightPx;
-            layout_display_HomeViewMenu.setLayoutParams(paramsMenu);
         }
 
         // Cài đặt RecyclerView trượt ngang hiển thị Danh mục
@@ -152,6 +142,8 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
         layout_display_HomeViewTable.setOnClickListener(this);
         layout_display_HomeViewMenu.setOnClickListener(this);
         layout_display_HomeViewStaff.setOnClickListener(this);
+        layout_display_HomeKho.setOnClickListener(this);
+        layout_display_HomeDatLich.setOnClickListener(this);
         txt_display_HomeViewAllCategory.setOnClickListener(this);
         txt_display_HomeViewAllStatistic.setOnClickListener(this);
 
@@ -273,6 +265,10 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
                 homeActivity.selectBottomNavItem(R.id.nav_category);
             } else if (id == R.id.layout_display_HomeViewStaff) {
                 homeActivity.selectBottomNavItem(R.id.nav_staff);
+            } else if (id == R.id.layout_display_HomeKho) {
+                homeActivity.selectBottomNavItem(R.id.nav_kho);
+            } else if (id == R.id.layout_display_HomeDatLich) {
+                homeActivity.selectBottomNavItem(R.id.nav_manage_bookings);
             } else if (id == R.id.txt_display_HomeViewAllCategory) {
                 homeActivity.selectBottomNavItem(R.id.nav_category);
             }

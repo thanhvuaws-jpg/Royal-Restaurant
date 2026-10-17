@@ -23,6 +23,7 @@ import android.util.Log;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * Register2ndActivity - Màn hình Đăng ký tài khoản (Bước 2/2).
@@ -133,7 +134,7 @@ public class Register2ndActivity extends AppCompatActivity {
                         // Nếu đăng ký thành công
                         if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                             Log.d(TAG, "Đăng ký thành công: username=" + tenDN);
-                            Toast.makeText(Register2ndActivity.this, "Đăng ký thành công lên Cloud!", Toast.LENGTH_SHORT).show();
+                            ThongBao.hien(Register2ndActivity.this, "Đăng ký thành công lên Cloud!", Toast.LENGTH_SHORT);
                             callLoginFromRegister(); // Điều hướng người dùng về trang Welcome/Đăng nhập
                         } else {
                             // Máy chủ giải thích rõ vì sao từ chối, ví dụ
@@ -144,7 +145,7 @@ public class Register2ndActivity extends AppCompatActivity {
                             // dùng nhận lại câu vô nghĩa "Lỗi đăng ký".
                             String msg = docLoiDangKy(response);
                             Log.w(TAG, "Đăng ký thất bại: " + msg);
-                            Toast.makeText(Register2ndActivity.this, msg, Toast.LENGTH_LONG).show();
+                            ThongBao.hien(Register2ndActivity.this, msg, Toast.LENGTH_LONG);
                         }
                     }
 
@@ -153,7 +154,7 @@ public class Register2ndActivity extends AppCompatActivity {
                         if (progressDialog.isShowing()) progressDialog.dismiss();
                         Log.e(TAG, "Lỗi kết nối API đăng ký: " + t.getMessage());
                         if (!isFinishing() && !isDestroyed()) {
-                            Toast.makeText(Register2ndActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                            ThongBao.hien(Register2ndActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT);
                         }
                     }
                 });
@@ -202,7 +203,7 @@ public class Register2ndActivity extends AppCompatActivity {
      */
     private boolean validateGender(){
         if(RG_signup2nd_Gender.getCheckedRadioButtonId() == -1){
-            Toast.makeText(this, "Hãy chọn giới tính", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Hãy chọn giới tính", Toast.LENGTH_SHORT);
             return false;
         }else {
             return true;
@@ -218,7 +219,7 @@ public class Register2ndActivity extends AppCompatActivity {
         int isAgeValid = currentYear - userAge;
 
         if(isAgeValid < 10){
-            Toast.makeText(this, "Bạn không đủ tuổi đăng ký!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Bạn không đủ tuổi đăng ký!", Toast.LENGTH_SHORT);
             return false;
         }else {
             return true;

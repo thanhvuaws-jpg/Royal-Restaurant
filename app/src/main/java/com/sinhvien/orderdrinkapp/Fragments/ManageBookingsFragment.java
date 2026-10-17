@@ -29,6 +29,7 @@ import retrofit2.Response;
 import android.util.Log;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.BookingViewModel;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * ManageBookingsFragment - Màn hình Quản lý Danh sách Đặt bàn từ phía nhà hàng (Restaurant Booking Management).
@@ -186,7 +187,7 @@ public class ManageBookingsFragment extends Fragment {
         if (getActivity() != null) {
             getActivity().runOnUiThread(() -> {
                 loadAllBookings(true);
-                Toast.makeText(getContext(), "Cập nhật danh sách đặt bàn theo thời gian thực!", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Cập nhật danh sách đặt bàn theo thời gian thực!", Toast.LENGTH_SHORT);
             });
         }
     };

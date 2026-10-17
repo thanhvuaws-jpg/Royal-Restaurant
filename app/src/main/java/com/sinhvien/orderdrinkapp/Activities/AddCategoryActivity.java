@@ -41,6 +41,7 @@ import org.w3c.dom.Text;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AddCategoryActivity - Màn hình Thêm / Chỉnh sửa danh mục món ăn (Category).
@@ -200,7 +201,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
      */
     private void hienThiDialogChonAnh() {
         String[] options = {"Chọn từ Thư viện", "Chụp ảnh mới"};
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setTitle("Chọn hình ảnh")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -266,7 +267,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     String msg = response.body() != null && response.body().getMessage() != null
                             ? response.body().getMessage()
                             : ViewUtils.docLoiMayChu(response, "Không lưu được (mã " + response.code() + ")");
-                    new androidx.appcompat.app.AlertDialog.Builder(AddCategoryActivity.this)
+                    new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(AddCategoryActivity.this)
                             .setTitle("Chưa lưu được")
                             .setMessage(msg)
                             .setPositiveButton("Đã hiểu", null)
@@ -288,7 +289,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     Log.e(TAG, "Lỗi kết nối API quản lý loại: " + t.getMessage());
                     if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(AddCategoryActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT);
                     }
                 }
             });
@@ -334,7 +335,7 @@ public class AddCategoryActivity extends AppCompatActivity implements View.OnCli
     private boolean validateImage(){
         // Sửa danh mục: không bắt chọn lại ảnh (giữ ảnh cũ, kể cả khi chưa có).
         if (maloai != 0 || daChonAnhMoi) return true;
-        Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
+        ThongBao.hien(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT);
         return false;
     }
 

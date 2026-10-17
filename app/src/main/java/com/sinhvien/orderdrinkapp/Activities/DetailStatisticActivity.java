@@ -24,6 +24,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import java.util.ArrayList;
 import java.util.List;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DetailStatisticActivity - Màn hình hiển thị Chi tiết Hóa đơn Thống kê (Dành cho Quản trị viên).
@@ -162,7 +163,7 @@ public class DetailStatisticActivity extends AppCompatActivity {
             @Override
             public void onFailure(Call<List<OrderDetailResponse>> call, Throwable t) {
                 if (!isFinishing() && !isDestroyed()) {
-                    android.widget.Toast.makeText(DetailStatisticActivity.this, "Lỗi tải chi tiết: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(DetailStatisticActivity.this, "Lỗi tải chi tiết: " + t.getMessage(), android.widget.Toast.LENGTH_SHORT);
                 }
             }
         });

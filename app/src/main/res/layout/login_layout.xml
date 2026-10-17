@@ -1,171 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Đăng nhập — bộ Sơn Son (Figma trang 02 "Đăng nhập"): tấm hoành trên đầu, tiêu đề lớn
+     sơn son, ô nhập viền vàng, nút sơn son, nút viền "Đăng nhập bằng khuôn mặt". -->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/layout_login_Main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".Activities.LoginActivity"
-    android:background="@color/white"
+    android:background="@color/kem"
+    android:fillViewport="true"
     android:transitionName="transition_login"
-    tools:targetApi="lollipop"
-    android:id="@+id/layout_login_Main">
+    tools:context=".Activities.LoginActivity"
+    tools:targetApi="lollipop">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="24dp">
+        android:orientation="vertical">
 
-        <ImageView
-            android:id="@+id/img_login_BackBtn"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:padding="8dp"
-            android:contentDescription="@string/back"
-            android:src="@drawable/ic_baseline_arrow_back_24"
-            app:tint="@color/black" />
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="120dp">
 
-        <TextView
-            android:id="@+id/txt_login_Title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/logintittle"
-            android:textColor="@color/black"
-            android:textSize="32sp"
-            android:layout_marginTop="32dp"
-            android:fontFamily="@font/muli_black"
-            android:textAllCaps="false" />
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:importantForAccessibility="no"
+                android:scaleType="centerCrop"
+                android:src="@drawable/bg_hoanh_son_mai" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/welcome_back"
-            android:textColor="@color/grey"
-            android:textSize="16sp"
-            android:fontFamily="@font/muli" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1.5dp"
+                android:layout_gravity="bottom"
+                android:background="@color/vang" />
+
+            <ImageView
+                android:id="@+id/img_login_BackBtn"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_marginStart="12dp"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/nen_nut_quay_lai"
+                android:contentDescription="@string/back"
+                android:padding="10dp"
+                android:src="@drawable/ic_baseline_arrow_back_24"
+                app:tint="@color/vang_sang" />
+        </FrameLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:layout_marginTop="48dp">
+            android:paddingStart="22dp"
+            android:paddingTop="18dp"
+            android:paddingEnd="22dp"
+            android:paddingBottom="24dp">
+
+            <TextView
+                android:id="@+id/txt_login_Title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/baloo2_extrabold"
+                android:includeFontPadding="false"
+                android:text="Đăng nhập"
+                android:textColor="@color/son_dam"
+                android:textSize="30sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/welcome_back"
+                android:textColor="@color/chu_mo"
+                android:textSize="14sp" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/txtl_login_UserName"
+                style="@style/SonSon.ONhap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_marginTop="22dp"
                 android:hint="@string/enter_username"
-                app:startIconDrawable="@drawable/ic_baseline_person_24"
-                app:endIconMode="clear_text">
+                app:endIconMode="clear_text"
+                app:startIconDrawable="@drawable/ic_baseline_person_24">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_login_UserName"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:inputType="text" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/txtl_login_Password"
+                style="@style/SonSon.ONhap"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_marginTop="14dp"
                 android:hint="@string/enter_password"
-                app:startIconDrawable="@drawable/ic_baseline_lock_24"
-                app:endIconMode="password_toggle">
+                app:endIconMode="password_toggle"
+                app:startIconDrawable="@drawable/ic_baseline_lock_24">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/et_login_Password"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:inputType="textPassword" />
-
             </com.google.android.material.textfield.TextInputLayout>
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <CheckBox
+                    android:id="@+id/cb_login_RememberMe"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:buttonTint="@color/son"
+                    android:ellipsize="end"
+                    android:singleLine="true"
+                    android:text="@string/remember_me"
+                    android:textColor="@color/muc"
+                    android:textSize="13.5sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btn_login_ForgotPassword"
+                    style="@style/SonSon.Button.Chu"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/forgot_password"
+                    android:textSize="13.5sp" />
+            </LinearLayout>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_login_SignIn"
+                style="@style/SonSon.Button"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="16dp"
+                android:text="@string/login"
+                android:textSize="17sp" />
+
+            <!-- Lựa chọn thứ hai: đăng nhập bằng khuôn mặt (QĐ-103). Chỉ hiện khi máy này
+                 đã đăng ký khuôn mặt cho ít nhất một tài khoản. -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_login_KhuonMat"
+                style="@style/SonSon.Button.Vien"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="12dp"
+                android:text="Đăng nhập bằng khuôn mặt"
+                android:textSize="15.5sp"
+                android:visibility="gone"
+                app:icon="@drawable/ic_hh_khuon_mat"
+                app:iconGravity="textStart"
+                app:iconPadding="10dp"
+                app:iconSize="28dp"
+                app:iconTint="@null" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_login_SignUp"
+                style="@style/SonSon.Button.Chu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Chưa có tài khoản? Đăng ký"
+                android:textSize="14sp" />
         </LinearLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp">
-
-            <CheckBox
-                android:id="@+id/cb_login_RememberMe"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/remember_me"
-                android:textColor="@color/black"
-                android:layout_toStartOf="@+id/btn_login_ForgotPassword"
-                android:layout_toLeftOf="@+id/btn_login_ForgotPassword"
-                android:layout_alignParentStart="true"
-                android:layout_alignParentLeft="true"
-                android:ellipsize="end"
-                android:singleLine="true" />
-
-            <Button
-                android:id="@+id/btn_login_ForgotPassword"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/forgot_password"
-                android:background="@android:color/transparent"
-                android:textColor="@color/colorPrimary"
-                style="@style/Widget.AppCompat.Button.Borderless"
-                android:layout_alignParentEnd="true"
-                android:layout_alignParentRight="true"
-                android:textAllCaps="false" />
-
-        </RelativeLayout>
-
-        <Button
-            android:id="@+id/btn_login_SignIn"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="@string/login"
-            android:textColor="@color/white"
-            android:background="@drawable/corner_border_primary"
-            app:backgroundTint="@color/colorPrimary"
-            android:layout_marginTop="32dp"
-            android:elevation="4dp"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            tools:targetApi="lollipop" />
-
-        <!-- Lựa chọn thứ hai: đăng nhập bằng khuôn mặt (QĐ-103). Chỉ hiện khi máy này
-             đã đăng ký khuôn mặt cho ít nhất một tài khoản. -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/btn_login_KhuonMat"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:layout_marginTop="12dp"
-            android:text="Đăng nhập bằng khuôn mặt"
-            android:textAllCaps="false"
-            android:textColor="@color/colorPrimary"
-            android:textSize="16sp"
-            android:visibility="gone"
-            app:icon="@drawable/ic_khuon_mat_24"
-            app:iconGravity="textStart"
-            app:iconTint="@color/colorPrimary"
-            app:strokeColor="@color/colorPrimary"
-            app:cornerRadius="12dp" />
-
-        <Button
-            android:id="@+id/btn_login_SignUp"
-            android:layout_width="match_parent"
-            android:layout_height="60dp"
-            android:text="@string/register"
-            android:textColor="@color/colorPrimary"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/corner_border_white"
-            app:backgroundTint="@null"
-            android:stateListAnimator="@null"
-            android:elevation="0dp"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            tools:targetApi="lollipop" />
-
     </LinearLayout>
 </ScrollView>

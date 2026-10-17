@@ -24,6 +24,7 @@ import com.sinhvien.orderdrinkapp.Utils.ViewUtils;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * LoginActivity - Quản lý màn hình Đăng nhập của ứng dụng.
@@ -115,7 +116,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         // Nhân viên → sửa), khách gọi hotline để nhà hàng hỗ trợ.
         View nutQuenMatKhau = findViewById(R.id.btn_login_ForgotPassword);
         if (nutQuenMatKhau != null) {
-            nutQuenMatKhau.setOnClickListener(v -> new androidx.appcompat.app.AlertDialog.Builder(this)
+            nutQuenMatKhau.setOnClickListener(v -> new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                     .setTitle("Quên mật khẩu")
                     .setMessage("• Nhân viên: nhờ quản lý đặt lại mật khẩu trong mục Nhân viên.\n\n"
                             + "• Khách hàng: gọi hotline 0856 761 038, nhà hàng sẽ xác minh và đặt lại mật khẩu cho bạn.")
@@ -145,7 +146,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
 
             // Kiểm tra tính hợp lệ của thông tin đầu vào
             if (user.isEmpty() || pass.isEmpty()) {
-                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(this, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT);
                 return;
             }
 
@@ -200,7 +201,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                         // Nhận thông điệp lỗi trả về từ server
                         String msg = response.body() != null ? response.body().getMessage() : "Sai tên đăng nhập hoặc mật khẩu!";
                         Log.w(TAG, "Đăng nhập thất bại: " + msg);
-                        Toast.makeText(LoginActivity.this, msg, Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(LoginActivity.this, msg, Toast.LENGTH_SHORT);
                     }
                 }
 
@@ -209,7 +210,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     Log.e(TAG, "Lỗi kết nối API login: " + t.getMessage());
                     if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(LoginActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(LoginActivity.this, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT);
                     }
                 }
             });
@@ -245,7 +246,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
             moManChinh(manChinh);
             return;
         }
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setTitle("Đăng nhập nhanh bằng khuôn mặt?")
                 .setMessage("Lần sau chỉ cần nhìn vào camera và chớp mắt, không phải gõ mật khẩu. "
                         + "Ảnh khuôn mặt chỉ xử lý trên máy này, không gửi đi đâu.")

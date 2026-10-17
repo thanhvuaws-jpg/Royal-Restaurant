@@ -38,7 +38,7 @@ public final class PhienHetHan {
             // Người dùng có thể đã tự đăng xuất trong lúc chờ.
             if (!SessionManager.isLoggedIn(ctx)) return;
             SessionManager.clearSession(ctx);
-            Toast.makeText(ctx, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG).show();
+            ThongBao.hien(ctx, "Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.", Toast.LENGTH_LONG);
             Intent i = new Intent(ctx, LoginActivity.class);
             i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             ctx.startActivity(i);

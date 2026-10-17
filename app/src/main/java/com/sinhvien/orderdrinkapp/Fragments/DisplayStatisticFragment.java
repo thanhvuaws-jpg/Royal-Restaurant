@@ -47,6 +47,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DisplayStatisticFragment - Màn hình Báo cáo Thống kê doanh thu (Statistic Dashboard).
@@ -135,7 +136,7 @@ public class DisplayStatisticFragment extends Fragment {
         });
         statisticViewModel.getError().observe(getViewLifecycleOwner(), error -> {
             if (error != null && !error.isEmpty()) {
-                Toast.makeText(getActivity(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getActivity(), "Lỗi: " + error, Toast.LENGTH_SHORT);
             }
         });
 
@@ -300,8 +301,15 @@ public class DisplayStatisticFragment extends Fragment {
         // Định dạng màu sắc cột, màu chữ và nhãn cột biểu đồ
         int primaryColor = androidx.core.content.ContextCompat.getColor(requireContext(), R.color.colorPrimary);
         BarDataSet dataSet = new BarDataSet(entries, getString(R.string.stat_chart_title));
-        dataSet.setColor(primaryColor);
-        dataSet.setValueTextColor(Color.DKGRAY);
+        // Bộ Sơn Son (Figma "Quản lý · Thống kê"): cột sơn son, cột cao nhất thếp vàng.
+        float cao = 0f;
+        for (BarEntry be : entries) cao = Math.max(cao, be.getY());
+        java.util.List<Integer> mauCot = new java.util.ArrayList<>();
+        for (BarEntry be : entries) {
+            mauCot.add(be.getY() > 0 && be.getY() == cao ? Color.parseColor("#D9A441") : primaryColor);
+        }
+        dataSet.setColors(mauCot);
+        dataSet.setValueTextColor(Color.parseColor("#7A6553"));
         dataSet.setValueTextSize(9f);
         // Quá 10 cột thì số trên đầu cột chồng lên nhau, chỉ còn là nhiễu.
         dataSet.setDrawValues(entries.size() <= 10);

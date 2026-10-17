@@ -51,6 +51,7 @@ import retrofit2.Response;
 
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.MenuViewModel;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DisplayMenuFragment - Màn hình danh sách Món ăn/Nước uống (Menu).
@@ -122,13 +123,13 @@ public class DisplayMenuFragment extends Fragment {
                             String chucnang = intent.getStringExtra("chucnang");
                             if (ktra) {
                                 resetVaTaiLai();
-                                Toast.makeText(getActivity(),
+                                ThongBao.hien(getActivity(),
                                         "themmon".equals(chucnang) ? R.string.add_sucessful : R.string.edit_sucessful,
-                                        Toast.LENGTH_SHORT).show();
+                                        Toast.LENGTH_SHORT);
                             } else {
-                                Toast.makeText(getActivity(),
+                                ThongBao.hien(getActivity(),
                                         "themmon".equals(chucnang) ? getString(R.string.add_failed) : "Sửa thất bại",
-                                        Toast.LENGTH_SHORT).show();
+                                        Toast.LENGTH_SHORT);
                             }
                         }
                     }

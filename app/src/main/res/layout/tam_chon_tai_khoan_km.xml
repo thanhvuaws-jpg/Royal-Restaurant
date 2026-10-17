@@ -53,7 +53,7 @@
         android:layout_marginHorizontal="8dp"
         android:gravity="center"
         android:lineSpacingExtra="2dp"
-        android:textColor="#BCAAA4"
+        android:textColor="#B29C7C"
         android:textSize="14sp" />
 
     <ScrollView
@@ -78,19 +78,19 @@
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_ctk_mat_khau"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
+            style="@style/SonSon.Button.Chu"
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"
             android:layout_marginEnd="6dp"
             android:text="Dùng mật khẩu"
             android:textAllCaps="false"
-            android:textColor="#BCAAA4"
+            android:textColor="#B29C7C"
             android:textSize="15sp" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/btn_ctk_quet_lai"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            style="@style/SonSon.Button.Vien"
             android:layout_width="0dp"
             android:layout_height="52dp"
             android:layout_weight="1"

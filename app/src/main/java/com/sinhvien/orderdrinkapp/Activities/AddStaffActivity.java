@@ -29,6 +29,7 @@ import android.util.Log;
 
 import java.util.Calendar;
 import java.util.regex.Pattern;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AddStaffActivity - Màn hình Thêm mới / Cập nhật thông tin nhân viên (chỉ dành cho Quản trị viên - Admin).
@@ -253,7 +254,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                         String msg = response.body() != null && response.body().getMessage() != null
                                 ? response.body().getMessage()
                                 : ViewUtils.docLoiMayChu(response, "Không lưu được (mã " + response.code() + ")");
-                        new androidx.appcompat.app.AlertDialog.Builder(AddStaffActivity.this)
+                        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(AddStaffActivity.this)
                                 .setTitle("Chưa lưu được")
                                 .setMessage(msg)
                                 .setPositiveButton("Đã hiểu", null)
@@ -275,7 +276,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     Log.e(TAG, "Lỗi kết nối API quản lý nhân viên: " + t.getMessage());
                     if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(AddStaffActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(AddStaffActivity.this, "Lỗi Cloud: " + t.getMessage(), Toast.LENGTH_SHORT);
                     }
                 }
             });
@@ -390,7 +391,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
      */
     private boolean validateGender(){
         if(rg_add_StaffGender.getCheckedRadioButtonId() == -1){
-            Toast.makeText(this, "Hãy chọn giới tính", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Hãy chọn giới tính", Toast.LENGTH_SHORT);
             return false;
         }else {
             return true;
@@ -402,7 +403,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
      */
     private boolean validatePermission(){
         if(rg_add_StaffRole.getCheckedRadioButtonId() == -1){
-            Toast.makeText(this, "Hãy chọn quyền", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Hãy chọn quyền", Toast.LENGTH_SHORT);
             return false;
         }else {
             return true;
@@ -418,7 +419,7 @@ public class AddStaffActivity extends AppCompatActivity implements View.OnClickL
         int isAgeValid = currentYear - userAge;
 
         if(isAgeValid < 10){
-            Toast.makeText(this, "Bạn không đủ tuổi đăng ký!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Bạn không đủ tuổi đăng ký!", Toast.LENGTH_SHORT);
             return false;
         }else {
             return true;

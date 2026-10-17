@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-    Nền cho chip lọc danh mục món ăn.
+    Nền chip lọc (danh mục món, trạng thái lịch hẹn…) — bộ Sơn Son, Figma .chip / .chip.chon:
+    thường = giấy ngà viền vàng nhạt; đang chọn = sơn son chuyển đậm, viền vàng.
 
     Dùng selector theo state_selected thay vì đổi background bằng mã Java:
     chip được sinh động theo số danh mục lấy từ máy chủ, nên nếu tô màu
@@ -11,19 +12,26 @@
 
     <item android:state_selected="true">
         <shape android:shape="rectangle">
-            <solid android:color="@color/colorPrimary"/>
-            <corners android:radius="20dp"/>
-            <stroke android:width="1dp" android:color="@color/colorPrimary"/>
+            <gradient android:angle="270" android:startColor="#A82219" android:endColor="#7A1612" />
+            <corners android:radius="100dp" />
+            <stroke android:width="1.5dp" android:color="#E3B34F" />
+        </shape>
+    </item>
+
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#FFF8E4" />
+            <corners android:radius="100dp" />
+            <stroke android:width="1dp" android:color="#D9A441" />
         </shape>
     </item>
 
     <item>
         <shape android:shape="rectangle">
-            <solid android:color="#FFFFFF"/>
-            <corners android:radius="20dp"/>
-            <stroke android:width="1dp" android:color="#D7CCC8"/>
+            <solid android:color="#FFFDF8" />
+            <corners android:radius="100dp" />
+            <stroke android:width="1dp" android:color="#8CD9A441" />
         </shape>
     </item>
 
 </selector>
-    

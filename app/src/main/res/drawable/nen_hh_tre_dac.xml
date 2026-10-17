@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nhãn trạng thái đặt trên ảnh (Figma .the-ban .huy-hieu): nền ngà đặc, viền cùng màu chữ. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="100dp" />
+    <solid android:color="#FFFDF8" />
+    <stroke android:width="1dp" android:color="#8E1B17" />
+</shape>

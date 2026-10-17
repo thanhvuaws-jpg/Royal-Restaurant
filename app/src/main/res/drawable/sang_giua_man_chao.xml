@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Quầng sáng đỏ trầm sau logo màn chào (Figma .chao-man: radial #3a1712 -> trong). -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <gradient
+        android:type="radial"
+        android:centerX="0.5"
+        android:centerY="0.42"
+        android:gradientRadius="70%"
+        android:startColor="#3A1712"
+        android:endColor="#00140B08" />
+</shape>

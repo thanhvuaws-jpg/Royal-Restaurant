@@ -21,6 +21,7 @@ import com.sinhvien.orderdrinkapp.R;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * MaCuaToiAdapter — danh sách mã giảm giá của khách.
@@ -64,13 +65,13 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
         int mau;
         if ("dadung".equals(tt)) {
             nhan = context.getString(R.string.dd_tt_dadung);
-            mau  = Color.parseColor("#9E9E9E");
+            mau  = Color.parseColor("#8A7563");
         } else if ("hethan".equals(tt)) {
             nhan = context.getString(R.string.dd_tt_hethan);
-            mau  = Color.parseColor("#E53935");
+            mau  = Color.parseColor("#B3261F");
         } else {
             nhan = context.getString(R.string.dd_tt_chuadung);
-            mau  = Color.parseColor("#43A047");
+            mau  = Color.parseColor("#2E6B57");
         }
 
         h.txt_trang_thai_ma.setText(nhan);
@@ -106,9 +107,9 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
                         (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
                 if (cb != null) {
                     cb.setPrimaryClip(ClipData.newPlainText("macode", m.getMaCode()));
-                    Toast.makeText(context,
+                    ThongBao.hien(context,
                             context.getString(R.string.dd_da_sao_chep, m.getMaCode()),
-                            Toast.LENGTH_SHORT).show();
+                            Toast.LENGTH_SHORT);
                 }
             });
         } else {
@@ -122,7 +123,7 @@ public class MaCuaToiAdapter extends RecyclerView.Adapter<MaCuaToiAdapter.ViewHo
         if (nguon.contains("tuan") || nguon.contains("tri_an") || ten.contains("tri ân") || ten.contains("quà")) {
             resVe = R.drawable.ve_do;
         } else if (ten.contains("20%") || ten.contains("kim cương") || ten.contains("vip")) {
-            resVe = R.drawable.ve_vang;
+            resVe = R.drawable.ve_kimcuong;
         } else if (ten.contains("15%") || ten.contains("vàng")) {
             resVe = R.drawable.ve_vang;
         } else if (ten.contains("10%") || ten.contains("bạc")) {

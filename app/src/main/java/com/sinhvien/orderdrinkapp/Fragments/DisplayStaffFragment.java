@@ -43,6 +43,8 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.StaffViewModel;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DisplayStaffFragment - Màn hình Quản lý Danh sách Nhân viên và Khách hàng (Staff & Customer Management).
@@ -80,13 +82,13 @@ public class DisplayStaffFragment extends Fragment {
                         String chucnang = result.getData().getStringExtra("chucnang");
                         if (ktra != 0) {
                             HienThiDSNV();
-                            Toast.makeText(getActivity(),
+                            ThongBao.hien(getActivity(),
                                     "themnv".equals(chucnang) ? "Thêm thành công" : "Sửa thành công",
-                                    Toast.LENGTH_SHORT).show();
+                                    Toast.LENGTH_SHORT);
                         } else {
-                            Toast.makeText(getActivity(),
+                            ThongBao.hien(getActivity(),
                                     "themnv".equals(chucnang) ? "Thêm thất bại" : "Sửa thất bại",
-                                    Toast.LENGTH_SHORT).show();
+                                    Toast.LENGTH_SHORT);
                         }
                     }
                 }
@@ -168,7 +170,7 @@ public class DisplayStaffFragment extends Fragment {
      */
     private void hienThiMenuTuyChon(int manv, String tenNV, int position) {
         String[] options = {"✏️ Sửa thông tin", "🗑️ Xóa nhân viên"};
-        new AlertDialog.Builder(getActivity())
+        new HopThoai.Builder(getActivity())
                 .setTitle(tenNV)
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -186,7 +188,7 @@ public class DisplayStaffFragment extends Fragment {
      * Thực hiện gửi yêu cầu xóa tài khoản người dùng lên Server và cập nhật cục bộ.
      */
     private void xoaNhanVien(int manv, int position) {
-        new AlertDialog.Builder(getActivity())
+        new HopThoai.Builder(getActivity())
                 .setTitle("Xóa nhân viên")
                 .setMessage("Chỉ xóa được tài khoản chưa có đơn hàng, phiếu đặt hay lịch sử nào (tạo nhầm). Xóa tài khoản này?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
@@ -198,7 +200,7 @@ public class DisplayStaffFragment extends Fragment {
                         public void onSuccess() {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (!isAdded() || getActivity() == null) return;
-                            Toast.makeText(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT).show();
+                            ThongBao.hien(getActivity(), R.string.delete_sucessful, Toast.LENGTH_SHORT);
                         }
 
                         @Override
@@ -206,7 +208,7 @@ public class DisplayStaffFragment extends Fragment {
                             if (progressDialog.isShowing()) progressDialog.dismiss();
                             if (isAdded() && getActivity() != null) {
                                 // Lý do thường dài (tài khoản đã có N đơn…) nên dùng hộp thoại.
-                                new AlertDialog.Builder(getActivity())
+                                new HopThoai.Builder(getActivity())
                                         .setTitle("Không xóa được")
                                         .setMessage(errorMsg)
                                         .setPositiveButton("Đã hiểu", null)
@@ -283,7 +285,7 @@ public class DisplayStaffFragment extends Fragment {
                 }
                 if (isAdded() && getActivity() != null) {
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT);
                     });
                 }
             }

@@ -304,7 +304,7 @@ public class BookingAlertManager {
                 Context currentContext = contextRef.get();
                 if (currentContext != null) {
                     try {
-                        new androidx.appcompat.app.AlertDialog.Builder(currentContext)
+                        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(currentContext)
                                 .setTitle("🔔 Nhắc nhở từ Thu ngân")
                                 .setMessage("Thu ngân nhắc chuẩn bị " + tenBan + " cho khách đặt trước!")
                                 .setPositiveButton("OK", null)

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Mục thanh dưới: đang chọn = huy hiệu đủ màu, không chọn = bản mờ (bộ Sơn Son). -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/ic_hh_khuon_mat" android:state_checked="true" />
+    <item android:drawable="@drawable/ic_hh_khuon_mat_mo" />
+</selector>

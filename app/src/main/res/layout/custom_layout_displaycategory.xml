@@ -1,26 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Thẻ danh mục món (trang chủ + màn Thực đơn) — bộ Sơn Son: ảnh phủ tối dần xuống,
+     viền vàng nhạt, tên chữ Baloo vàng nhạt; nút sửa / xóa tròn viền vàng cho quản lý. -->
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp"
+    android:layout_margin="8dp"
+    app:cardBackgroundColor="#1F120D"
     app:cardCornerRadius="16dp"
-    app:cardElevation="6dp"
-    app:strokeWidth="0dp"
-    tools:targetApi="lollipop">
+    app:cardElevation="2dp"
+    app:strokeColor="@color/vien_vang"
+    app:strokeWidth="1dp">
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="180dp">
+        android:layout_height="170dp">
 
         <ImageView
             android:id="@+id/img_customcategory_CategoryImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:contentDescription="@string/nav_menu"
             android:scaleType="centerCrop"
-            android:src="@drawable/espresso"
-            android:contentDescription="@string/nav_menu" />
+            android:src="@drawable/espresso" />
 
         <View
             android:layout_width="match_parent"
@@ -32,19 +35,18 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentEnd="true"
-            android:layout_alignParentRight="true"
             android:layout_margin="8dp"
             android:orientation="horizontal"
             android:visibility="gone">
 
             <ImageView
                 android:id="@+id/img_customcategory_Edit"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="@drawable/nen_nut_tron_vang"
+                android:padding="7dp"
                 android:src="@drawable/ic_baseline_edit_24"
-                android:background="@drawable/circle_background_white"
-                app:tint="@color/colorPrimary" />
+                app:tint="@color/son" />
 
             <View
                 android:layout_width="8dp"
@@ -52,13 +54,12 @@
 
             <ImageView
                 android:id="@+id/img_customcategory_Delete"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:padding="6dp"
+                android:layout_width="34dp"
+                android:layout_height="34dp"
+                android:background="@drawable/nen_nut_tron_vang"
+                android:padding="7dp"
                 android:src="@drawable/ic_baseline_delete_24"
-                android:background="@drawable/circle_background_white"
-                app:tint="@color/red_soft" />
-
+                app:tint="@color/son" />
         </LinearLayout>
 
         <TextView
@@ -67,17 +68,14 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginStart="16dp"
-            android:layout_marginLeft="16dp"
-            android:layout_marginBottom="16dp"
-            android:fontFamily="@font/muli_black"
-            tools:text="Category Name"
-            android:textColor="@color/white"
-            android:textSize="22sp"
-            android:shadowColor="@color/black"
-            android:shadowDx="2"
+            android:layout_marginBottom="14dp"
+            android:fontFamily="@font/baloo2_extrabold"
+            android:shadowColor="#CC000000"
             android:shadowDy="2"
-            android:shadowRadius="4" />
-
+            android:shadowRadius="4"
+            android:textColor="@color/vang_sang"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            tools:text="Cơm trưa" />
     </RelativeLayout>
-
 </com.google.android.material.card.MaterialCardView>

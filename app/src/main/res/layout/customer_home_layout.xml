@@ -17,7 +17,7 @@
             android:id="@+id/customer_toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            android:background="@color/colorPrimary">
+            android:background="@drawable/bg_thanh_tieu_de">
             
             <ImageView
                 android:id="@+id/btn_toggle_nav"
@@ -39,7 +39,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:visibility="gone"
-            android:background="@android:color/white"
+            android:background="@drawable/nen_thanh_duoi"
             app:menu="@menu/bottom_nav_customer_menu"/>
 
     </LinearLayout>

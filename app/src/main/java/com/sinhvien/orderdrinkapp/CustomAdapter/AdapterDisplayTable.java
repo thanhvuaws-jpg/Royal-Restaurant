@@ -1,6 +1,6 @@
 package com.sinhvien.orderdrinkapp.CustomAdapter;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
@@ -39,6 +39,8 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AdapterDisplayTable - Adapter quản lý hiển thị trạng thái bàn ăn (Table Status) trên lưới RecyclerView.
@@ -149,7 +151,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             holder.txt_ActionHint.setText("Nhấn để xem đơn & thanh toán");
         } else if (isReserved) {
             holder.txt_Status.setText("Đã đặt");
-            badge.setColor(android.graphics.Color.parseColor("#FFAB40")); 
+            badge.setColor(android.graphics.Color.parseColor("#A86A12")); 
             String timeStr = reservedInfo.getThoigianhen();
             if (timeStr != null && timeStr.contains(" ")) {
                 String[] parts = timeStr.split(" ");
@@ -172,7 +174,17 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             holder.itemView.setAlpha(1.0f);
         }
 
-        holder.txt_Status.setBackground(badge);
+        // Nhãn bộ Sơn Son (Figma .the-ban .huy-hieu): trống = ngọc, có khách = sơn son,
+        // đã đặt = hổ phách, bảo trì = hổ phách; nền ngà đặc để đọc rõ trên ảnh bàn.
+        int kieu = dangBaoTri || isReserved && !dangDung
+                ? com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_CHO
+                : dangDung ? com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE
+                : com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG;
+        com.sinhvien.orderdrinkapp.Utils.ViewUtils.datNhanTrangThai(holder.txt_Status, kieu);
+        holder.txt_Status.setBackgroundResource(
+                kieu == com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_XONG ? R.drawable.nen_hh_xong_dac
+                : kieu == com.sinhvien.orderdrinkapp.Utils.ViewUtils.NHAN_TRE ? R.drawable.nen_hh_tre_dac
+                : R.drawable.nen_hh_cho_dac);
 
         // Bật/tắt nút xóa bàn dành cho Admin
         if (isAdmin) {
@@ -202,7 +214,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                 dangBaoTri ? "Cho bàn hoạt động lại" : "Chuyển sang bảo trì",
                 "Xóa bàn"
         };
-        new AlertDialog.Builder(context)
+        new HopThoai.Builder(context)
                 .setTitle(ban.getTenBan())
                 .setItems(muc, (d, which) -> {
                     if (which == 0) {
@@ -228,23 +240,23 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                         String msg = ok ? response.body().getMessage()
                                 : ViewUtils.docLoiMayChu(response, "Không đổi được trạng thái bàn");
                         // Câu dài (còn phiếu đặt sắp tới) thì hiện hộp thoại cho đọc kịp.
-                        new AlertDialog.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
+                        new HopThoai.Builder(context).setMessage(msg).setPositiveButton("Đã hiểu", null).show();
                         if (ok) daDoiBan();
                     }
 
                     @Override
                     public void onFailure(Call<OrderResponse> call, Throwable t) {
-                        Toast.makeText(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(context, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                     }
                 });
     }
 
     private void xacNhanXoaBan(BanAnDTO ban) {
         if ("true".equals(ban.getTinhTrang())) {
-            Toast.makeText(context, "Bàn đang dùng không thể xóa!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(context, "Bàn đang dùng không thể xóa!", Toast.LENGTH_SHORT);
             return;
         }
-        new AlertDialog.Builder(context)
+        new HopThoai.Builder(context)
                 .setTitle("Xóa " + ban.getTenBan() + "?")
                 .setMessage("Chỉ xóa được bàn chưa từng có đơn hay phiếu đặt (tạo nhầm). "
                         + "Bàn đã dùng thì hãy chuyển sang bảo trì để giữ lịch sử.")
@@ -259,12 +271,12 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
             public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                 if (response.isSuccessful() && response.body() != null
                         && "success".equals(response.body().getStatus())) {
-                    Toast.makeText(context, "Đã xóa " + ban.getTenBan(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(context, "Đã xóa " + ban.getTenBan(), Toast.LENGTH_SHORT);
                     daDoiBan();
                     return;
                 }
                 // 409: bàn đã có đơn/phiếu đặt — máy chủ nói rõ và gợi ý bảo trì.
-                new AlertDialog.Builder(context)
+                new HopThoai.Builder(context)
                         .setTitle("Không xóa được bàn")
                         .setMessage(ViewUtils.docLoiMayChu(response, "Không xóa được bàn (mã " + response.code() + ")"))
                         .setPositiveButton("Đã hiểu", null)
@@ -273,7 +285,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
 
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
-                Toast.makeText(context, "Lỗi xóa: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(context, "Lỗi xóa: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }
@@ -342,9 +354,9 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         // dấu là không phục vụ — và khách đặt trực tuyến cũng không được xếp
         // vào bàn đó, dẫn tới hai nguồn dữ liệu mâu thuẫn nhau.
         if ("false".equals(ban.getHoatDong())) {
-            android.widget.Toast.makeText(context,
+            ThongBao.hien(context,
                     "Bàn \"" + ban.getTenBan() + "\" đang bảo trì, không thể gọi món.",
-                    android.widget.Toast.LENGTH_SHORT).show();
+                    android.widget.Toast.LENGTH_SHORT);
             return;
         }
 
@@ -366,7 +378,7 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
         }
 
         if (isReserved) {
-            Toast.makeText(context, "Bàn đã được đặt trước, chờ khách check-in", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(context, "Bàn đã được đặt trước, chờ khách check-in", Toast.LENGTH_SHORT);
             return;
         }
 
@@ -389,12 +401,12 @@ public class AdapterDisplayTable extends RecyclerView.Adapter<AdapterDisplayTabl
                         // thu ngân, máy chủ nói rõ điều đó trong message.
                         String lyDo = response.body() != null && response.body().getMessage() != null
                                 ? response.body().getMessage() : "Không tìm thấy đơn hàng của bàn này";
-                        Toast.makeText(context, lyDo, Toast.LENGTH_LONG).show();
+                        ThongBao.hien(context, lyDo, Toast.LENGTH_LONG);
                     }
                 }
                 @Override
                 public void onFailure(Call<OrderResponse> call, Throwable t) {
-                    Toast.makeText(context, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(context, "Lỗi kết nối Cloud: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             });
         } else {

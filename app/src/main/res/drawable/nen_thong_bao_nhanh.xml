@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Thông báo nhanh thay Toast mặc định (Figma .toast): viên sơn then, viền vàng mờ. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <corners android:radius="100dp" />
+    <gradient android:angle="270" android:startColor="#2A1A14" android:endColor="#1A0F0C" />
+    <stroke android:width="1dp" android:color="#B3D9A441" />
+</shape>

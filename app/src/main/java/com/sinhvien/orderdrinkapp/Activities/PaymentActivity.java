@@ -36,6 +36,8 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * PaymentActivity - Màn hình thanh toán hóa đơn tạm tính của Bàn ăn (Dành cho nhân viên phục vụ / Khách hàng).
@@ -170,7 +172,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                     startActivity(i);
                     finish();
                 } else {
-                    new androidx.appcompat.app.AlertDialog.Builder(PaymentActivity.this)
+                    new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(PaymentActivity.this)
                             .setTitle("Không gọi thêm được")
                             .setMessage("pending".equals(tt)
                                     ? "Đơn đã gửi thu ngân, đang chờ xác nhận thanh toán nên không thêm món được."
@@ -184,7 +186,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onFailure(Call<OrderResponse> call, Throwable t) {
                 if (isFinishing() || isDestroyed()) return;
-                Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }
@@ -217,7 +219,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onFailure(Call<List<OrderDetailResponse>> call, Throwable t) {
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(PaymentActivity.this, "Lỗi lấy chi tiết đơn: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(PaymentActivity.this, "Lỗi lấy chi tiết đơn: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -391,7 +393,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
      */
     private void hienThiDialogChonPhuongThuc() {
         String[] options = {"Tiền mặt", "Chuyển khoản (VietQR)"};
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setTitle("Chọn phương thức thanh toán")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {
@@ -451,7 +453,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 .placeholder(android.R.drawable.ic_menu_report_image)
                 .into(imgQR);
 
-        androidx.appcompat.app.AlertDialog dialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+        androidx.appcompat.app.AlertDialog dialog = new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setView(dialogView)
                 .setCancelable(false)
                 .create();
@@ -508,7 +510,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                     String lyDo = response.body() != null && response.body().getMessage() != null
                             ? response.body().getMessage()
                             : ViewUtils.docLoiMayChu(response, "Không gửi được yêu cầu thanh toán.");
-                    new androidx.appcompat.app.AlertDialog.Builder(PaymentActivity.this)
+                    new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(PaymentActivity.this)
                             .setTitle("Chưa gửi được thanh toán")
                             .setMessage(lyDo)
                             .setPositiveButton("Đã hiểu", null)
@@ -521,7 +523,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 if (progressDialog.isShowing()) progressDialog.dismiss();
                 Log.e(TAG, "Lỗi gửi yêu cầu thanh toán: " + t.getMessage());
                 if (!isFinishing() && !isDestroyed()) {
-                    Toast.makeText(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(PaymentActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
@@ -556,14 +558,14 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             txtCho.setText("Đang chờ Thu ngân xác nhận...");
         }
 
-        waitingDialog = new androidx.appcompat.app.AlertDialog.Builder(this)
+        waitingDialog = new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setView(viewCho)
                 .setCancelable(true)  // cho phép bấm nút Back để thoát
                 .setNegativeButton("Để thu ngân duyệt sau", (d, which) -> {
                     stopPolling();
-                    Toast.makeText(PaymentActivity.this,
+                    ThongBao.hien(PaymentActivity.this,
                             "Đơn đã gửi sang thu ngân. Bàn sẽ được giải phóng sau khi duyệt.",
-                            Toast.LENGTH_LONG).show();
+                            Toast.LENGTH_LONG);
                     finish();
                 })
                 .create();
@@ -749,7 +751,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         // Tạo và mở hộp thoại AlertDialog hiển thị biên lai
-        AlertDialog dialog = new AlertDialog.Builder(this)
+        AlertDialog dialog = new HopThoai.Builder(this)
                 .setView(receiptView)
                 .setCancelable(false)
                 .create();
@@ -784,9 +786,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
         btn_receipt_Close.setOnClickListener(v -> {
             isReceiptShowing = false;
             dialog.dismiss();
-            Toast.makeText(this,
+            ThongBao.hien(this,
                     getString(R.string.payment_success_msg),
-                    Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT);
             finish();
         });
 

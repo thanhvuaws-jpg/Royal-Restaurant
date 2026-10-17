@@ -38,6 +38,8 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * CustomerBookingFragment — màn hình "Lịch hẹn đặt bàn của bạn".
@@ -283,8 +285,8 @@ public class CustomerBookingFragment extends Fragment {
                 // Cuộn hụt một trang thì lùi lại để lần cuộn sau thử lại đúng trang đó.
                 if (!tuDau && trangHienTai > 1) trangHienTai--;
                 if (tuDau) capNhatTrangThaiRong();
-                Toast.makeText(getContext(), "Không tải được lịch hẹn. Kéo xuống để thử lại.",
-                        Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Không tải được lịch hẹn. Kéo xuống để thử lại.",
+                        Toast.LENGTH_SHORT);
             }
         });
     }
@@ -323,12 +325,12 @@ public class CustomerBookingFragment extends Fragment {
         Date gioHen = adapter.doiGioHen(phieu.getThoigianhen());
 
         if (!BookingHistoryAdapter.coTheHuy(phieu.getTinhtrang(), gioHen)) {
-            Toast.makeText(getContext(), R.string.customer_cancel_too_late, Toast.LENGTH_LONG).show();
+            ThongBao.hien(getContext(), R.string.customer_cancel_too_late, Toast.LENGTH_LONG);
             taiLaiTuDau();
             return;
         }
 
-        new AlertDialog.Builder(requireContext())
+        new HopThoai.Builder(requireContext())
                 .setTitle(R.string.customer_cancel_title)
                 .setMessage(getString(R.string.customer_cancel_message,
                         phieu.getTenBan() != null ? phieu.getTenBan() : "bàn đã đặt",
@@ -356,7 +358,7 @@ public class CustomerBookingFragment extends Fragment {
                         && "success".equals(response.body().getStatus());
 
                 if (ok) {
-                    Toast.makeText(getContext(), R.string.customer_cancel_ok, Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(getContext(), R.string.customer_cancel_ok, Toast.LENGTH_SHORT);
 
                     // Báo cho nhân viên biết ngay, không đợi lượt quét định kỳ.
                     io.socket.client.Socket socket =
@@ -368,7 +370,7 @@ public class CustomerBookingFragment extends Fragment {
                 } else {
                     // Máy chủ giải thích rõ vì sao từ chối và câu đó nằm ở
                     // errorBody() khi mã HTTP là 4xx — xem QĐ-046.
-                    Toast.makeText(getContext(), docLoi(response), Toast.LENGTH_LONG).show();
+                    ThongBao.hien(getContext(), docLoi(response), Toast.LENGTH_LONG);
                     taiLaiTuDau();
                 }
             }
@@ -377,8 +379,8 @@ public class CustomerBookingFragment extends Fragment {
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 if (cho.isShowing()) cho.dismiss();
                 if (!isAdded()) return;
-                Toast.makeText(getContext(), "Lỗi kết nối: " + t.getMessage(),
-                        Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(),
+                        Toast.LENGTH_SHORT);
             }
         });
     }
@@ -457,8 +459,8 @@ public class CustomerBookingFragment extends Fragment {
             getActivity().runOnUiThread(() -> {
                 if (!isAdded()) return;
                 taiLaiTuDau();
-                Toast.makeText(getContext(),
-                        "Lịch hẹn của bạn vừa được cập nhật", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(),
+                        "Lịch hẹn của bạn vừa được cập nhật", Toast.LENGTH_SHORT);
             });
         });
     }

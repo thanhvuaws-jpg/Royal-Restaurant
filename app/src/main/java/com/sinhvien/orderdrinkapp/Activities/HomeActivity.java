@@ -43,6 +43,7 @@ import com.sinhvien.orderdrinkapp.Api.BookingResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * HomeActivity - Màn hình chính điều phối (Dashboard) dành cho Quản trị viên (Admin), Phục vụ (Waiter) và Thu ngân (Cashier).
@@ -102,6 +103,8 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
         }
 
         bottomNav = findViewById(R.id.bottom_nav);
+        // Huy hiệu thanh dưới có sẵn hai bản (chọn / mờ) — không cho tô đè một màu.
+        bottomNav.setItemIconTintList(null);
         btnToggleNav = findViewById(R.id.btn_toggle_nav);
 
         // Thiết lập sự kiện kéo mở ngăn kéo thanh menu bên hông
@@ -168,7 +171,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                 }
                 
                 runOnUiThread(() -> {
-                    Toast.makeText(HomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(HomeActivity.this, "🔌 Đã kết nối Real-time!", Toast.LENGTH_SHORT);
                 });
             };
             socket.on(io.socket.client.Socket.EVENT_CONNECT, connectListener);
@@ -263,7 +266,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             // còn đường đăng xuất (trước đây bị ẩn — H13).
             MenuItem mucDau = bottomNav.getMenu().findItem(R.id.nav_home);
             mucDau.setTitle("Thu ngân");
-            mucDau.setIcon(R.drawable.ic_baseline_payments_24);
+            mucDau.setIcon(R.drawable.nav_thu_ngan);
             
             if (savedInstanceState == null) {
                 navigateTo(new DisplayCashierFragment(), "CashierFragment");
@@ -506,6 +509,13 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
             } else if (menuId == R.id.nav_manage_bookings) {
                 Fragment f = fragmentManager.findFragmentByTag("ManageBookingsFragment");
                 navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.ManageBookingsFragment(), "ManageBookingsFragment");
+                isSyncingNav = true;
+                bottomNav.setSelectedItemId(R.id.nav_more);
+                isSyncingNav = false;
+            } else if (menuId == R.id.nav_kho) {
+                // Ô "Kho" ở trang chủ (Figma): Kho nằm trong "Thêm" của thanh dưới.
+                Fragment f = fragmentManager.findFragmentByTag("KhoFragment");
+                navigateTo(f != null ? f : new com.sinhvien.orderdrinkapp.Fragments.KhoFragment(), "KhoFragment");
                 isSyncingNav = true;
                 bottomNav.setSelectedItemId(R.id.nav_more);
                 isSyncingNav = false;
@@ -781,7 +791,7 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
                         if (!isSessionValid) {
                             stopSessionCheck();
                             SessionManager.clearSession(HomeActivity.this);
-                            Toast.makeText(HomeActivity.this, lyDo, Toast.LENGTH_LONG).show();
+                            ThongBao.hien(HomeActivity.this, lyDo, Toast.LENGTH_LONG);
                             
                             Intent intent = new Intent(HomeActivity.this, LoginActivity.class);
                             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -851,10 +861,10 @@ public class HomeActivity extends AppCompatActivity implements NavigationView.On
 
                                 if (newStatus.equalsIgnoreCase("confirmed") && oldStatus.equalsIgnoreCase("pending")) {
                                     String msg = "📋 Bàn " + tenban + " lúc " + thoigianhen + " đã được xác nhận, cần chuẩn bị!";
-                                    runOnUiThread(() -> Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_LONG).show());
+                                    runOnUiThread(() -> ThongBao.hien(HomeActivity.this, msg, Toast.LENGTH_LONG));
                                 } else if (newStatus.equalsIgnoreCase("checkin") || newStatus.equalsIgnoreCase("checked_in")) {
                                     String msg = "🪑 Bàn " + tenban + " khách đã check-in!";
-                                    runOnUiThread(() -> Toast.makeText(HomeActivity.this, msg, Toast.LENGTH_LONG).show());
+                                    runOnUiThread(() -> ThongBao.hien(HomeActivity.this, msg, Toast.LENGTH_LONG));
                                 }
                             }
                             editor.putString(key, newStatus);

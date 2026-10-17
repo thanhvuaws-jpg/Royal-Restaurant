@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Viền chip: chọn = vàng đậm, thường = vàng nhạt. (bộ Sơn Son, QĐ-112) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="#E3B34F" />
+    <item android:color="#8CD9A441" />
+</selector>

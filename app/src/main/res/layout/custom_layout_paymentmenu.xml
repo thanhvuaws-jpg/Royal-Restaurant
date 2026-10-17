@@ -5,9 +5,9 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="4dp"
-    app:strokeWidth="0dp"
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    app:cardElevation="0dp"
     tools:targetApi="lollipop">
 
     <LinearLayout
@@ -24,8 +24,8 @@
             android:layout_weight="1"
             android:layout_height="60dp"
             android:src="@drawable/cafe_americano"
-            app:civ_border_width="1dp"
-            app:civ_border_color="@color/grey" />
+            app:civ_border_width="1.5dp"
+            app:civ_border_color="@color/vang" />
 
         <LinearLayout
             android:layout_width="0dp"
@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 tools:text="Dish Name"
                 android:textSize="16sp"
-                android:textColor="@color/black"
+                android:textColor="@color/muc"
                 android:fontFamily="@font/muli_black" />
 
             <!-- Ghi chú khi gọi món; ẩn khi không có. -->
@@ -57,7 +57,7 @@
                 tools:text="Ghi chú: ít đường"
                 android:textSize="13sp"
                 android:textStyle="italic"
-                android:textColor="@color/colorPrimary"
+                android:textColor="#8A6F58"
                 android:fontFamily="@font/muli" />
         </LinearLayout>
 
@@ -69,7 +69,7 @@
             tools:text="1"
             android:gravity="center_vertical|center_horizontal"
             android:textSize="16sp"
-            android:textColor="@color/grey"
+            android:textColor="@color/chu_mo"
             android:fontFamily="@font/muli" />
 
         <TextView
@@ -79,8 +79,9 @@
             android:layout_weight="1.5"
             android:gravity="end|right"
             tools:text="100,000đ"
-            android:textColor="@color/colorPrimary"
-            android:fontFamily="@font/muli_black"
+            android:textColor="@color/son"
+            android:fontFamily="@font/baloo2_extrabold"
+            android:textStyle="bold"
             android:textSize="16sp" />
 
     </LinearLayout>

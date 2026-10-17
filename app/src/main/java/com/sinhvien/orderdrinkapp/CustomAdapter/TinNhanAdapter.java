@@ -193,7 +193,7 @@ public class TinNhanAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             o.anh.setImageResource(R.drawable.ic_chat_ho_tro);
             String ten = d.tin.getTenHienThi();
             o.txtTen.setText(ten.isEmpty() ? "Nhân viên" : ten);
-            o.txtTen.setTextColor(Color.parseColor("#5D4037"));
+            o.txtTen.setTextColor(Color.parseColor("#5E0E0C"));
         }
     }
 

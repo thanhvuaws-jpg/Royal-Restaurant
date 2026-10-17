@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Ô nhập đơn giản (EditText không bọc TextInputLayout): nền ngà, viền vàng nhạt. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_focused="true">
+        <shape>
+            <corners android:radius="12dp" />
+            <solid android:color="#FFFDF8" />
+            <stroke android:width="1.5dp" android:color="#8E1B17" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <corners android:radius="12dp" />
+            <solid android:color="#FFFDF8" />
+            <stroke android:width="1.5dp" android:color="#8CD9A441" />
+        </shape>
+    </item>
+</selector>

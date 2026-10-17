@@ -21,6 +21,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
 
 /**
  * Đăng ký khuôn mặt cho TÀI KHOẢN ĐANG ĐĂNG NHẬP (QĐ-103).
@@ -172,7 +173,7 @@ public class DangKyKhuonMatActivity extends ManHinhCameraKhuonMat {
         }
         buoc = Buoc.XONG;
         matKhau = null;
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Đã bật đăng nhập bằng khuôn mặt")
                 .setMessage("Lần sau ở màn đăng nhập, chọn \"Đăng nhập bằng khuôn mặt\", nhìn vào camera và chớp mắt.")
                 .setCancelable(false)
@@ -181,7 +182,7 @@ public class DangKyKhuonMatActivity extends ManHinhCameraKhuonMat {
     }
 
     private void thatBai(String lyDo) {
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Chưa bật được")
                 .setMessage(lyDo)
                 .setPositiveButton("Thử lại", (d, w) -> guiMayChu())
@@ -198,7 +199,7 @@ public class DangKyKhuonMatActivity extends ManHinhCameraKhuonMat {
         int le = (int) (20 * getResources().getDisplayMetrics().density);
         khung.setPadding(le, le / 2, le, 0);
         khung.addView(o);
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Xác nhận mật khẩu")
                 .setMessage(ghiChu != null ? ghiChu : "Nhập mật khẩu tài khoản để bật đăng nhập bằng khuôn mặt:")
                 .setView(khung)

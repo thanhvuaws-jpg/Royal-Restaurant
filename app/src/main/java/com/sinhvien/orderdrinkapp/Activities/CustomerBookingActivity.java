@@ -47,6 +47,7 @@ import java.util.Map;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * CustomerBookingActivity - Màn hình dành cho Khách hàng (Customer) thực hiện Đặt bàn và Gọi món ăn trước.
@@ -567,7 +568,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
             dishesAdapter.notifyDataSetChanged();
             updateTotalPriceDisplay(dishesAdapter.getSelectedQuantities());
-            Toast.makeText(this, "Đã thêm " + item.getTenMon() + " vào đơn đặt trước (+1)", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Đã thêm " + item.getTenMon() + " vào đơn đặt trước (+1)", Toast.LENGTH_SHORT);
         });
         rvBestseller.setAdapter(bestsellerAdapter);
 
@@ -862,7 +863,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
 
     private void moDanhSachVoucher() {
         if (maKhaDung.isEmpty()) {
-            new androidx.appcompat.app.AlertDialog.Builder(this)
+            new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                     .setTitle(R.string.booking_voucher_tieu_de)
                     .setMessage(R.string.booking_voucher_khong_co)
                     .setPositiveButton("Đã hiểu", null)
@@ -883,12 +884,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
                     + "\n   " + m.getMaCode();
         }
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setTitle(R.string.booking_voucher_tieu_de)
                 .setItems(nhan, (d, i) -> {
                     maVoucherDaChon = maKhaDung.get(i).getMaCode();
                     capNhatHienThiVoucher();
-                    Toast.makeText(this, R.string.booking_voucher_giu_cho, Toast.LENGTH_LONG).show();
+                    ThongBao.hien(this, R.string.booking_voucher_giu_cho, Toast.LENGTH_LONG);
                 })
                 .setNegativeButton("Đóng", null)
                 .show();
@@ -902,7 +903,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
     private void capNhatHienThiVoucher() {
         if (maVoucherDaChon == null) {
             txt_voucher_da_chon.setText(R.string.booking_voucher_chua_chon);
-            txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#8D6E63"));
+            txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#7A6553"));
             txt_voucher_thao_tac.setText(R.string.booking_voucher_chon);
             return;
         }
@@ -912,7 +913,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             if (maVoucherDaChon.equals(m.getMaCode())) { ten = m.getTen(); break; }
         }
         txt_voucher_da_chon.setText(ten + " · " + maVoucherDaChon);
-        txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#2E7D32"));
+        txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#2E6B57"));
         txt_voucher_thao_tac.setText(R.string.booking_voucher_bo);
     }
 
@@ -986,12 +987,12 @@ public class CustomerBookingActivity extends AppCompatActivity {
      */
     private void submitBooking() {
         if (!daChonDuGio()) {
-            Toast.makeText(this, "Vui lòng chọn đầy đủ ngày và giờ hẹn!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Vui lòng chọn đầy đủ ngày và giờ hẹn!", Toast.LENGTH_SHORT);
             return;
         }
 
         if (tableList.isEmpty() || spinner_tables.getSelectedItemPosition() == -1) {
-            Toast.makeText(this, "Giờ này không còn bàn trống, vui lòng chọn giờ khác!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Giờ này không còn bàn trống, vui lòng chọn giờ khác!", Toast.LENGTH_SHORT);
             return;
         }
 
@@ -1000,13 +1001,13 @@ public class CustomerBookingActivity extends AppCompatActivity {
         Calendar chosen = Calendar.getInstance();
         chosen.set(selectedYear, selectedMonth - 1, selectedDay, selectedHour, selectedMinute);
         if (chosen.before(now)) {
-            Toast.makeText(this, "Giờ hẹn phải sau thời điểm hiện tại!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Giờ hẹn phải sau thời điểm hiện tại!", Toast.LENGTH_SHORT);
             return;
         }
 
         // Kiểm tra giờ hoạt động của nhà hàng (VD: Từ 08:00 sáng đến 22:00 tối)
         if (selectedHour >= 22 || selectedHour < 8) {
-            Toast.makeText(this, "Nhà hàng chỉ nhận đặt bàn trong khung giờ từ 08:00 đến 22:00!", Toast.LENGTH_LONG).show();
+            ThongBao.hien(this, "Nhà hàng chỉ nhận đặt bàn trong khung giờ từ 08:00 đến 22:00!", Toast.LENGTH_LONG);
             return;
         }
 
@@ -1046,7 +1047,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
                     if (socket != null && socket.connected()) {
                         socket.emit("booking_status_updated");
                     }
-                    Toast.makeText(CustomerBookingActivity.this, "Đặt bàn thành công!", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(CustomerBookingActivity.this, "Đặt bàn thành công!", Toast.LENGTH_SHORT);
                     finish();
                 } else {
                     // 409 (bàn vừa bị khách khác đặt, bàn bảo trì, mã giảm giá
@@ -1057,7 +1058,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
                             : ViewUtils.docLoiMayChu(response, "Không thể đặt bàn!");
                     Log.w(TAG, "Đặt bàn thất bại: " + msg);
                     if (isFinishing() || isDestroyed()) return;
-                    new androidx.appcompat.app.AlertDialog.Builder(CustomerBookingActivity.this)
+                    new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(CustomerBookingActivity.this)
                             .setTitle("Chưa đặt được bàn")
                             .setMessage(msg)
                             .setPositiveButton("Đã hiểu", null)
@@ -1072,7 +1073,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
             public void onFailure(Call<BookingResponse> call, Throwable t) {
                 progressDialog.dismiss();
                 Log.e(TAG, "Lỗi kết nối đặt bàn: " + t.getMessage());
-                Toast.makeText(CustomerBookingActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(CustomerBookingActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }

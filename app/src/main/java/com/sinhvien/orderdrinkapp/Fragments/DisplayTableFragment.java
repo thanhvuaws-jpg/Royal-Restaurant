@@ -44,6 +44,7 @@ import retrofit2.Response;
 import android.util.Log;
 import androidx.lifecycle.ViewModelProvider;
 import com.sinhvien.orderdrinkapp.ViewModel.TableViewModel;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * DisplayTableFragment - Màn hình Quản lý Danh sách Bàn ăn (Table Dashboard).
@@ -310,7 +311,7 @@ public class DisplayTableFragment extends Fragment {
                 Log.e(TAG, "Lỗi đồng bộ danh sách bàn: " + errorMsg);
                 if (isAdded() && getActivity() != null) {
                     new android.os.Handler(android.os.Looper.getMainLooper()).post(() -> {
-                        Toast.makeText(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(getActivity(), "Lỗi đồng bộ: " + errorMsg, Toast.LENGTH_SHORT);
                     });
                 }
             }

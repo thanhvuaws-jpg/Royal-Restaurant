@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Nút viền bộ Sơn Son: nền trong, viền vàng; bấm thì phủ vàng nhạt. Khớp .nut-vien. -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_enabled="false">
+        <shape>
+            <corners android:radius="14dp" />
+            <stroke android:width="1.5dp" android:color="#C9B9A6" />
+        </shape>
+    </item>
+    <item android:state_pressed="true">
+        <shape>
+            <corners android:radius="14dp" />
+            <solid android:color="#24D9A441" />
+            <stroke android:width="1.5dp" android:color="#D9A441" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <corners android:radius="14dp" />
+            <solid android:color="#0DD9A441" />
+            <stroke android:width="1.5dp" android:color="#D9A441" />
+        </shape>
+    </item>
+</selector>

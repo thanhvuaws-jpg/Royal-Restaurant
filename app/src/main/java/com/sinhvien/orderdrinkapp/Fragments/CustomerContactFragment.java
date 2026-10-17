@@ -1,7 +1,7 @@
 package com.sinhvien.orderdrinkapp.Fragments;
 
 import android.app.Activity;
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -44,6 +44,8 @@ import io.socket.emitter.Emitter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * CustomerContactFragment - Màn hình Hỗ trợ khách hàng.
@@ -267,7 +269,7 @@ public class CustomerContactFragment extends Fragment {
                 }
             }
         } catch (Exception e) {
-            Toast.makeText(getContext(), "Không thể mở Bản đồ!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(getContext(), "Không thể mở Bản đồ!", Toast.LENGTH_SHORT);
             e.printStackTrace();
         }
     }
@@ -276,7 +278,7 @@ public class CustomerContactFragment extends Fragment {
      * Hiển thị hộp thoại chọn hình thức gửi mail góp ý (có đính kèm ảnh hoặc không).
      */
     private void showEmailOptionsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new HopThoai.Builder(getContext());
         builder.setTitle("Góp ý & Phản hồi qua Email");
         
         String[] options = {"Chụp ảnh đính kèm", "Chọn ảnh từ Thư viện", "Chỉ gửi chữ (Không đính kèm)"};
@@ -318,7 +320,7 @@ public class CustomerContactFragment extends Fragment {
             sendEmailWithUri(uri);
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(getContext(), "Lỗi khi xử lý ảnh!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(getContext(), "Lỗi khi xử lý ảnh!", Toast.LENGTH_SHORT);
         }
     }
 
@@ -370,11 +372,11 @@ public class CustomerContactFragment extends Fragment {
                 intent.setComponent(new android.content.ComponentName(targetPackage, targetActivity));
                 startActivity(intent);
             } else {
-                Toast.makeText(getContext(), "Không tìm thấy ứng dụng Email nào trên máy!", Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), "Không tìm thấy ứng dụng Email nào trên máy!", Toast.LENGTH_SHORT);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            Toast.makeText(getContext(), "Có lỗi xảy ra khi mở Email!", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(getContext(), "Có lỗi xảy ra khi mở Email!", Toast.LENGTH_SHORT);
         }
     }
 
@@ -382,7 +384,7 @@ public class CustomerContactFragment extends Fragment {
      * Hiển thị hộp thoại lựa chọn liên hệ trực tiếp qua số Hotline.
      */
     private void showContactOptionsDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        AlertDialog.Builder builder = new HopThoai.Builder(getContext());
         builder.setTitle("Chọn phương thức liên hệ");
         
         String[] options = {"Nhắn tin qua Zalo", "Gọi điện thoại trực tiếp"};

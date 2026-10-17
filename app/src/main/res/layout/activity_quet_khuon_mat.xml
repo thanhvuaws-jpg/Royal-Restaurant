@@ -29,7 +29,7 @@
         android:layout_marginHorizontal="32dp"
         android:gravity="center"
         android:text="Ảnh khuôn mặt chỉ được xử lý trên máy này, không gửi đi đâu."
-        android:textColor="#BCAAA4"
+        android:textColor="#B29C7C"
         android:textSize="13sp"
         app:layout_constraintTop_toBottomOf="@id/txt_km_tieu_de"
         app:layout_constraintStart_toStartOf="parent"
@@ -100,7 +100,7 @@
         android:layout_marginTop="8dp"
         android:layout_marginHorizontal="32dp"
         android:gravity="center"
-        android:textColor="#D7CCC8"
+        android:textColor="#E3D2B5"
         android:textSize="14sp"
         app:layout_constraintTop_toBottomOf="@id/txt_km_huong_dan"
         app:layout_constraintStart_toStartOf="parent"
@@ -108,7 +108,7 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btn_km_phu"
-        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+        style="@style/SonSon.Button.Vien"
         android:layout_width="0dp"
         android:layout_height="56dp"
         android:layout_marginHorizontal="32dp"
@@ -117,7 +117,7 @@
         android:textAllCaps="false"
         android:textColor="#FFFFFF"
         android:textSize="16sp"
-        app:strokeColor="#BCAAA4"
+        app:strokeColor="#B29C7C"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

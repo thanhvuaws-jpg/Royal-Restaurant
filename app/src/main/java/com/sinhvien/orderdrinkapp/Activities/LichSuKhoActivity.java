@@ -27,6 +27,7 @@ import java.util.List;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * LichSuKhoActivity - Xem chi tiết Sổ kho của một nguyên liệu.
@@ -100,7 +101,7 @@ public class LichSuKhoActivity extends AppCompatActivity {
 
     private void loadData() {
         if (maNL <= 0) {
-            Toast.makeText(this, "Mã nguyên liệu không hợp lệ", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(this, "Mã nguyên liệu không hợp lệ", Toast.LENGTH_SHORT);
             return;
         }
 
@@ -140,7 +141,7 @@ public class LichSuKhoActivity extends AppCompatActivity {
                         adapter.setData(lichSu);
                     }
                 } else {
-                    Toast.makeText(LichSuKhoActivity.this, "Không thể tải sổ kho (" + response.code() + ")", Toast.LENGTH_SHORT).show();
+                    ThongBao.hien(LichSuKhoActivity.this, "Không thể tải sổ kho (" + response.code() + ")", Toast.LENGTH_SHORT);
                 }
             }
 
@@ -149,7 +150,7 @@ public class LichSuKhoActivity extends AppCompatActivity {
                 if (c.isCanceled()) return;
                 progressBar.setVisibility(View.GONE);
                 swipeRefresh.setRefreshing(false);
-                Toast.makeText(LichSuKhoActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                ThongBao.hien(LichSuKhoActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
             }
         });
     }

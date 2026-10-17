@@ -91,7 +91,7 @@ public class ONgayAdapter extends RecyclerView.Adapter<ONgayAdapter.ViewHolder> 
 
         } else if ("homnay".equals(trangThai)) {
             h.khung_o_ngay.setBackgroundResource(laMoc ? R.drawable.bg_o_moc : R.drawable.bg_o_homnay);
-            h.txt_ten_ngay.setTextColor(Color.parseColor("#5D4037"));
+            h.txt_ten_ngay.setTextColor(Color.parseColor("#5E0E0C"));
             h.txt_diem_o.setTextColor(Color.parseColor("#8A6510"));
             if (laMoc) {
                 h.img_xu.setVisibility(View.GONE);

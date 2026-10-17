@@ -1,6 +1,6 @@
 package com.sinhvien.orderdrinkapp.Fragments;
 
-import android.app.AlertDialog;
+import androidx.appcompat.app.AlertDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -39,6 +39,8 @@ import com.sinhvien.orderdrinkapp.ViewModel.KhoViewModel;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * KhoFragment - Màn hình chính quản lý Kho nguyên vật liệu trên Android.
@@ -211,7 +213,7 @@ public class KhoFragment extends Fragment {
         // Thông báo lỗi
         viewModel.getErrorMessage().observe(getViewLifecycleOwner(), msg -> {
             if (msg != null && !msg.isEmpty() && getContext() != null) {
-                Toast.makeText(getContext(), msg, Toast.LENGTH_SHORT).show();
+                ThongBao.hien(getContext(), msg, Toast.LENGTH_SHORT);
             }
         });
     }
@@ -269,7 +271,7 @@ public class KhoFragment extends Fragment {
 
     private void showChonLoaiPhieuDialog() {
         String[] options = {"Phiếu xuất kho", "Phiếu hủy hàng"};
-        new AlertDialog.Builder(requireContext())
+        new HopThoai.Builder(requireContext())
                 .setTitle("Chọn loại phiếu cần lập")
                 .setItems(options, (dialog, which) -> {
                     Intent intent = new Intent(getContext(), LapPhieuKhoActivity.class);

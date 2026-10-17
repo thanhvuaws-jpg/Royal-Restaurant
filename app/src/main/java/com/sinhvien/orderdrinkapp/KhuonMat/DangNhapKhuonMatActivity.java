@@ -30,6 +30,7 @@ import java.util.Locale;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
 
 /**
  * Đăng nhập bằng khuôn mặt (QĐ-103) — lựa chọn thứ hai ở màn đăng nhập, bên
@@ -271,7 +272,7 @@ public class DangNhapKhuonMatActivity extends ManHinhCameraKhuonMat {
 
     private void hetGio() {
         if (isFinishing() || isDestroyed()) return;
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Chưa nhận ra khuôn mặt")
                 .setMessage("Hãy nhìn thẳng vào camera ở chỗ đủ sáng và chớp mắt. "
                         + "Hoặc đăng nhập bằng mật khẩu.")
@@ -282,7 +283,7 @@ public class DangNhapKhuonMatActivity extends ManHinhCameraKhuonMat {
     }
 
     private void thuLai(String lyDo) {
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Chưa đăng nhập được")
                 .setMessage(lyDo)
                 .setCancelable(false)

@@ -14,17 +14,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F1ED">
+    android:background="@color/kem">
 
     <!-- ══════════════ Thanh tiêu đề ══════════════ -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/thanh_chat"
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/colorPrimary"
+        android:background="@drawable/bg_thanh_tieu_de"
         android:elevation="4dp"
         app:navigationIcon="@drawable/ic_baseline_arrow_back_24"
-        app:titleTextColor="@color/white">
+        app:titleTextColor="@color/vang_sang">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -35,7 +35,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Chăm sóc khách hàng"
-                android:textColor="@color/white"
+                android:textColor="@color/vang_sang"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
@@ -44,7 +44,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Royal Restaurant · 08:00 – 22:00"
-                android:textColor="#D6C8BE"
+                android:textColor="#F0DFBF"
                 android:textSize="12sp" />
         </LinearLayout>
     </androidx.appcompat.widget.Toolbar>
@@ -82,8 +82,8 @@
             <ImageView
                 android:layout_width="72dp"
                 android:layout_height="72dp"
-                android:src="@drawable/ic_chat_ho_tro"
-                android:alpha="0.35"
+                android:src="@drawable/ic_hh_chat"
+                android:alpha="0.95"
                 android:contentDescription="Biểu tượng trò chuyện" />
 
             <TextView
@@ -91,7 +91,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:text="Nhà hàng có thể giúp gì cho bạn?"
-                android:textColor="@color/black"
+                android:fontFamily="@font/baloo2_extrabold"
+                android:textColor="@color/son_dam"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -165,7 +166,7 @@
                 android:background="@drawable/bg_nut_vien"
                 android:text="Vẫn cần hỗ trợ"
                 android:textAllCaps="false"
-                android:textColor="@color/colorPrimary"
+                android:textColor="@color/son_dam"
                 android:textSize="13sp" />
 
             <Button
@@ -188,7 +189,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="bottom"
-        android:background="@color/white"
+        android:background="@drawable/nen_thanh_duoi"
         android:elevation="8dp"
         android:padding="8dp">
 
@@ -219,6 +220,7 @@
             android:layout_marginStart="8dp"
             android:background="@drawable/bg_nut_gui"
             android:src="@drawable/ic_gui_di"
+            android:tint="@color/vang_sang"
             android:scaleType="centerInside"
             android:padding="10dp"
             android:contentDescription="Gửi tin nhắn" />

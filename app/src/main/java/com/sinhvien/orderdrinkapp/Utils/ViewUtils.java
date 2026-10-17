@@ -105,6 +105,39 @@ public class ViewUtils {
         }
     }
 
+    /** Ba kiểu nhãn trạng thái của bộ Sơn Son (Figma .huy-hieu). */
+    public static final int NHAN_CHO = 0, NHAN_XONG = 1, NHAN_TRE = 2;
+
+    /**
+     * Tô một TextView thành nhãn trạng thái bộ Sơn Son: viên nền nhạt, viền và chữ cùng màu,
+     * chấm tròn phía trước. CHỜ = hổ phách, XONG = ngọc, TRỄ/HỦY = sơn son.
+     * Dùng chung cho đơn, lịch hẹn, bàn, kho… để mọi màn cùng một kiểu nhãn.
+     */
+    public static void datNhanTrangThai(android.widget.TextView tv, int kieu) {
+        if (tv == null) return;
+        android.content.Context c = tv.getContext();
+        int nen, mau;
+        switch (kieu) {
+            case NHAN_XONG: nen = com.sinhvien.orderdrinkapp.R.drawable.nen_hh_xong; mau = 0xFF2E6B57; break;
+            case NHAN_TRE:  nen = com.sinhvien.orderdrinkapp.R.drawable.nen_hh_tre;  mau = 0xFF8E1B17; break;
+            default:        nen = com.sinhvien.orderdrinkapp.R.drawable.nen_hh_cho;  mau = 0xFFA86A12; break;
+        }
+        tv.setBackgroundResource(nen);
+        tv.setTextColor(mau);
+        tv.setAllCaps(false);
+        tv.setTypeface(tv.getTypeface(), android.graphics.Typeface.BOLD);
+        android.graphics.drawable.Drawable cham = androidx.core.content.ContextCompat.getDrawable(
+                c, com.sinhvien.orderdrinkapp.R.drawable.cham_hh);
+        if (cham != null) {
+            cham = androidx.core.graphics.drawable.DrawableCompat.wrap(cham.mutate());
+            androidx.core.graphics.drawable.DrawableCompat.setTint(cham, mau);
+        }
+        tv.setCompoundDrawablesRelativeWithIntrinsicBounds(cham, null, null, null);
+        float d = c.getResources().getDisplayMetrics().density;
+        tv.setCompoundDrawablePadding(Math.round(5 * d));
+        tv.setPaddingRelative(Math.round(9 * d), Math.round(3 * d), Math.round(10 * d), Math.round(3 * d));
+    }
+
     /**
      * Chữ viết tắt cho huy hiệu ảnh đại diện đầu menu bên: chữ đầu của HAI từ đầu,
      * như mẫu Figma ("Quản lý sân thử" → "QL", "Khách Thử" → "KT"). Tên một từ thì

@@ -32,6 +32,7 @@ import com.sinhvien.orderdrinkapp.R;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import com.sinhvien.orderdrinkapp.Utils.HopThoai;
 
 /**
  * Phần chung của màn đăng ký và màn đăng nhập bằng khuôn mặt (QĐ-103):
@@ -208,7 +209,7 @@ public abstract class ManHinhCameraKhuonMat extends AppCompatActivity {
     protected void baoLoiVaDong(String thongBao) {
         if (isFinishing() || isDestroyed()) return;
         dungPhanTich = true;
-        new AlertDialog.Builder(this)
+        new HopThoai.Builder(this)
                 .setTitle("Không dùng được khuôn mặt")
                 .setMessage(thongBao)
                 .setCancelable(false)

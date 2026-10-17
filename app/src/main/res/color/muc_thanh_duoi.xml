@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Biểu tượng + chữ thanh điều hướng dưới. (bộ Sơn Son, QĐ-112) -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true" android:color="#8E1B17" />
+    <item android:color="#9C8672" />
+</selector>

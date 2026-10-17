@@ -41,6 +41,7 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import com.sinhvien.orderdrinkapp.Utils.ThongBao;
 
 /**
  * AddMenuActivity - Màn hình Thêm / Chỉnh sửa món ăn trong thực đơn (Menu).
@@ -352,7 +353,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
                     if (progressDialog.isShowing()) progressDialog.dismiss();
                     Log.e(TAG, "Lỗi kết nối API quản lý món: " + t.getMessage());
                     if (!isFinishing() && !isDestroyed()) {
-                        Toast.makeText(AddMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT).show();
+                        ThongBao.hien(AddMenuActivity.this, "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                     }
                 }
             });
@@ -410,7 +411,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
      * Xác thực hình ảnh món ăn đã được cung cấp (Khi thêm mới bắt buộc phải chọn).
      */
     private void hienLoiLuu(String msg) {
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setTitle("Chưa lưu được món")
                 .setMessage(msg)
                 .setPositiveButton("Đã hiểu", null)
@@ -423,7 +424,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
         }
 
         if(!daChonAnhMoi){
-            Toast.makeText(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT).show();
+            ThongBao.hien(getApplicationContext(), "Xin chọn hình ảnh", Toast.LENGTH_SHORT);
             return false;
         }else {
             return true;
@@ -471,7 +472,7 @@ public class AddMenuActivity extends AppCompatActivity implements View.OnClickLi
      */
     private void hienThiDialogChonAnh() {
         String[] options = {"Chọn từ Thư viện", "Chụp ảnh mới"};
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        new com.sinhvien.orderdrinkapp.Utils.HopThoai.Builder(this)
                 .setTitle("Chọn hình ảnh")
                 .setItems(options, (dialog, which) -> {
                     if (which == 0) {

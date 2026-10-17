@@ -162,25 +162,25 @@
     <string name="dd_so_diem_cua_ban">SỐ ĐIỂM CỦA BẠN</string>
     <string name="dd_tien_trinh">Tiến trình 7 ngày</string>
     <string name="dd_chuoi_hien_tai">Chuỗi hiện tại: %1$d/7 ngày</string>
-    <string name="dd_nut_diem_danh">ĐIỂM DANH NGAY</string>
-    <string name="dd_nut_da_diem_danh">ĐÃ ĐIỂM DANH</string>
-    <string name="dd_nut_doi_phieu">ĐỔI PHIẾU GIẢM GIÁ</string>
+    <string name="dd_nut_diem_danh">Điểm danh ngay</string>
+    <string name="dd_nut_da_diem_danh">Đã điểm danh</string>
+    <string name="dd_nut_doi_phieu">Đổi phiếu giảm giá</string>
     <string name="sc_ten">Sân chơi Royal</string>
     <string name="sc_mo_ta">Vòng quay mỗi ngày · Rương trọn 7 ngày điểm danh</string>
-    <string name="dd_nut_xem_ma">XEM MÃ CỦA TÔI</string>
+    <string name="dd_nut_xem_ma">Xem mã của tôi</string>
     <string name="dd_ma_cua_toi">Mã giảm giá của tôi</string>
     <string name="dd_kho_phieu">Kho phiếu giảm giá</string>
     <string name="dd_doi_duoc">Đổi được %1$d phiếu</string>
     <string name="dd_chua_du_doi">Chưa đủ điểm đổi phiếu</string>
     <string name="dd_gia_diem">%1$dđ</string>
-    <string name="dd_nut_doi">ĐỔI</string>
+    <string name="dd_nut_doi">Đổi</string>
     <string name="dd_thieu_diem">Thiếu %1$d điểm</string>
     <string name="dd_can_hang">Cần %1$s</string>
     <string name="dd_han_dung">Hạn dùng: %1$s</string>
     <string name="dd_don_toi_thieu">Áp dụng cho hóa đơn từ %1$sđ</string>
-    <string name="dd_tt_chuadung">CÒN HẠN</string>
-    <string name="dd_tt_dadung">ĐÃ DÙNG</string>
-    <string name="dd_tt_hethan">HẾT HẠN</string>
+    <string name="dd_tt_chuadung">Còn hạn</string>
+    <string name="dd_tt_dadung">Đã dùng</string>
+    <string name="dd_tt_hethan">Hết hạn</string>
     <string name="dd_rong_ma">Bạn chưa có mã giảm giá nào.\nĐiểm danh mỗi ngày để tích điểm đổi phiếu!</string>
     <string name="dd_rong_voucher">Chưa có phiếu nào để đổi</string>
     <string name="dd_qua_tuan_moi">🎁 Quà tri ân tuần này</string>
@@ -191,8 +191,8 @@
 
     <!-- Ô nhập mã giảm giá ở màn thanh toán -->
     <string name="tt_nhap_ma">Nhập mã giảm giá</string>
-    <string name="tt_ap_ma">ÁP MÃ</string>
-    <string name="tt_go_ma">GỠ MÃ</string>
+    <string name="tt_ap_ma">Áp mã</string>
+    <string name="tt_go_ma">Gỡ mã</string>
     <string name="tt_ma_hop_le">✓ Mã hợp lệ · giảm %1$s đ</string>
     <string name="tt_dang_kiem_tra">Đang kiểm tra mã…</string>
     <string name="tt_chua_nhap_ma">Vui lòng nhập mã giảm giá</string>
@@ -200,7 +200,7 @@
     <!-- Chọn mã giảm giá khi đặt bàn -->
     <string name="booking_voucher_label">4. Mã Giảm Giá (Tùy chọn):</string>
     <string name="booking_voucher_chua_chon">Chưa chọn mã giảm giá</string>
-    <string name="booking_voucher_chon">CHỌN</string>
+    <string name="booking_voucher_chon">Chọn</string>
     <string name="booking_voucher_bo">BỎ</string>
     <string name="booking_voucher_khong_co">Bạn chưa có mã nào dùng được.\nĐiểm danh mỗi ngày để tích điểm đổi phiếu!</string>
     <string name="booking_voucher_tieu_de">Chọn mã giảm giá</string>
@@ -253,7 +253,7 @@
     <string name="customer_no_preorder">Chưa đặt món trước</string>
     <string name="customer_preorder">%1$d món · %2$s đ</string>
     <string name="booking_btn_confirm">Đặt Bàn</string>
-    <string name="customer_btn_new_booking">ĐẶT BÀN &amp; MÓN TRƯỚC NGAY</string>
+    <string name="customer_btn_new_booking">Đặt bàn &amp; món trước ngay</string>
     <string name="customer_active_bookings_title">Lịch hẹn đặt bàn của bạn:</string>
     <string name="dish_name_placeholder">Tên món</string>
     <string name="dish_price_placeholder">0đ</string>
