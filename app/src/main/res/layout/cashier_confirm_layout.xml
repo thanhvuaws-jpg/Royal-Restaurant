@@ -10,7 +10,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="?attr/actionBarSize"
-        android:background="@color/nga"
+        android:background="@drawable/bg_thanh_tieu_de"
         android:elevation="4dp"
         tools:targetApi="lollipop">
         
@@ -21,16 +21,16 @@
             android:padding="12dp"
             android:src="@drawable/ic_baseline_arrow_back_24"
             android:layout_centerVertical="true"
-            app:tint="@color/black" />
+            app:tint="@color/vang_sang" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Xác nhận thanh toán"
             android:textSize="20sp"
-            android:fontFamily="@font/muli_black"
-            android:textAllCaps="true"
-            android:textColor="@color/black"
+            android:fontFamily="@font/baloo2_extrabold"
+            android:textAllCaps="false"
+            android:textColor="@color/vang_sang"
             android:layout_centerVertical="true"
             android:layout_toEndOf="@+id/img_cashier_BackBtn"
             android:layout_toRightOf="@+id/img_cashier_BackBtn" />

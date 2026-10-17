@@ -76,6 +76,10 @@
         <item name="colorSecondary">@color/son</item>
         <item name="materialButtonStyle">@style/SonSon.Button</item>
         <item name="materialButtonOutlinedStyle">@style/SonSon.Button.Vien</item>
+        <item name="chipStyle">@style/SonSon.Chip.HanhDong</item>
+        <item name="textInputStyle">@style/SonSon.ONhap</item>
+        <item name="colorSurface">@color/nga</item>
+        <item name="colorOnSurface">@color/muc</item>
     </style>
 
     <!-- Chữ tab màn Đặt lịch: một cỡ cho mọi tab (H23). -->
