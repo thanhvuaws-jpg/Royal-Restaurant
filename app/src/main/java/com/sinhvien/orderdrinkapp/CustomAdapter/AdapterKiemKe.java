@@ -36,6 +36,12 @@ public class AdapterKiemKe extends RecyclerView.Adapter<AdapterKiemKe.ViewHolder
     private final List<NguyenLieuResponse> list = new ArrayList<>();
     // Lưu các mục thực tế có nhập: Map<maNL, soDemThucTe>
     private final Map<Integer, Double> thucTeMap = new HashMap<>();
+    // Chữ người dùng gõ, giữ nguyên để vẽ lại khi cuộn. Trước đây vẽ lại bằng
+    // df.format(...) có dấu phân cách hàng nghìn ("1.234,5" ở máy tiếng Việt),
+    // gõ tiếp thì parseDouble hỏng và dòng đó lặng lẽ biến khỏi lượt đếm.
+    private final Map<Integer, String> goMap = new HashMap<>();
+    // Ô gõ không phải số: báo đỏ tại ô, chặn gửi (trước đây bị bỏ qua im lặng).
+    private final Map<Integer, String> oSai = new HashMap<>();
     private final DecimalFormat df = new DecimalFormat("#,##0.##");
 
     public AdapterKiemKe(Context context) {
@@ -45,6 +51,8 @@ public class AdapterKiemKe extends RecyclerView.Adapter<AdapterKiemKe.ViewHolder
     public void setData(List<NguyenLieuResponse> newList) {
         list.clear();
         thucTeMap.clear();
+        goMap.clear();
+        oSai.clear();
         if (newList != null) {
             list.addAll(newList);
         }
@@ -53,6 +61,25 @@ public class AdapterKiemKe extends RecyclerView.Adapter<AdapterKiemKe.ViewHolder
 
     public Map<Integer, Double> getThucTeMap() {
         return thucTeMap;
+    }
+
+    /** Tên nguyên liệu của ô gõ sai đầu tiên, hoặc null nếu mọi ô hợp lệ. */
+    public String tenOSaiDau() {
+        return oSai.isEmpty() ? null : oSai.values().iterator().next();
+    }
+
+    /**
+     * Đọc số đếm: nhận "12", "1.5", "1,5" (dấu phẩy thập phân kiểu Việt).
+     * Trả null nếu không phải số — máy chủ cũng kiểm lại theo đúng luật này.
+     */
+    public static Double docSo(String s) {
+        String t = s == null ? "" : s.trim();
+        if (!t.matches("\\d+([.,]\\d+)?")) return null;
+        try {
+            return Double.parseDouble(t.replace(',', '.'));
+        } catch (NumberFormatException e) {
+            return null;
+        }
     }
 
     @NonNull
@@ -88,13 +115,10 @@ public class AdapterKiemKe extends RecyclerView.Adapter<AdapterKiemKe.ViewHolder
             holder.edtThucTe.removeTextChangedListener(holder.textWatcher);
         }
 
-        // Điền lại giá trị nếu đã từng nhập
-        if (thucTeMap.containsKey(item.getMaNL())) {
-            Double val = thucTeMap.get(item.getMaNL());
-            holder.edtThucTe.setText(val != null ? df.format(val) : "");
-        } else {
-            holder.edtThucTe.setText("");
-        }
+        // Điền lại đúng chữ đã gõ (không định dạng lại), kèm báo lỗi nếu ô đó sai
+        String daGo = goMap.get(item.getMaNL());
+        holder.edtThucTe.setText(daGo != null ? daGo : "");
+        holder.edtThucTe.setError(oSai.containsKey(item.getMaNL()) ? "Không phải số" : null);
 
         // Lắng nghe thay đổi nhập liệu
         holder.textWatcher = new TextWatcher() {
@@ -104,20 +128,25 @@ public class AdapterKiemKe extends RecyclerView.Adapter<AdapterKiemKe.ViewHolder
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String input = s != null ? s.toString().trim() : "";
+                int ma = item.getMaNL();
                 if (input.isEmpty()) {
                     // Ô để trống -> Không đếm (Requirement 5.5)
-                    thucTeMap.remove(item.getMaNL());
+                    thucTeMap.remove(ma);
+                    goMap.remove(ma);
+                    oSai.remove(ma);
+                    holder.edtThucTe.setError(null);
+                    return;
+                }
+                goMap.put(ma, input);
+                Double val = docSo(input);
+                if (val == null) {
+                    thucTeMap.remove(ma);
+                    oSai.put(ma, item.getTenNL());
+                    holder.edtThucTe.setError("Không phải số");
                 } else {
-                    try {
-                        double val = Double.parseDouble(input);
-                        if (val >= 0) {
-                            thucTeMap.put(item.getMaNL(), val);
-                        } else {
-                            thucTeMap.remove(item.getMaNL());
-                        }
-                    } catch (Exception e) {
-                        thucTeMap.remove(item.getMaNL());
-                    }
+                    thucTeMap.put(ma, val);
+                    oSai.remove(ma);
+                    holder.edtThucTe.setError(null);
                 }
             }
 

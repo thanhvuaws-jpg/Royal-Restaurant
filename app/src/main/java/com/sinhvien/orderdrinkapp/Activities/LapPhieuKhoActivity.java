@@ -299,10 +299,14 @@ public class LapPhieuKhoActivity extends AppCompatActivity {
 
             NguyenLieuResponse nl = danhSachNguyenLieu.get(pos);
             String slStr = edtSL.getText().toString().trim();
-            double sl = 0.0;
-            try {
-                sl = Double.parseDouble(slStr);
-            } catch (Exception ignored) {}
+            // Nhận cả "1,5" lẫn "1.5" — cùng luật với máy chủ (kho_doc_so).
+            Double soDoc = com.sinhvien.orderdrinkapp.CustomAdapter.AdapterKiemKe.docSo(slStr);
+            if (soDoc == null) {
+                ThongBao.hien(this, "Số lượng của " + nl.getTenNL() + " không phải là số", Toast.LENGTH_SHORT);
+                edtSL.requestFocus();
+                return;
+            }
+            double sl = soDoc;
 
             if (sl <= 0) {
                 ThongBao.hien(this, "Số lượng của " + nl.getTenNL() + " phải lớn hơn 0", Toast.LENGTH_SHORT);

@@ -123,7 +123,20 @@ public class KiemKeFragment extends Fragment {
         });
     }
 
+    /**
+     * Bấm "LƯU KẾT QUẢ KIỂM KÊ": KHÔNG ghi ngay.
+     *
+     * Bước 1 hỏi máy chủ chênh lệch (xem_truoc, không ghi gì). Khớp sổ thì báo
+     * khớp; có lệch thì hiện từng dòng lệch, đánh dấu lệch lớn, bắt nhập lý do
+     * rồi mới điều chỉnh tồn (bước 2). Trước đây bấm là tồn bị ghi đè ngay —
+     * nhập thử số lệch thì tồn "tự nhiên cộng vào" (báo ngày 22/10/2026).
+     */
     private void submitKiemKe() {
+        String oSai = adapter.tenOSaiDau();
+        if (oSai != null) {
+            ThongBao.hien(getContext(), "Số đếm của " + oSai + " không phải là số. Sửa lại hoặc để trống ô đó.", Toast.LENGTH_LONG);
+            return;
+        }
         Map<Integer, Double> thucTeMap = adapter.getThucTeMap();
         if (thucTeMap == null || thucTeMap.isEmpty()) {
             ThongBao.hien(getContext(), "Chưa có nguyên liệu nào được đếm (hãy nhập số lượng vào ô tương ứng hoặc nhập 0 nếu đã hết hàng)", Toast.LENGTH_LONG);
@@ -137,51 +150,130 @@ public class KiemKeFragment extends Fragment {
             d.put("ton_thucte", entry.getValue());
             listDong.add(d);
         }
+        final String dongJson = new Gson().toJson(listDong);
 
-        String dongJson = new Gson().toJson(listDong);
-        String ghiChu = edtGhiChu.getText().toString().trim();
-
-        btnGuiKiemKe.setEnabled(false);
-        btnGuiKiemKe.setText("Đang ghi nhận...");
-
-        ApiService api = ApiClient.getApiService();
-        api.kiemKeKho(dongJson, ghiChu).enqueue(new Callback<KiemKeActionResponse>() {
+        dangGui(true, "Đang so với sổ...");
+        ApiClient.getApiService().kiemKeXemTruoc(dongJson).enqueue(new Callback<KiemKeActionResponse>() {
             @Override
             public void onResponse(Call<KiemKeActionResponse> call, Response<KiemKeActionResponse> response) {
-                btnGuiKiemKe.setEnabled(true);
-                btnGuiKiemKe.setText("LƯU KẾT QUẢ KIỂM KÊ");
-
-                if (response.isSuccessful() && response.body() != null) {
-                    KiemKeActionResponse res = response.body();
-                    showKetQuaDialog(res);
-                } else {
-                    String errorMsg = "Không thể ghi nhận kiểm kê";
-                    try {
-                        if (response.errorBody() != null) {
-                            String errJson = response.errorBody().string();
-                            JSONObject errObj = new JSONObject(errJson);
-                            if (errObj.has("message")) {
-                                errorMsg = errObj.getString("message");
-                            }
-                        }
-                    } catch (Exception e) {
-                        errorMsg += " (" + response.code() + ")";
-                    }
-                    if (getContext() != null) {
-                        ThongBao.hien(getContext(), errorMsg, Toast.LENGTH_LONG);
-                    }
+                dangGui(false, null);
+                if (!isAdded()) return;
+                if (!response.isSuccessful() || response.body() == null) {
+                    ThongBao.hien(getContext(), docLoi(response, "Không so được với sổ kho"), Toast.LENGTH_LONG);
+                    return;
                 }
+                KiemKeActionResponse xem = response.body();
+                if (xem.getSoLech() == 0) {
+                    new HopThoai.Builder(requireContext())
+                            .setLoai(HopThoai.Loai.XONG)
+                            .setTitle("Khớp sổ")
+                            .setMessage(xem.getSoDem() + " nguyên liệu đã đếm đều khớp sổ — không cần điều chỉnh tồn.")
+                            .setPositiveButton("Đóng", (d, w) -> quayLai())
+                            .show();
+                    return;
+                }
+                hienXacNhan(xem, dongJson);
             }
 
             @Override
             public void onFailure(Call<KiemKeActionResponse> call, Throwable t) {
-                btnGuiKiemKe.setEnabled(true);
-                btnGuiKiemKe.setText("LƯU KẾT QUẢ KIỂM KÊ");
+                dangGui(false, null);
                 if (getContext() != null) {
                     ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
                 }
             }
         });
+    }
+
+    /** Bước 2: liệt kê dòng lệch, bắt lý do, rồi mới điều chỉnh tồn. */
+    private void hienXacNhan(KiemKeActionResponse xem, String dongJson) {
+        StringBuilder sb = new StringBuilder("Tồn chưa bị sửa. Kiểm tra lại:\n\n");
+        java.util.LinkedHashSet<String> goiY = new java.util.LinkedHashSet<>();
+        for (KiemKeActionResponse.DongKiemKeLech row : xem.getChiTiet()) {
+            String dau = row.getChenhLech() > 0 ? "+" : "−";
+            sb.append("• ").append(row.getTenNL()).append(": sổ ").append(df.format(row.getTonSo()))
+              .append(" → đếm ").append(df.format(row.getTonThucTe()))
+              .append(" (").append(dau).append(df.format(Math.abs(row.getChenhLech()))).append(" ").append(row.getDonVi()).append(")");
+            if (row.isLechLon()) sb.append("\n   ⚠ Lệch lớn — kiểm tra lại số đếm");
+            sb.append("\n");
+            if (!row.getGoiY().isEmpty()) goiY.add(row.getGoiY());
+        }
+        for (String g : goiY) sb.append("\n").append(g);
+
+        com.google.android.material.textfield.TextInputLayout khungLyDo =
+                new com.google.android.material.textfield.TextInputLayout(requireContext());
+        khungLyDo.setHint("Lý do lệch (bắt buộc)");
+        com.google.android.material.textfield.TextInputEditText oLyDo =
+                new com.google.android.material.textfield.TextInputEditText(khungLyDo.getContext());
+        oLyDo.setText(edtGhiChu.getText().toString().trim());
+        khungLyDo.addView(oLyDo);
+
+        new HopThoai.Builder(requireContext())
+                .setLoai(xem.isCoLechLon() ? HopThoai.Loai.CANH : HopThoai.Loai.TIN)
+                .setTitle(xem.getSoLech() + " nguyên liệu lệch sổ")
+                .setMessage(sb.toString().trim())
+                .setView(khungLyDo)
+                .setNegativeButton("Đếm lại", null)
+                .setPositiveButton("Điều chỉnh tồn", (d, w) -> {
+                    String lyDo = oLyDo.getText() != null ? oLyDo.getText().toString().trim() : "";
+                    if (lyDo.length() < 3) {
+                        ThongBao.hien(getContext(), "Nhập lý do lệch trước khi điều chỉnh tồn.", Toast.LENGTH_LONG);
+                        edtGhiChu.setText(lyDo);
+                        hienXacNhan(xem, dongJson);
+                        return;
+                    }
+                    edtGhiChu.setText(lyDo);
+                    ghiDieuChinh(dongJson, lyDo);
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void ghiDieuChinh(String dongJson, String lyDo) {
+        dangGui(true, "Đang ghi nhận...");
+        ApiClient.getApiService().kiemKeKho(dongJson, lyDo, "1").enqueue(new Callback<KiemKeActionResponse>() {
+            @Override
+            public void onResponse(Call<KiemKeActionResponse> call, Response<KiemKeActionResponse> response) {
+                dangGui(false, null);
+                if (!isAdded()) return;
+                if (response.isSuccessful() && response.body() != null) {
+                    showKetQuaDialog(response.body());
+                } else {
+                    ThongBao.hien(getContext(), docLoi(response, "Không thể ghi nhận kiểm kê"), Toast.LENGTH_LONG);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<KiemKeActionResponse> call, Throwable t) {
+                dangGui(false, null);
+                if (getContext() != null) {
+                    ThongBao.hien(getContext(), "Lỗi kết nối: " + t.getMessage(), Toast.LENGTH_SHORT);
+                }
+            }
+        });
+    }
+
+    private void dangGui(boolean dang, String chu) {
+        btnGuiKiemKe.setEnabled(!dang);
+        btnGuiKiemKe.setText(dang ? chu : "LƯU KẾT QUẢ KIỂM KÊ");
+    }
+
+    private static String docLoi(Response<?> response, String macDinh) {
+        try {
+            if (response.errorBody() != null) {
+                JSONObject errObj = new JSONObject(response.errorBody().string());
+                if (errObj.has("message")) return errObj.getString("message");
+            }
+        } catch (Exception e) {
+            return macDinh + " (" + response.code() + ")";
+        }
+        return macDinh;
+    }
+
+    private void quayLai() {
+        if (isAdded() && getParentFragmentManager().getBackStackEntryCount() > 0) {
+            getParentFragmentManager().popBackStack();
+        }
     }
 
     private void showKetQuaDialog(KiemKeActionResponse res) {
@@ -190,7 +282,7 @@ public class KiemKeFragment extends Fragment {
 
         List<KiemKeActionResponse.DongKiemKeLech> chiTiet = res.getChiTiet();
         if (chiTiet != null && !chiTiet.isEmpty()) {
-            sb.append("Chi tiết chênh lệch:\n");
+            sb.append("Đã điều chỉnh tồn:\n");
             for (KiemKeActionResponse.DongKiemKeLech row : chiTiet) {
                 String dau = row.getChenhLech() > 0 ? "+" : "";
                 sb.append("• ").append(row.getTenNL()).append(":\n")
@@ -204,13 +296,10 @@ public class KiemKeFragment extends Fragment {
 
         if (getContext() != null) {
             new HopThoai.Builder(getContext())
+                    .setLoai(HopThoai.Loai.XONG)
                     .setTitle("Kết quả kiểm kê kho")
                     .setMessage(sb.toString().trim())
-                    .setPositiveButton("Đóng", (dialog, which) -> {
-                        if (getParentFragmentManager().getBackStackEntryCount() > 0) {
-                            getParentFragmentManager().popBackStack();
-                        }
-                    })
+                    .setPositiveButton("Đóng", (dialog, which) -> quayLai())
                     .setCancelable(false)
                     .show();
         }

@@ -677,13 +677,24 @@ public interface ApiService {
     );
 
     /**
-     * Ghi nhận kiểm kê thực tế.
+     * Kiểm kê bước 1: chỉ xem chênh lệch so với sổ, máy chủ không ghi gì.
+     */
+    @FormUrlEncoded
+    @POST("api/kho_nguyenlieu.php?action=kiemke&xem_truoc=1")
+    Call<KiemKeActionResponse> kiemKeXemTruoc(
+            @Field("dong") String dongJson
+    );
+
+    /**
+     * Kiểm kê bước 2: điều chỉnh tồn theo số đếm. Có lệch thì máy chủ bắt
+     * xac_nhan=1 và lý do (ghichu); thiếu thì trả 409 / 400.
      */
     @FormUrlEncoded
     @POST("api/kho_nguyenlieu.php?action=kiemke")
     Call<KiemKeActionResponse> kiemKeKho(
             @Field("dong") String dongJson,
-            @Field("ghichu") String ghiChu
+            @Field("ghichu") String ghiChu,
+            @Field("xac_nhan") String xacNhan
     );
 }
 

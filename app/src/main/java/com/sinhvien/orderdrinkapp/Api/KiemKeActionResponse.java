@@ -13,6 +13,14 @@ public class KiemKeActionResponse {
     @SerializedName("so_lech")
     private int soLech;
 
+    /** Số nguyên liệu đã đếm (chỉ có ở bước xem trước). */
+    @SerializedName("so_dem")
+    private int soDem;
+
+    /** Có dòng lệch từ một nửa tồn sổ trở lên — gần như chắc là gõ nhầm. */
+    @SerializedName("co_lech_lon")
+    private boolean coLechLon;
+
     @SerializedName("chi_tiet")
     private List<DongKiemKeLech> chiTiet;
 
@@ -35,16 +43,26 @@ public class KiemKeActionResponse {
         @SerializedName("chenh_lech")
         private double chenhLech;
 
+        @SerializedName("lech_lon")
+        private boolean lechLon;
+
+        @SerializedName("goi_y")
+        private String goiY;
+
         public int getMaNL() { return maNL; }
         public String getTenNL() { return tenNL != null ? tenNL : ""; }
         public String getDonVi() { return donVi != null ? donVi : ""; }
         public double getTonSo() { return tonSo; }
         public double getTonThucTe() { return tonThucTe; }
         public double getChenhLech() { return chenhLech; }
+        public boolean isLechLon() { return lechLon; }
+        public String getGoiY() { return goiY != null ? goiY : ""; }
     }
 
     public String getStatus() { return status; }
     public String getMessage() { return message != null ? message : ""; }
     public int getSoLech() { return soLech; }
+    public int getSoDem() { return soDem; }
+    public boolean isCoLechLon() { return coLechLon; }
     public List<DongKiemKeLech> getChiTiet() { return chiTiet; }
 }
