@@ -1,114 +1,232 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Màn "Hệ thống đang bảo trì" (QĐ-107) — cùng tông đen-vàng với trang bảo trì của web. -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<!-- Màn "Hệ thống đang bảo trì" (QĐ-107) — bộ Sơn Son như trang bảo trì của web:
+     tấm hoành ở đầu, thẻ ngà viền vàng, huy hiệu sơn son đè lên mép tấm hoành,
+     sóng vàng chạy dọc chân màn hình. -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/royal_bg"
-    android:fillViewport="true"
+    android:background="@color/kem"
     tools:context=".Activities.BaoTriActivity">
 
-    <LinearLayout
+    <!-- Sen chìm mờ ở góc dưới -->
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="28dp">
+        android:layout_height="260dp"
+        android:layout_gravity="bottom"
+        android:layout_marginBottom="20dp"
+        android:alpha="0.08"
+        android:importantForAccessibility="no"
+        android:scaleType="fitCenter"
+        android:src="@drawable/sen_chim_menu" />
 
-        <FrameLayout
-            android:layout_width="96dp"
-            android:layout_height="96dp"
-            android:background="@drawable/bg_huy_hieu_bao_tri">
+    <!-- Dải sóng vàng ở chân -->
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_gravity="bottom"
+        android:importantForAccessibility="no"
+        android:scaleType="centerCrop"
+        android:src="@drawable/song_vang_menu" />
 
-            <ImageView
-                android:layout_width="44dp"
-                android:layout_height="44dp"
-                android:layout_gravity="center"
-                android:contentDescription="@null"
-                android:src="@drawable/ic_bao_tri" />
-        </FrameLayout>
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:fontFamily="@font/muli"
-            android:letterSpacing="0.3"
-            android:text="ROYAL RESTAURANT"
-            android:textColor="@color/gold_400"
-            android:textSize="12sp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:fontFamily="@font/muli_black"
-            android:gravity="center"
-            android:text="Hệ thống đang bảo trì"
-            android:textColor="@color/white"
-            android:textSize="26sp" />
-
-        <TextView
-            android:id="@+id/txt_baotri_ThongBao"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:fontFamily="@font/muli"
-            android:gravity="center"
-            android:lineSpacingExtra="4dp"
-            android:text="Chúng tôi đang nâng cấp để phục vụ tốt hơn. Vui lòng quay lại sau ít phút."
-            android:textColor="#ECE7DA"
-            android:textSize="15sp" />
+            android:orientation="vertical"
+            android:paddingBottom="48dp">
 
-        <TextView
-            android:id="@+id/txt_baotri_DuKien"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:background="@drawable/bg_nut_vien"
-            android:backgroundTint="@color/gold_400"
-            android:fontFamily="@font/muli"
-            android:paddingStart="16dp"
-            android:paddingTop="8dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="8dp"
-            android:textColor="@color/gold_300"
-            android:textSize="14sp"
-            android:visibility="gone" />
+            <!-- Tấm hoành: ảnh sơn mài, phủ tối để chữ đọc được -->
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="196dp">
 
-        <ProgressBar
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="160dp"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:indeterminate="true"
-            android:indeterminateTint="@color/gold_400" />
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:importantForAccessibility="no"
+                    android:scaleType="centerCrop"
+                    android:src="@drawable/bg_hoanh_son_mai" />
 
-        <TextView
-            android:id="@+id/btn_baotri_ThuLai"
-            android:layout_width="wrap_content"
-            android:layout_height="48dp"
-            android:layout_marginTop="20dp"
-            android:background="@drawable/bg_gradient_gold_btn"
-            android:clickable="true"
-            android:focusable="true"
-            android:fontFamily="@font/muli_black"
-            android:gravity="center"
-            android:paddingStart="32dp"
-            android:paddingEnd="32dp"
-            android:text="Thử lại"
-            android:textColor="#19140A"
-            android:textSize="15sp" />
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@drawable/nen_phu_hoanh_bao_tri" />
 
-        <TextView
-            android:id="@+id/txt_baotri_TrangThai"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="14dp"
-            android:fontFamily="@font/muli"
-            android:gravity="center"
-            android:text="App sẽ tự mở lại khi bảo trì xong."
-            android:textColor="@color/grey"
-            android:textSize="13sp" />
-    </LinearLayout>
-</ScrollView>
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1.5dp"
+                    android:layout_gravity="bottom"
+                    android:background="@color/vang" />
+
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="22dp"
+                    android:layout_marginTop="36dp"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:importantForAccessibility="no"
+                        android:src="@drawable/logo_royal_trong" />
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:fontFamily="@font/baloo2_extrabold"
+                            android:includeFontPadding="false"
+                            android:letterSpacing="0.04"
+                            android:text="ROYAL"
+                            android:textColor="@color/vang_sang"
+                            android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:letterSpacing="0.16"
+                            android:text="RESTAURANT"
+                            android:textColor="@color/kem"
+                            android:textSize="11sp" />
+                    </LinearLayout>
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- Thẻ ngà; huy hiệu kéo lên đè mép tấm hoành -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:layout_marginTop="-46dp"
+                android:layout_marginEnd="20dp"
+                android:background="@drawable/nen_hop_thoai"
+                android:elevation="4dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingStart="22dp"
+                android:paddingTop="22dp"
+                android:paddingEnd="22dp"
+                android:paddingBottom="24dp">
+
+                <FrameLayout
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
+                    android:background="@drawable/bg_huy_hieu_bao_tri">
+
+                    <ImageView
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@null"
+                        android:src="@drawable/ic_bao_tri" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:letterSpacing="0.24"
+                    android:text="ĐANG NÂNG CẤP"
+                    android:textColor="@color/vang_dam"
+                    android:textSize="12sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:fontFamily="@font/baloo2_extrabold"
+                    android:gravity="center"
+                    android:text="Hệ thống đang bảo trì"
+                    android:textColor="@color/son_dam"
+                    android:textSize="26sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txt_baotri_ThongBao"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Chúng tôi đang nâng cấp để phục vụ tốt hơn. Vui lòng quay lại sau ít phút."
+                    android:textColor="@color/muc"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/txt_baotri_DuKien"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:background="@drawable/nut_vien_vang"
+                    android:paddingStart="16dp"
+                    android:paddingTop="8dp"
+                    android:paddingEnd="16dp"
+                    android:paddingBottom="8dp"
+                    android:textColor="@color/son_dam"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+
+                <ProgressBar
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="180dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:indeterminate="true"
+                    android:indeterminateTint="@color/son" />
+
+                <TextView
+                    android:id="@+id/btn_baotri_ThuLai"
+                    android:layout_width="wrap_content"
+                    android:layout_height="52dp"
+                    android:layout_marginTop="18dp"
+                    android:background="@drawable/nut_son"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:fontFamily="@font/baloo2_extrabold"
+                    android:gravity="center"
+                    android:paddingStart="36dp"
+                    android:paddingEnd="36dp"
+                    android:paddingBottom="3dp"
+                    android:text="Thử lại"
+                    android:textColor="@color/vang_sang"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txt_baotri_TrangThai"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center"
+                    android:text="App sẽ tự mở lại khi bảo trì xong."
+                    android:textColor="@color/chu_mo"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:gravity="center"
+                android:letterSpacing="0.12"
+                android:text="ROYAL · NHÀ HÀNG HOÀNG GIA"
+                android:textColor="@color/chu_mo"
+                android:textSize="11sp" />
+        </LinearLayout>
+    </ScrollView>
+</FrameLayout>

@@ -57,7 +57,7 @@ public class BaoTriActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.bao_tri_layout);
-        getWindow().setStatusBarColor(androidx.core.content.ContextCompat.getColor(this, R.color.royal_bg));
+        getWindow().setStatusBarColor(androidx.core.content.ContextCompat.getColor(this, R.color.son_dam));
         txtThongBao = findViewById(R.id.txt_baotri_ThongBao);
         txtDuKien = findViewById(R.id.txt_baotri_DuKien);
         txtTrangThai = findViewById(R.id.txt_baotri_TrangThai);
