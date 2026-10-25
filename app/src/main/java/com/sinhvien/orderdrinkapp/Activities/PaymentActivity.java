@@ -76,6 +76,9 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     /** Số tiền mã đó giảm trên hóa đơn hiện tại. */
     private long tienGiam = 0;
 
+    /** true khi maDaAp là mã khách gắn lúc đặt bàn (đọc từ đơn), không phải nhân viên gõ. */
+    private boolean maTuDatBan = false;
+
     // Các biến phục vụ việc Polling & Socket đồng bộ
     private Handler pollingHandler = new Handler(Looper.getMainLooper());
     private Runnable pollingRunnable;
@@ -213,6 +216,7 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                         tongtien += ((long) res.getSoLuong() * res.getGiaTien());
                     }
                     capNhatGiaoDien();
+                    if (maDaAp == null) napMaCuaDon();   // cần tongtien để xem trước số giảm
                 }
             }
 
@@ -226,6 +230,36 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     }
 
     /* ═══════════════════════ MÃ GIẢM GIÁ ═══════════════════════ */
+
+    /**
+     * Mã khách gắn lúc đặt bàn được chép sang đơn khi nhận bàn (DONDAT.MACODE), và
+     * máy chủ tự áp nó lúc thanh toán. Trước đây màn này không biết điều đó: vẫn hiện
+     * tổng chưa giảm, mã QR ra số chưa giảm, hóa đơn không ghi giảm giá — chỉ thu ngân
+     * thấy lúc xác nhận (25/10/2026). Nay đọc mã trên đơn và xem trước như mã gõ tay.
+     */
+    private void napMaCuaDon() {
+        ApiService apiService = ApiClient.getClient().create(ApiService.class);
+        apiService.checkOrderStatus(madondat).enqueue(new Callback<OrderResponse>() {
+            @Override
+            public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
+                if (isFinishing() || isDestroyed()) return;
+                OrderResponse r = response.isSuccessful() ? response.body() : null;
+                if (r == null || maDaAp != null) return;
+                String ma = r.getMaCode();
+                // Chỉ khi đơn còn đang phục vụ: đơn đã gửi thu ngân thì số tiền đã chốt,
+                // hóa đơn lấy thẳng số của máy chủ (xem checkApprovalStatus).
+                if (ma != null && !ma.isEmpty() && "false".equals(r.getTinhTrang())) {
+                    maTuDatBan = true;
+                    kiemTraMa(ma);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<OrderResponse> call, Throwable t) {
+                // Không có mạng thì thôi xem trước; máy chủ vẫn tự áp mã lúc thanh toán.
+            }
+        });
+    }
 
     private void ganSuKienMaGiamGia() {
         btn_ap_ma.setOnClickListener(v -> {
@@ -276,7 +310,13 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                         && "success".equals(response.body().getStatus());
 
                 if (!ok) {
-                    hienKetQuaMa(docLoiMa(response), false);
+                    if (maTuDatBan) {
+                        // Máy chủ sẽ không áp mã này: đơn tính đủ tiền, mã về lại ví khách.
+                        maTuDatBan = false;
+                        hienKetQuaMa(getString(R.string.tt_ma_dat_ban_loi, ma, docLoiMa(response)), false);
+                    } else {
+                        hienKetQuaMa(docLoiMa(response), false);
+                    }
                     return;
                 }
 
@@ -286,14 +326,20 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
 
                 // Chỉ nói số tiền giảm: tên mã thường đã là "Giảm 10.000đ", ghép
                 // vào ra "✓ Giảm 10.000đ · giảm 10.000 đ" (H17).
-                hienKetQuaMa(getString(R.string.tt_ma_hop_le,
-                        com.sinhvien.orderdrinkapp.Utils.TienTe.so(tienGiam)), true);
+                String soGiam = com.sinhvien.orderdrinkapp.Utils.TienTe.so(tienGiam);
+                hienKetQuaMa(maTuDatBan
+                        ? getString(R.string.tt_ma_dat_ban, maDaAp, soGiam)
+                        : getString(R.string.tt_ma_hop_le, soGiam), true);
 
                 // Khóa ô nhập lại: mã đã chốt, sửa tiếp chỉ gây nhầm lẫn
                 // giữa cái đang gõ và cái thực sự sẽ được áp.
                 edt_ma_giam_gia.setText(maDaAp);
                 edt_ma_giam_gia.setEnabled(false);
                 btn_ap_ma.setText(R.string.tt_go_ma);
+                // Mã của phiếu đặt bàn: máy chủ tự áp lúc thanh toán dù có gỡ ở đây,
+                // nên không cho gỡ — để nút đó là để màn hình nói sai số tiền.
+                btn_ap_ma.setEnabled(!maTuDatBan);
+                btn_ap_ma.setAlpha(maTuDatBan ? 0.45f : 1f);
 
                 capNhatGiaoDien();
             }
@@ -310,6 +356,8 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
     private void goMa() {
         maDaAp   = null;
         tienGiam = 0;
+        maTuDatBan = false;
+        btn_ap_ma.setAlpha(1f);
         edt_ma_giam_gia.setText("");
         edt_ma_giam_gia.setEnabled(true);
         btn_ap_ma.setText(R.string.tt_ap_ma);
@@ -496,7 +544,14 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
                 if (isFinishing() || isDestroyed()) return;
                 if (response.isSuccessful() && response.body() != null && "success".equals(response.body().getStatus())) {
                     Log.d(TAG, "Gửi yêu cầu thanh toán thành công: madon=" + madondat + ", phuongthuc=" + phuongthuc);
-                    
+                    String canhBao = response.body().getCanhBaoMa();
+                    if (canhBao != null && !canhBao.isEmpty()) {
+                        // Mã của phiếu đặt bàn không áp được: đơn vẫn gửi, tính đủ tiền.
+                        tienGiam = 0;
+                        maDaAp = null;
+                        ThongBao.hien(PaymentActivity.this, canhBao, Toast.LENGTH_LONG);
+                    }
+
                     // Phát sự kiện Socket real-time thông báo Thu Ngân
                     io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
                     if (socket != null && socket.connected()) {
@@ -635,9 +690,18 @@ public class PaymentActivity extends AppCompatActivity implements View.OnClickLi
             @Override
             public void onResponse(Call<OrderResponse> call, Response<OrderResponse> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    String status = response.body().getTinhTrang();
+                    OrderResponse r = response.body();
+                    String status = r.getTinhTrang();
                     if ("true".equals(status)) { // Đã được thu ngân xác nhận duyệt
                         stopPolling();
+                        // Hóa đơn in đúng số máy chủ đã chốt lúc thanh toán (TONGTIEN đã trừ
+                        // giảm + TIENGIAM + mã), giống hệt bên thu ngân. Tự cộng trừ ở máy này
+                        // thì mã máy chủ tự áp (mã của phiếu đặt bàn) không bao giờ hiện ra.
+                        tienGiam = r.getTienGiam();
+                        maDaAp = r.getMaCode() != null && !r.getMaCode().isEmpty() ? r.getMaCode() : null;
+                        if (r.getTongTienSo() > 0 || tienGiam > 0) {
+                            tongtien = r.getTongTienSo() + tienGiam;
+                        }
                         HienThiHoaDon(); // Xuất hóa đơn cho khách
                     }
                 }

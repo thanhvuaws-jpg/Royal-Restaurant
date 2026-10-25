@@ -151,12 +151,24 @@ public class BookingHistoryAdapter extends RecyclerView.Adapter<BookingHistoryAd
 
         String tien = booking.getTongTien();
         boolean coMon = tien != null && !tien.isEmpty() && !"0".equals(tien);
+        long giam = booking.getTienGiam();
+        Long daTra = booking.getThanhToan();
         String phanMon;
-        if (coMon) {
+        if (daTra != null) {
+            // Đã thanh toán: số thật khách trả (gồm cả món gọi thêm tại quán), sau giảm.
+            phanMon = giam > 0
+                    ? context.getString(R.string.customer_da_tra_giam, dinhDangTien.format(daTra), dinhDangTien.format(giam))
+                    : context.getString(R.string.customer_da_tra, dinhDangTien.format(daTra));
+        } else if (coMon) {
             long soTien;
             try { soTien = Long.parseLong(tien); } catch (NumberFormatException e) { soTien = 0; }
-            phanMon = context.getString(R.string.customer_preorder,
-                    Math.max(booking.getSoMon(), 1), dinhDangTien.format(soTien));
+            int soMon = Math.max(booking.getSoMon(), 1);
+            // Có mã giảm giá thì in số SAU giảm — trước đây in tổng các món dù khách
+            // đã gắn mã lúc đặt bàn (25/10/2026).
+            phanMon = giam > 0
+                    ? context.getString(R.string.customer_preorder_giam, soMon,
+                            dinhDangTien.format(Math.max(0, soTien - giam)), dinhDangTien.format(giam))
+                    : context.getString(R.string.customer_preorder, soMon, dinhDangTien.format(soTien));
         } else {
             phanMon = context.getString(R.string.customer_no_preorder);
         }

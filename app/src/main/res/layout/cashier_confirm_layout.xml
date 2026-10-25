@@ -162,8 +162,10 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
-                
+                android:orientation="horizontal"
+                android:baselineAligned="false"
+                android:gravity="top">
+
                 <Button
                     android:id="@+id/btn_cashier_Cash"
                     android:layout_width="0dp"
@@ -172,13 +174,16 @@
                     android:layout_marginEnd="8dp"
                     android:text="Tiền mặt" />
                     
+                <!-- Thấp hơn nút sơn son 3dp + lề dưới 3dp: viền trùng mặt nút, gờ tối nằm dưới. -->
                 <Button
-            style="@style/SonSon.Button.Vien"
+                    style="@style/SonSon.Button.Vien"
                     android:id="@+id/btn_cashier_Bank"
                     android:layout_width="0dp"
-                    android:layout_height="55dp"
+                    android:layout_height="52dp"
+                    android:minHeight="52dp"
                     android:layout_weight="1"
                     android:layout_marginStart="8dp"
+                    android:layout_marginBottom="3dp"
                     android:text="Chuyển khoản" />
             </LinearLayout>
 

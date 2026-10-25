@@ -71,12 +71,15 @@
                 android:orientation="vertical" />
         </ScrollView>
 
+        <!-- baselineAligned=false: căn theo chân chữ thì nút viền bị kéo lên so với nút
+             sơn son (chữ nút sơn son nằm cao hơn để chừa gờ 3dp) và mất viền trên. -->
         <LinearLayout
             android:id="@+id/hang_nut_hop"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:gravity="center"
+            android:baselineAligned="false"
+            android:gravity="center_horizontal|top"
             android:orientation="horizontal"
             android:visibility="gone" />
     </LinearLayout>

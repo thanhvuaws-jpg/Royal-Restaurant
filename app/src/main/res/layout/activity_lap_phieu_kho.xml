@@ -133,7 +133,8 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="horizontal"
-                            android:gravity="center_vertical"
+                            android:baselineAligned="false"
+                            android:gravity="top"
                             android:layout_marginTop="8dp">
 
                             <Button
@@ -145,12 +146,15 @@
                                 android:paddingStart="12dp"
                                 android:paddingEnd="12dp"/>
 
+                            <!-- Thấp hơn nút sơn son 3dp + lề dưới 3dp: viền trùng mặt nút, gờ tối nằm dưới. -->
                             <Button
-            style="@style/SonSon.Button.Vien"
+                                style="@style/SonSon.Button.Vien"
                                 android:id="@+id/btn_chon_anh"
                                 android:layout_width="wrap_content"
-                                android:layout_height="38dp"
+                                android:layout_height="35dp"
+                                android:minHeight="35dp"
                                 android:layout_marginStart="8dp"
+                                android:layout_marginBottom="3dp"
                                 android:text="Chọn từ thư viện"
                                 android:textSize="12sp"
                                 android:paddingStart="12dp"

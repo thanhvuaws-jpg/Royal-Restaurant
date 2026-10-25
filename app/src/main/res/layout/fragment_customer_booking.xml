@@ -53,25 +53,36 @@
             app:strokeColor="#99D9A441"
             app:strokeWidth="1dp">
 
-            <FrameLayout
+            <!-- Cao theo khối chữ, tối thiểu 156dp: cố định 156dp thì máy để cỡ chữ lớn
+                 (tiêu đề xuống 2 dòng) bị cắt mất nửa dưới nút "Đặt bàn & món".
+                 Ảnh nền và lớp phủ BÁM mép trên/dưới của khối chữ (RelativeLayout). Dùng
+                 FrameLayout wrap_content thì ảnh match_parent bị đo theo cỡ gốc của tấm
+                 ảnh dọc và banner phình kín màn hình (đã thử 25/10/2026). -->
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="156dp">
+                android:layout_height="wrap_content">
 
                 <ImageView
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@+id/khoi_chu_banner"
+                    android:layout_alignBottom="@+id/khoi_chu_banner"
                     android:importantForAccessibility="no"
                     android:scaleType="centerCrop"
                     android:src="@drawable/bg_hoanh_son_mai" />
 
                 <View
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignTop="@+id/khoi_chu_banner"
+                    android:layout_alignBottom="@+id/khoi_chu_banner"
                     android:background="@drawable/phu_banner_trai" />
 
                 <LinearLayout
+                    android:id="@+id/khoi_chu_banner"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:minHeight="156dp"
                     android:orientation="vertical"
                     android:paddingStart="14dp"
                     android:paddingTop="16dp"
@@ -108,7 +119,7 @@
                         android:text="Đặt bàn &amp; món"
                         android:textSize="15sp" />
                 </LinearLayout>
-            </FrameLayout>
+            </RelativeLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout

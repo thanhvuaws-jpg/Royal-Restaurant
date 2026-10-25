@@ -194,6 +194,8 @@
     <string name="tt_ap_ma">Áp mã</string>
     <string name="tt_go_ma">Gỡ mã</string>
     <string name="tt_ma_hop_le">✓ Mã hợp lệ · giảm %1$s đ</string>
+    <string name="tt_ma_dat_ban">✓ Mã khách gắn lúc đặt bàn (%1$s) · giảm %2$s đ</string>
+    <string name="tt_ma_dat_ban_loi">Mã %1$s khách gắn lúc đặt bàn không dùng được: %2$s. Gửi thanh toán sẽ tính đủ tiền và trả mã về ví khách.</string>
     <string name="tt_dang_kiem_tra">Đang kiểm tra mã…</string>
     <string name="tt_chua_nhap_ma">Vui lòng nhập mã giảm giá</string>
 
@@ -252,6 +254,9 @@
     <string name="customer_guests">%1$d khách</string>
     <string name="customer_no_preorder">Chưa đặt món trước</string>
     <string name="customer_preorder">%1$d món · %2$s đ</string>
+    <string name="customer_preorder_giam">%1$d món · %2$s đ (đã giảm %3$s đ)</string>
+    <string name="customer_da_tra">Đã thanh toán %1$s đ</string>
+    <string name="customer_da_tra_giam">Đã thanh toán %1$s đ (giảm %2$s đ)</string>
     <string name="booking_btn_confirm">Đặt Bàn</string>
     <string name="customer_btn_new_booking">Đặt bàn &amp; món trước ngay</string>
     <string name="customer_active_bookings_title">Lịch hẹn đặt bàn của bạn:</string>

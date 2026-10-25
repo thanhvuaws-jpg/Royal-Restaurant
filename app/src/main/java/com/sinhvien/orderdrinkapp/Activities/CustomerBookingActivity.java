@@ -468,9 +468,54 @@ public class CustomerBookingActivity extends AppCompatActivity {
             } catch (NumberFormatException ignored) {}
         }
 
-        DecimalFormat formatter = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
-        txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
+        hienTongTien();
         capNhatThanhPhanTrang();
+    }
+
+    /**
+     * Thanh dưới cùng: tổng các món, trừ luôn mã giảm giá đang chọn.
+     *
+     * Trước đây chỉ in tổng các món — khách chọn mã rồi vẫn thấy số chưa giảm và
+     * không biết mã có ăn thua gì không (25/10/2026). Số ở đây là xem trước theo
+     * đúng công thức máy chủ; số thật chốt lúc thanh toán, trên cả món gọi thêm.
+     */
+    private void hienTongTien() {
+        DecimalFormat formatter = com.sinhvien.orderdrinkapp.Utils.TienTe.dinhDang();
+        com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia ma = maDangChon();
+        long giam = ma != null && totalPreorderPrice > 0 ? ma.tinhGiam(totalPreorderPrice) : 0;
+
+        if (giam > 0) {
+            String phaiTra = "Còn " + formatter.format(totalPreorderPrice - giam) + " đ";
+            String chuThich = "Tạm tính " + formatter.format(totalPreorderPrice) + " đ · giảm "
+                    + formatter.format(giam) + " đ";
+            android.text.SpannableString s = new android.text.SpannableString(phaiTra + "\n" + chuThich);
+            s.setSpan(new android.text.style.RelativeSizeSpan(0.65f), phaiTra.length() + 1, s.length(),
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            s.setSpan(new android.text.style.ForegroundColorSpan(
+                            androidx.core.content.ContextCompat.getColor(this, R.color.status_available)),
+                    phaiTra.length() + 1, s.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            txt_total_preorder.setText(s);
+        } else if (giam < 0) {
+            // Chưa tới mức tối thiểu: nói rõ thay vì im lặng để khách tưởng mã đã trừ.
+            String tong = "Tổng: " + formatter.format(totalPreorderPrice) + " đ";
+            String chuThich = "Mã cần hóa đơn từ " + formatter.format(ma.getDonToiThieu()) + " đ";
+            android.text.SpannableString s = new android.text.SpannableString(tong + "\n" + chuThich);
+            s.setSpan(new android.text.style.RelativeSizeSpan(0.65f), tong.length() + 1, s.length(),
+                    android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            s.setSpan(new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#A86A12")),
+                    tong.length() + 1, s.length(), android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            txt_total_preorder.setText(s);
+        } else {
+            txt_total_preorder.setText("Tổng: " + formatter.format(totalPreorderPrice) + " đ");
+        }
+    }
+
+    private com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia maDangChon() {
+        if (maVoucherDaChon == null) return null;
+        for (com.sinhvien.orderdrinkapp.Api.LoyaltyResponse.MaGiamGia m : maKhaDung) {
+            if (maVoucherDaChon.equals(m.getMaCode())) return m;
+        }
+        return null;
     }
 
     /** Gom món vào kho để tra giá được ở mọi trang. */
@@ -901,6 +946,7 @@ public class CustomerBookingActivity extends AppCompatActivity {
     }
 
     private void capNhatHienThiVoucher() {
+        hienTongTien();   // chọn / bỏ mã thì số phải trả đổi theo ngay
         if (maVoucherDaChon == null) {
             txt_voucher_da_chon.setText(R.string.booking_voucher_chua_chon);
             txt_voucher_da_chon.setTextColor(android.graphics.Color.parseColor("#7A6553"));

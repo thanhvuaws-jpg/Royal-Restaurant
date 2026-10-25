@@ -210,36 +210,42 @@
             android:gravity="center"
             android:layout_marginBottom="20dp" />
 
-        <!-- Nút hành động -->
+        <!-- Nút hành động. Nút sơn son có gờ tối 3dp ở đáy, mặt nút chỉ cao 45dp;
+             nút viền thấp hơn 3dp + lề dưới 3dp để viền trùng khít mặt nút sơn son
+             (cùng cách với nut_hop_phu.xml của hộp thoại).
+             baselineAligned=false: mặc định LinearLayout căn theo chân chữ, mà chữ nút
+             sơn son được đẩy lên giữa mặt nút → nút viền bị kéo lên, mất viền trên.
+             gravity=top: căn giữa dọc thì lề dưới 3dp kéo nút viền lố lên 1,5dp. -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:gravity="center">
+            android:baselineAligned="false"
+            android:gravity="top">
 
             <Button
                 android:id="@+id/btn_receipt_Share"
+                style="@style/SonSon.Button.Vien"
                 android:layout_width="0dp"
-                android:layout_height="48dp"
+                android:layout_height="45dp"
+                android:minHeight="45dp"
                 android:layout_weight="1"
                 android:layout_marginEnd="8dp"
+                android:layout_marginBottom="3dp"
                 android:text="@string/receipt_share"
                 android:singleLine="true"
-                android:textColor="@color/colorPrimary"
-                android:textAllCaps="false"
-                android:textSize="13sp"
-                app:strokeColor="@color/colorPrimary"
-                app:strokeWidth="1dp"
-                style="@style/SonSon.Button.Vien" />
+                android:textSize="14sp" />
 
             <Button
                 android:id="@+id/btn_receipt_Close"
+                style="@style/SonSon.Button"
                 android:layout_width="0dp"
                 android:layout_height="48dp"
+                android:minHeight="48dp"
                 android:layout_weight="1"
                 android:text="@string/receipt_close"
-                android:textAllCaps="false"
-                android:textSize="13sp" />
+                android:singleLine="true"
+                android:textSize="14sp" />
 
         </LinearLayout>
 

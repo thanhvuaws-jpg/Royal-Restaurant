@@ -106,6 +106,10 @@ public class LoyaltyResponse {
         @SerializedName("TEN")          private String ten;
         @SerializedName("MOTA")         private String moTa;
         @SerializedName("DON_TOITHIEU") private int donToiThieu;
+        // loyalty_home.php trả sẵn ba trường này từ lâu, model không khai báo nên Gson bỏ qua.
+        @SerializedName("LOAI_GIAM")    private String loaiGiam;   // 'tienmat' | 'phantram'
+        @SerializedName("GIATRI")       private int giaTri;
+        @SerializedName("GIAM_TOIDA")   private int giamToiDa;
 
         public String getMaCode()     { return maCode; }
         public String getNguon()      { return nguon; }
@@ -114,6 +118,23 @@ public class LoyaltyResponse {
         public String getTen()        { return ten; }
         public String getMoTa()       { return moTa; }
         public int getDonToiThieu()   { return donToiThieu; }
+
+        /**
+         * Số tiền mã này giảm trên một hóa đơn {@code tong} đồng; -1 nếu hóa đơn chưa
+         * tới mức tối thiểu. Đúng công thức loyalty_tinh_giam() của máy chủ — chỉ để
+         * khách xem trước lúc đặt bàn, số thật vẫn do máy chủ chốt lúc thanh toán.
+         */
+        public long tinhGiam(long tong) {
+            if (donToiThieu > 0 && tong < donToiThieu) return -1;
+            long giam;
+            if ("tienmat".equals(loaiGiam)) {
+                giam = giaTri;
+            } else {
+                giam = tong * giaTri / 100;
+                if (giamToiDa > 0 && giam > giamToiDa) giam = giamToiDa;
+            }
+            return Math.max(0, Math.min(giam, tong));
+        }
     }
 
     /** Quà tri ân tuần vừa được cấp. */

@@ -17,8 +17,12 @@ public class CheckoutResponse {
     @SerializedName("TONGTIEN") private long tongTien;
     @SerializedName("TIENGIAM") private long tienGiam;
     @SerializedName("MACODE")   private String maCode;
+    /** Mã khách gắn lúc đặt bàn mà không áp được: máy chủ vẫn nhận đơn (tính đủ
+     *  tiền, trả mã về ví) và gửi lý do ở đây để nhân viên báo khách. */
+    @SerializedName("CANH_BAO_MA") private String canhBaoMa;
 
     public String getStatus()  { return status; }
+    public String getCanhBaoMa() { return canhBaoMa; }
     public String getMessage() { return message; }
     public int getMaDonDat()   { return maDonDat; }
     public long getTongTien()  { return tongTien; }

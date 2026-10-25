@@ -39,8 +39,9 @@ public class OrderResponse {
     @SerializedName("NGAYDAT")
     private String ngayDat;
 
-    // Tổng số tiền hóa đơn cần trả (TONGTIEN) dưới dạng chuỗi
-    @SerializedName("TONGTIEN")
+    // Tổng số tiền hóa đơn cần trả (TONGTIEN) dưới dạng chuỗi.
+    // check_order_status.php trả khóa chữ thường ("tongtien"), các API khác chữ hoa.
+    @SerializedName(value = "TONGTIEN", alternate = {"tongtien"})
     private String tongTien;
 
     // Tên nhân viên phục vụ để hiển thị
@@ -53,13 +54,18 @@ public class OrderResponse {
 
     // Mã giảm giá đã áp vào đơn (null nếu không có) và số tiền đã giảm.
     // TONGTIEN là số SAU khi giảm — cần hai trường này để giải thích chênh lệch.
-    @SerializedName("MACODE")
+    @SerializedName(value = "MACODE", alternate = {"macode"})
     private String maCode;
 
-    @SerializedName("TIENGIAM")
+    @SerializedName(value = "TIENGIAM", alternate = {"tiengiam"})
     private String tienGiam;
 
     public String getMaCode() { return maCode; }
+
+    public long getTongTienSo() {
+        try { return tongTien == null ? 0 : Math.round(Double.parseDouble(tongTien)); }
+        catch (NumberFormatException e) { return 0; }
+    }
 
     public long getTienGiam() {
         try { return tienGiam == null ? 0 : Math.round(Double.parseDouble(tienGiam)); }

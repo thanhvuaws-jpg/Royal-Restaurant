@@ -120,4 +120,18 @@ public class BookingResponse {
 
     public String getMaCode()      { return maCode; }
     public void setTongTien(String tongTien) { this.tongTien = tongTien; }
+
+    /* Thêm 25/10/2026 (get_bookings.php): thẻ lịch hẹn in số SAU giảm giá. */
+
+    /** Số tiền mã của phiếu giảm: hóa đơn đã gửi thanh toán thì là số thật,
+     *  chưa thì là số tính trước trên các món đặt trước. 0 = không giảm. */
+    @SerializedName("TIENGIAM")
+    private long tienGiam;
+
+    /** Số khách đã trả (sau giảm) khi hóa đơn đã thanh toán; null nếu chưa. */
+    @SerializedName("THANHTOAN")
+    private Long thanhToan;
+
+    public long getTienGiam()      { return tienGiam; }
+    public Long getThanhToan()     { return thanhToan; }
 }

@@ -71,15 +71,19 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="12dp"
-            android:gravity="end">
+            android:baselineAligned="false"
+            android:gravity="end|top">
 
+            <!-- Thấp hơn hai nút nổi khối 3dp + lề dưới 3dp: viền trùng mặt nút, gờ tối nằm dưới. -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_cancel_booking"
                 style="@style/SonSon.Button.Huy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:minHeight="41dp"
                 android:text="@string/manage_booking_btn_cancel"
-                android:layout_marginEnd="8dp"/>
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="3dp"/>
 
             <com.google.android.material.button.MaterialButton
                 style="@style/SonSon.Button"

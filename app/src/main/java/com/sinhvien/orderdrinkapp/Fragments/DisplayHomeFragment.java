@@ -115,11 +115,16 @@ public class DisplayHomeFragment extends Fragment implements View.OnClickListene
 
         // Thực hiện phân quyền chức năng: Nhân viên vs Quản lý (Admin)
         if (!SessionManager.isAdmin(getActivity())) {
-            // Nhân viên phục vụ: ẩn Thống kê, Nhân viên, Kho (menu bên cũng ẩn các mục này).
+            // Nhân viên phục vụ: bỏ Thống kê, Nhân viên, Kho (menu bên cũng ẩn các mục này).
             // Còn đúng 3 ô Bàn ăn / Thực đơn / Đặt lịch — vừa một hàng của lưới 3 cột (Figma).
-            layout_display_HomeViewStaff.setVisibility(View.GONE);
-            layout_display_HomeStatistic.setVisibility(View.GONE);
-            layout_display_HomeKho.setVisibility(View.GONE);
+            //
+            // Phải GỠ khỏi lưới chứ không chỉ GONE: GridLayout vẫn xếp ô GONE vào ô lưới
+            // của nó. Cột đầu chỉ toàn ô ẩn nên co về 0, lưới thành 2 cột, chỗ của "Kho"
+            // thành lỗ trống bên trái "Đặt lịch" (thấy trên điện thoại thật 25/10/2026).
+            android.view.ViewGroup luoi = view.findViewById(R.id.grid_display_HomeActions);
+            luoi.removeView(layout_display_HomeViewStaff);
+            luoi.removeView(layout_display_HomeStatistic);
+            luoi.removeView(layout_display_HomeKho);
             txt_display_HomeViewAllStatistic.setVisibility(View.GONE);
         }
 
