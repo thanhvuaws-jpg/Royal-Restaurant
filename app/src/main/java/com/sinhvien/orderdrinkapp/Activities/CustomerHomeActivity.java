@@ -47,7 +47,7 @@ import com.sinhvien.orderdrinkapp.Utils.ThongBao;
  * - Hỗ trợ Điều hướng Thích ứng (Adaptive Navigation): Cho phép chuyển đổi giữa Ngăn kéo vuốt (Navigation Drawer) và Thanh điều hướng dưới (Bottom Navigation View).
  * - Quản lý nạp Fragment nội dung tương ứng: Đặt bàn (CustomerBookingFragment), Lịch sử đặt hàng/chi tiêu (CustomerProfileFragment), Liên hệ quán (CustomerContactFragment).
  * - Kết nối Socket.io real-time tự động đăng ký kênh khách hàng (join_customer) và nhận thông báo thay đổi trạng thái đặt bàn trực tiếp.
- * - Quét và so sánh bộ nhớ đệm trạng thái đặt bàn (checkBookingChangesOnResume) khi bật lại app để đưa ra cảnh báo hộp thoại AlertDialog nếu trạng thái đặt bàn đã được thay đổi.
+ * - Quét và so sánh bộ nhớ đệm trạng thái đặt bàn (checkBookingChanges) khi bật lại app và ngay khi có sự kiện booking_status_updated, để hiện hộp thoại nếu trạng thái đặt bàn đã được thay đổi.
  * - Xử lý chức năng Đăng xuất: xóa cache các Fragment, hủy kết nối Socket và điều hướng lại về WelcomeActivity.
  */
 public class CustomerHomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
@@ -66,6 +66,33 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
     private Fragment currentFragment; // Fragment hiện tại đang hiển thị
     private com.sinhvien.orderdrinkapp.Utils.BookingAlertManager bookingAlertManager;
     private io.socket.emitter.Emitter.Listener connectListener;
+
+    /** Tên tệp SharedPreferences giữ trạng thái phiếu đặt bàn khách đã được báo. */
+    public static final String BO_NHO_PHIEU = "booking_status_cache";
+
+    /*
+     * BÁO NGAY KHI NHÂN VIÊN ĐỔI PHIẾU (sửa 19/11/2026)
+     * --------------------------------------------------
+     * Trước đây hộp "🔔 Thông báo đặt bàn" chỉ được dựng trong onResume(). Log máy
+     * chủ socket ngày 15/11 cho thấy rõ: 22:58:03 máy quản lý (room admin) hủy phiếu
+     * #68 và phát booking_status_updated trong lúc app khách (room customer:19) vẫn
+     * đang nối — app nhận sự kiện nhưng không so trạng thái, nên khách phải thoát app
+     * (22:58:12) rồi mở lại (22:58:16) mới thấy hộp báo hủy.
+     *
+     * Giờ màn này nghe booking_status_updated khi đang hiển thị và chạy lại đúng phép
+     * so trạng thái của onResume(). Sự kiện phát cho MỌI máy (không kèm mã khách),
+     * nên chỉ những phiếu của chính khách này mà đổi trạng thái mới hiện hộp.
+     * Gom các sự kiện tới dồn trong 400 ms thành một lần hỏi máy chủ.
+     */
+    private final android.os.Handler hangDoiKiemPhieu =
+            new android.os.Handler(android.os.Looper.getMainLooper());
+    private final Runnable viecKiemPhieu = this::checkBookingChanges;
+    private final io.socket.emitter.Emitter.Listener nghePhieuDoi =
+            args -> runOnUiThread(this::henKiemPhieu);
+    // Chặn hai lượt so chạy chồng: cả hai cùng đọc trạng thái cũ trước khi lượt kia
+    // kịp ghi, nên cùng một thay đổi sẽ hiện hai hộp giống hệt nhau.
+    private boolean dangKiemPhieu = false;
+    private boolean canKiemLai = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -247,7 +274,12 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         if (bookingAlertManager != null) {
             bookingAlertManager.startChecking();
         }
-        checkBookingChangesOnResume(); // Thực hiện so sánh dữ liệu đặt bàn cũ và mới khi người dùng mở lại Activity
+        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (socket != null) {
+            socket.off("booking_status_updated", nghePhieuDoi); // không đăng ký trùng
+            socket.on("booking_status_updated", nghePhieuDoi);
+        }
+        checkBookingChanges(); // So trạng thái phiếu: bắt các thay đổi lúc app đang ở nền
     }
 
     @Override
@@ -256,6 +288,29 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
         if (bookingAlertManager != null) {
             bookingAlertManager.stopChecking();
         }
+        io.socket.client.Socket socket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
+        if (socket != null) {
+            socket.off("booking_status_updated", nghePhieuDoi);
+        }
+        hangDoiKiemPhieu.removeCallbacks(viecKiemPhieu);
+    }
+
+    /** Hẹn một lượt so trạng thái phiếu; nhiều sự kiện liền nhau chỉ thành một lượt. */
+    private void henKiemPhieu() {
+        hangDoiKiemPhieu.removeCallbacks(viecKiemPhieu);
+        hangDoiKiemPhieu.postDelayed(viecKiemPhieu, 400);
+    }
+
+    /**
+     * Ghi nhận trạng thái phiếu mà khách đã tự biết, để không hiện hộp báo lại.
+     * Dùng khi chính khách bấm hủy phiếu: máy chủ socket không gửi ngược sự kiện
+     * cho người phát, nên nếu không ghi ở đây thì lần mở app sau sẽ hiện
+     * "Đặt bàn ... đã bị hủy" cho một việc khách vừa tự làm.
+     */
+    public static void ghiTrangThaiDaBiet(android.content.Context ctx, int madatban, String trangThai) {
+        ctx.getSharedPreferences(BO_NHO_PHIEU, MODE_PRIVATE).edit()
+                .putString("booking_" + madatban, trangThai)
+                .apply();
     }
 
     /**
@@ -420,68 +475,91 @@ public class CustomerHomeActivity extends AppCompatActivity implements Navigatio
     }
 
     /**
-     * Đồng bộ và quét trạng thái đặt bàn trực tiếp từ Server khi người dùng mở lại ứng dụng.
-     * So sánh với trạng thái cũ được lưu trữ trong SharedPreferences để đẩy thông báo AlertDialog popup lên cho khách hàng.
+     * Quét trạng thái phiếu đặt bàn của khách trên máy chủ, so với trạng thái đã báo
+     * (lưu trong SharedPreferences) và hiện hộp "🔔 Thông báo đặt bàn" nếu có phiếu đổi.
+     * Gọi khi mở lại màn hình (onResume) và ngay khi có sự kiện booking_status_updated.
      */
-    private void checkBookingChangesOnResume() {
+    private void checkBookingChanges() {
+        if (dangKiemPhieu) {
+            canKiemLai = true;
+            return;
+        }
+        dangKiemPhieu = true;
         int makh = SessionManager.getMaNV(this);
         ApiService apiService = ApiClient.getClient().create(ApiService.class);
         apiService.getBookings(makh).enqueue(new Callback<List<BookingResponse>>() {
             @Override
             public void onResponse(Call<List<BookingResponse>> call, Response<List<BookingResponse>> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    List<BookingResponse> bookings = response.body();
-                    SharedPreferences prefs = getSharedPreferences("booking_status_cache", MODE_PRIVATE);
-                    SharedPreferences.Editor editor = prefs.edit();
-                    
-                    List<String> messages = new ArrayList<>();
-                    
-                    for (BookingResponse booking : bookings) {
-                        String key = "booking_" + booking.getMaDatBan();
-                        String oldStatus = prefs.getString(key, "");
-                        String newStatus = booking.getTinhtrang() != null ? booking.getTinhtrang() : "";
-                        
-                        // Nếu trạng thái mới khác trạng thái cũ -> Tạo thông báo cụ thể
-                        if (!oldStatus.isEmpty() && !oldStatus.equalsIgnoreCase(newStatus)) {
-                            String tenban = booking.getTenBan() != null ? booking.getTenBan() : "";
-                            String thoigianhen = booking.getThoigianhen() != null ? booking.getThoigianhen() : "";
-                            
-                            if (newStatus.equalsIgnoreCase("confirmed")) {
-                                messages.add("✅ Bàn " + tenban + " lúc " + thoigianhen + " đã được xác nhận!");
-                            } else if (newStatus.equalsIgnoreCase("cancelled")) {
-                                messages.add("❌ Đặt bàn " + tenban + " đã bị hủy.");
-                            } else if (newStatus.equalsIgnoreCase("checked_in") || newStatus.equalsIgnoreCase("checkin")) {
-                                messages.add("🪑 Bàn " + tenban + " đã sẵn sàng, mời bạn vào!");
-                            }
-                        }
-                        
-                        editor.putString(key, newStatus);
-                    }
-                    
-                    editor.apply();
-                    
-                    // Hiển thị hộp thoại AlertDialog nếu có tin nhắn mới thay đổi
-                    if (!messages.isEmpty()) {
-                        StringBuilder sb = new StringBuilder();
-                        for (int i = 0; i < messages.size(); i++) {
-                            sb.append(messages.get(i));
-                            if (i < messages.size() - 1) sb.append("\n\n");
-                        }
-                        
-                        new HopThoai.Builder(CustomerHomeActivity.this)
-                            .setTitle("🔔 Thông báo đặt bàn")
-                            .setMessage(sb.toString())
-                            .setPositiveButton("OK", null)
-                            .show();
-                    }
+                try {
+                    xuLyKetQua(response);
+                } finally {
+                    xongMotLuot();
                 }
             }
 
             @Override
             public void onFailure(Call<List<BookingResponse>> call, Throwable t) {
                 // Bỏ qua lỗi kết nối không làm phiền trải nghiệm người dùng
+                xongMotLuot();
             }
         });
+    }
+
+    private void xongMotLuot() {
+        dangKiemPhieu = false;
+        if (canKiemLai) {
+            canKiemLai = false;
+            henKiemPhieu();
+        }
+    }
+
+    private void xuLyKetQua(Response<List<BookingResponse>> response) {
+        if (response.isSuccessful() && response.body() != null) {
+            List<BookingResponse> bookings = response.body();
+            SharedPreferences prefs = getSharedPreferences(BO_NHO_PHIEU, MODE_PRIVATE);
+            SharedPreferences.Editor editor = prefs.edit();
+            
+            List<String> messages = new ArrayList<>();
+            
+            for (BookingResponse booking : bookings) {
+                String key = "booking_" + booking.getMaDatBan();
+                String oldStatus = prefs.getString(key, "");
+                String newStatus = booking.getTinhtrang() != null ? booking.getTinhtrang() : "";
+                
+                // Nếu trạng thái mới khác trạng thái cũ -> Tạo thông báo cụ thể
+                if (!oldStatus.isEmpty() && !oldStatus.equalsIgnoreCase(newStatus)) {
+                    String tenban = booking.getTenBan() != null ? booking.getTenBan() : "";
+                    String thoigianhen = booking.getThoigianhen() != null ? booking.getThoigianhen() : "";
+                    
+                    if (newStatus.equalsIgnoreCase("confirmed")) {
+                        messages.add("✅ Bàn " + tenban + " lúc " + thoigianhen + " đã được xác nhận!");
+                    } else if (newStatus.equalsIgnoreCase("cancelled")) {
+                        messages.add("❌ Đặt bàn " + tenban + " đã bị hủy.");
+                    } else if (newStatus.equalsIgnoreCase("checked_in") || newStatus.equalsIgnoreCase("checkin")) {
+                        messages.add("🪑 Bàn " + tenban + " đã sẵn sàng, mời bạn vào!");
+                    }
+                }
+                
+                editor.putString(key, newStatus);
+            }
+            
+            editor.apply();
+            
+            // Hiển thị hộp thoại nếu có phiếu đổi trạng thái (màn đã đóng thì thôi)
+            if (!messages.isEmpty() && !isFinishing() && !isDestroyed()) {
+                StringBuilder sb = new StringBuilder();
+                for (int i = 0; i < messages.size(); i++) {
+                    sb.append(messages.get(i));
+                    if (i < messages.size() - 1) sb.append("\n\n");
+                }
+
+                new HopThoai.Builder(CustomerHomeActivity.this)
+                    .setTitle("🔔 Thông báo đặt bàn")
+                    .setMessage(sb.toString())
+                    .setPositiveButton("OK", null)
+                    .show();
+            }
+        }
     }
 }
 

@@ -113,6 +113,7 @@ public class CustomerBookingFragment extends Fragment {
     private boolean dangTai   = false;
 
     private io.socket.client.Socket mSocket;
+    private io.socket.emitter.Emitter.Listener nghePhieuDoi;
 
     @Nullable
     @Override
@@ -359,6 +360,10 @@ public class CustomerBookingFragment extends Fragment {
 
                 if (ok) {
                     ThongBao.hien(getContext(), R.string.customer_cancel_ok, Toast.LENGTH_SHORT);
+                    // Khách tự hủy thì đã biết rồi: ghi nhận để lần mở app sau
+                    // không hiện lại hộp "Đặt bàn ... đã bị hủy".
+                    com.sinhvien.orderdrinkapp.Activities.CustomerHomeActivity.ghiTrangThaiDaBiet(
+                            requireContext(), phieu.getMaDatBan(), "cancelled");
 
                     // Báo cho nhân viên biết ngay, không đợi lượt quét định kỳ.
                     io.socket.client.Socket socket =
@@ -445,23 +450,34 @@ public class CustomerBookingFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        if (mSocket != null) {
-            mSocket.off("booking_status_updated");
+        if (mSocket != null && nghePhieuDoi != null) {
+            // Chỉ gỡ listener CỦA MÀN NÀY. Bản cũ gọi off("booking_status_updated")
+            // không kèm listener, xóa luôn listener của CustomerHomeActivity và
+            // BookingAlertManager đăng ký cùng sự kiện (sửa 19/11/2026).
+            mSocket.off("booking_status_updated", nghePhieuDoi);
         }
     }
 
+    /**
+     * Nạp lại danh sách khi có phiếu đổi trạng thái. Không hiện Toast ở đây nữa:
+     * sự kiện phát cho mọi máy, kể cả khi phiếu của khách KHÁC đổi, nên câu
+     * "Lịch hẹn của bạn vừa được cập nhật" thường sai. Phiếu của chính khách đổi
+     * thì CustomerHomeActivity hiện hộp "🔔 Thông báo đặt bàn" nói rõ phiếu nào.
+     */
     private void setupSocketListener() {
         mSocket = com.sinhvien.orderdrinkapp.Utils.SocketManager.getInstance().getSocket();
         if (mSocket == null) return;
 
-        mSocket.on("booking_status_updated", args -> {
-            if (getActivity() == null) return;
-            getActivity().runOnUiThread(() -> {
-                if (!isAdded()) return;
-                taiLaiTuDau();
-                ThongBao.hien(getContext(),
-                        "Lịch hẹn của bạn vừa được cập nhật", Toast.LENGTH_SHORT);
-            });
-        });
+        if (nghePhieuDoi == null) {
+            nghePhieuDoi = args -> {
+                if (getActivity() == null) return;
+                getActivity().runOnUiThread(() -> {
+                    if (!isAdded()) return;
+                    taiLaiTuDau();
+                });
+            };
+        }
+        mSocket.off("booking_status_updated", nghePhieuDoi); // không đăng ký trùng
+        mSocket.on("booking_status_updated", nghePhieuDoi);
     }
 }
